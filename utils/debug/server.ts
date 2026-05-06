@@ -324,11 +324,33 @@ async function maybeSendAlert(entry: MonitoringEntry): Promise<void> {
     return;
   }
 
-  cache[entry.fingerprint] = now;
-  await writeAlertCache(cache);
-
   const recentLogs = await readServerEntries(12);
-  await sendMonitoringAlertEmail(entry, recentLogs);
+  try {
+    const sent = await sendMonitoringAlertEmail(entry, recentLogs);
+    if (!sent) {
+      return;
+    }
+
+    cache[entry.fingerprint] = now;
+    await writeAlertCache(cache);
+  } catch (error) {
+    const normalized = serializeError(error);
+    await logServerEntry({
+      kind: 'error',
+      level: 'warn',
+      message: `Monitoring alert delivery failed: ${normalized.message}`,
+      stack: normalized.stack,
+      route: 'monitoring-alert',
+      endpoint: 'sendgrid',
+      requestId: entry.requestId,
+      context: {
+        alertFingerprint: entry.fingerprint,
+        originalMessage: entry.message,
+      },
+      critical: false,
+      source: 'monitoring-email',
+    });
+  }
 }
 
 async function readAlertCache(): Promise<Record<string, number>> {

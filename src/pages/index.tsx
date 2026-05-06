@@ -1,11 +1,11 @@
 ﻿import Layout from '@/components/Layout';
 import Hero from '@/components/Hero';
-import MerchComingSoon from '@/components/MerchComingSoon';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import about1 from '@/images/content/about1.jpeg';
 import about2 from '@/images/content/about2.jpeg';
+import BookImage from '@/images/content/book.png';
 import about3 from '@/images/photos/J&B-(2 of 3).JPEG';
 import about4 from '@/images/photos/J&B-(3 of 3).JPEG';
 import RokuLogo from '@/images/logos/rokuLogo.png';
@@ -283,14 +283,60 @@ export default function HomePage() {
         </div>
       </section>
       <section id="shop" className="section-padding bg-[#FFF5EE]">
-        <div className="flex flex-col md:flex-row items-center gap-12">
-          <div className="flex-1">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">Gear Up & Give Back</h2>
-            <p className="text-navy/80 mb-6">The next merch drop is in the works. New B3U pieces are coming soon to support the mission and the movement.</p>
-            <Link href="/shop" className="btn-primary">Visit the Shop</Link>
+        <div className="grid gap-10 lg:grid-cols-[1.1fr_minmax(0,1fr)] lg:items-center">
+          <div className="max-w-2xl">
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">Featured release</p>
+            <h2 className="mt-4 text-3xl font-bold md:text-4xl">Order yours NOW - The Big Take Back: What I Left Behind</h2>
+            <p className="mt-5 text-lg text-navy/80">
+              This is for the woman who is tired of shrinking, tired of surviving, and ready to take herself back. Bree Charles writes with honesty, strength, and faith for readers who are ready to heal and move forward.
+            </p>
+            <p className="mt-4 text-navy/75">
+              The Big Take Back: What I Left Behind is a call to reclaim your voice, your confidence, and your power after everything life tried to take from you.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link href="/shop" className="btn-primary">Get the Book</Link>
+              <Link href="/event-gallery" className="btn-outline">See Book Details</Link>
+            </div>
+            <div className="mt-8 flex flex-wrap gap-3 text-sm font-medium text-navy/75">
+              <span className="rounded-full bg-white px-4 py-2 shadow-sm ring-1 ring-black/5">Healing</span>
+              <span className="rounded-full bg-white px-4 py-2 shadow-sm ring-1 ring-black/5">Resilience</span>
+              <span className="rounded-full bg-white px-4 py-2 shadow-sm ring-1 ring-black/5">Taking your power back</span>
+            </div>
           </div>
-          <div className="flex-1 w-full">
-            <MerchComingSoon compact />
+          <div className="overflow-hidden rounded-[2rem] border border-black/10 bg-navy shadow-[0_25px_80px_rgba(11,28,48,0.18)]">
+            <div className="border-b border-white/10 px-5 py-4 text-white">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/70">Now featuring</p>
+              <h3 className="mt-2 text-xl font-bold">The Big Take Back: What I Left Behind</h3>
+            </div>
+            <div className="p-4">
+              <video
+                className="aspect-video w-full rounded-[1.5rem] bg-black object-cover"
+                autoPlay
+                muted
+                loop
+                playsInline
+                controls
+                preload="metadata"
+                poster={BookImage.src}
+              >
+                <source src="/videos/the-big-take-back-promo.mp4" type="video/mp4" />
+                Your browser does not support the promo video.
+              </video>
+            </div>
+            <div className="flex items-center gap-4 px-5 pb-5 text-white/85">
+              <div className="relative h-20 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-white/10">
+                <Image
+                  src={BookImage}
+                  alt="The Big Take Back: What I Left Behind book cover"
+                  fill
+                  className="object-contain p-1"
+                  sizes="64px"
+                />
+              </div>
+              <p className="text-sm leading-relaxed">
+                Step into Bree&apos;s story, and discover a message written to help you rise stronger than what tried to break you.
+              </p>
+            </div>
           </div>
         </div>
       </section>

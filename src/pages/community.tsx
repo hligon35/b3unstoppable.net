@@ -227,11 +227,11 @@ export default function CommunityPage() {
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/80">Update</p>
-              <h2 className="mt-2 text-2xl font-bold">Presales for The Big Take Back: What I Left Behind begin May 5th.</h2>
-              <p className="mt-2 max-w-2xl text-sm text-white/90">Mark your calendar now so you do not miss the first chance to preorder Bree&apos;s new release.</p>
+              <h2 className="mt-2 text-2xl font-bold">The Big Take Back: What I Left Behind is ON SALE NOW.</h2>
+              <p className="mt-2 max-w-2xl text-sm text-white/90">Order Bree&apos;s new release now and share the update with anyone ready to reclaim their voice, confidence, and power.</p>
             </div>
             <div className="rounded-2xl bg-white/15 px-4 py-3 text-sm font-semibold backdrop-blur-sm">
-              Presales open May 5
+              ON SALE NOW
             </div>
           </div>
         </div>

@@ -45,10 +45,10 @@ export default function EventGalleryPage() {
           </div>
 
           <div className="mb-10 rounded-3xl border border-brandOrange/20 bg-gradient-to-r from-brandOrange to-red-600 p-6 text-white shadow-xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/80">Book Presale Alert</p>
-            <h2 className="mt-3 text-2xl font-bold md:text-3xl">The Big Take Back: What I Left Behind presales begin May 5.</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/80">Book Update</p>
+            <h2 className="mt-3 text-2xl font-bold md:text-3xl">The Big Take Back: What I Left Behind is ON SALE NOW.</h2>
             <p className="mt-3 max-w-3xl text-sm text-white/90 md:text-base">
-              Watch this page for updates and share the release date so your community is ready when presales open.
+              Share the news, watch for fresh updates, and point your community to the book now that it is officially available.
             </p>
           </div>
 
@@ -63,7 +63,7 @@ export default function EventGalleryPage() {
                   sizes="(max-width: 768px) 100vw, 50vw"
                 />
                 <div className="absolute inset-0 bg-black/10" />
-                <span className="absolute left-4 top-4 rounded-full bg-brandOrange px-3 py-1 text-xs font-semibold text-white">Coming Soon</span>
+                <span className="absolute left-4 top-4 rounded-full bg-brandOrange px-3 py-1 text-xs font-semibold text-white">ON SALE NOW</span>
               </div>
               <div className="p-6">
                 <h3 className="text-xl font-bold text-navy">The Big Take Back: What I Left Behind</h3>
