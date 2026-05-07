@@ -1,7 +1,7 @@
 import Layout from '@/components/Layout';
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
-import BookImage from '@/images/content/book.png';
+import BookImage from '@/images/shop/bookCover.png';
 import EventFlyer from '@/images/content/flyer.png';
 import { communityEvent, createCommunityEventStructuredData, siteUrl } from '@/lib/communityEvent';
 
@@ -68,7 +68,7 @@ export default function EventGalleryPage() {
               <div className="p-6">
                 <h3 className="text-xl font-bold text-navy">The Big Take Back: What I Left Behind</h3>
                 <p className="mt-3 text-sm text-navy/70">
-                  “The Big Take Back: What I Left Behind” is Bree&apos;s bold guide to reclaiming the parts of yourself life tried to quiet — your voice, your confidence, and your power. It reveals the subtle ways we give ourselves away and shows how to rise back into ownership with intention.
+                  The Big Take Back is Dr. Bree Charles&apos; memoir and method for breaking cycles, healing what was buried, and taking your life back with intention. It moves from raw truth to practical transformation.
                 </p>
               </div>
             </div>

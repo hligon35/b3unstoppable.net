@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import about1 from '@/images/content/about1.jpeg';
 import about2 from '@/images/content/about2.jpeg';
-import BookImage from '@/images/content/book.png';
+import BookImage from '@/images/shop/bookCover.png';
 import about3 from '@/images/photos/J&B-(2 of 3).JPEG';
 import about4 from '@/images/photos/J&B-(3 of 3).JPEG';
 import RokuLogo from '@/images/logos/rokuLogo.png';
@@ -288,10 +288,10 @@ export default function HomePage() {
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">Featured release</p>
             <h2 className="mt-4 text-3xl font-bold md:text-4xl">Order yours NOW - The Big Take Back: What I Left Behind</h2>
             <p className="mt-5 text-lg text-navy/80">
-              This is for the woman who is tired of shrinking, tired of surviving, and ready to take herself back. Bree Charles writes with honesty, strength, and faith for readers who are ready to heal and move forward.
+              This is for the reader who is done surviving on autopilot and ready to reclaim what life tried to take. Dr. Bree Charles writes with honesty, hard-won insight, and practical guidance for healing and forward movement.
             </p>
             <p className="mt-4 text-navy/75">
-              The Big Take Back: What I Left Behind is a call to reclaim your voice, your confidence, and your power after everything life tried to take from you.
+              The Big Take Back: What I Left Behind is more than a memoir. It is a call to break repeating cycles, face what you have been avoiding, and rebuild your life with clarity, confidence, and conviction.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link href="/shop" className="btn-primary">Get the Book</Link>
@@ -334,7 +334,7 @@ export default function HomePage() {
                 />
               </div>
               <p className="text-sm leading-relaxed">
-                Step into Bree&apos;s story, and discover a message written to help you rise stronger than what tried to break you.
+                Step into Bree&apos;s story and discover a message built to help you reclaim your voice, your power, and the life you thought was out of reach.
               </p>
             </div>
           </div>

@@ -1,13 +1,13 @@
 import Layout from '@/components/Layout';
 import Image from 'next/image';
 import Link from 'next/link';
-import BookImage from '@/images/content/book.png';
+import BookImage from '@/images/shop/bookCover.png';
 
 export default function ShopPage() {
   return (
     <Layout
       title="Shop | The Big Take Back | B3U"
-      description="Discover The Big Take Back: What I Left Behind by Bree Charles and explore the message behind the book."
+      description="Discover The Big Take Back: What I Left Behind by Dr. Bree Charles, a memoir and method for breaking cycles, healing deeply, and reclaiming your life."
     >
       <section className="section-padding bg-[linear-gradient(180deg,#fff_0%,#fff4eb_100%)]">
         <div className="mx-auto max-w-6xl">
@@ -15,7 +15,7 @@ export default function ShopPage() {
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">Featured book</p>
             <h1 className="mt-4 text-4xl font-bold md:text-5xl">The Big Take Back: What I Left Behind</h1>
             <p className="mt-5 text-lg text-navy/80">
-              Bree Charles wrote this book for readers who are ready to stop living beneath what they have survived. It is honest, healing, and built to help you reclaim the parts of yourself you had to leave behind.
+              More than a memoir, this book is a movement and a method. Dr. Bree Charles shares the raw truth of trauma, loss, fear, and survival, then walks readers toward healing, clarity, and the decision to take their lives back.
             </p>
           </div>
 
@@ -39,7 +39,7 @@ export default function ShopPage() {
               <div className="border-t border-white/10 px-6 py-6 text-white">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-white/70">Inside the message</p>
                 <p className="mt-3 max-w-3xl text-sm leading-relaxed text-white/85 md:text-base">
-                  The Big Take Back speaks to anyone who has felt silenced, overlooked, or emptied by life. Bree shares a message of restoration, identity, and courage for the next chapter.
+                  The Big Take Back goes beyond inspiration. It shows you how to break the cycles that kept you stuck, heal what you were conditioned to bury, and reclaim your voice, your power, and your direction.
                 </p>
               </div>
             </div>
@@ -58,7 +58,7 @@ export default function ShopPage() {
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brandOrange">Take the next step</p>
                 <h2 className="mt-3 text-2xl font-bold text-navy">Order your copy now</h2>
                 <p className="mt-3 text-sm leading-relaxed text-navy/75">
-                  The Big Take Back is ON SALE NOW. Explore the latest book updates, weekly encouragement, and ways to stay connected to Bree&apos;s message.
+                  The Big Take Back is ON SALE NOW. Follow the latest updates, stay connected to the message, and keep building the kind of freedom that changes what comes next.
                 </p>
                 <div className="mt-6 flex flex-col gap-3">
                   <Link href="/event-gallery" className="btn-primary text-center">See Book Updates</Link>
