@@ -1,9 +1,41 @@
 import Layout from '@/components/Layout';
 import Image from 'next/image';
 import Link from 'next/link';
+import Script from 'next/script';
+import { useEffect } from 'react';
 import BookImage from '@/images/shop/bookCover.png';
 
+const PAYPAL_CONTAINER_ID = 'paypal-container-UCC2NQWJMK3TU';
+const PAYPAL_HOSTED_BUTTON_ID = 'UCC2NQWJMK3TU';
+
+type PayPalWindow = Window & {
+  paypal?: {
+    HostedButtons: (options: { hostedButtonId: string }) => {
+      render: (selector: string) => void;
+    };
+  };
+};
+
 export default function ShopPage() {
+  const renderPayPalButton = () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const paypal = (window as PayPalWindow).paypal;
+    const container = document.getElementById(PAYPAL_CONTAINER_ID);
+
+    if (!paypal || !container || container.childElementCount > 0) {
+      return;
+    }
+
+    paypal.HostedButtons({ hostedButtonId: PAYPAL_HOSTED_BUTTON_ID }).render(`#${PAYPAL_CONTAINER_ID}`);
+  };
+
+  useEffect(() => {
+    renderPayPalButton();
+  }, []);
+
   return (
     <Layout
       title="Shop | The Big Take Back | B3U"
@@ -45,23 +77,16 @@ export default function ShopPage() {
             </div>
 
             <div className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-lg">
-              <div className="relative mx-auto h-[300px] w-full max-w-[220px] overflow-hidden rounded-[1.5rem] bg-[#FFF5EE]">
-                <Image
-                  src={BookImage}
-                  alt="The Big Take Back: What I Left Behind book cover"
-                  fill
-                  className="object-contain p-4"
-                  sizes="220px"
-                />
-              </div>
               <div className="mt-6 text-center lg:text-left">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brandOrange">Take the next step</p>
                 <h2 className="mt-3 text-2xl font-bold text-navy">Order your copy now</h2>
                 <p className="mt-3 text-sm leading-relaxed text-navy/75">
                   The Big Take Back is ON SALE NOW. Follow the latest updates, stay connected to the message, and keep building the kind of freedom that changes what comes next.
                 </p>
+                <div className="mt-6 min-h-[56px]">
+                  <div id={PAYPAL_CONTAINER_ID} />
+                </div>
                 <div className="mt-6 flex flex-col gap-3">
-                  <Link href="/event-gallery" className="btn-primary text-center">See Book Updates</Link>
                   <Link href="/#newsletter" className="btn-outline text-center">Join The Take Back Weekly</Link>
                   <Link href="/contact" className="text-sm font-semibold text-brandOrange transition hover:text-brandOrange-dark">Contact B3U about the book</Link>
                 </div>
@@ -70,6 +95,12 @@ export default function ShopPage() {
           </div>
         </div>
       </section>
+
+      <Script
+        src="https://www.paypal.com/sdk/js?client-id=BAAPBO-Uvexziam7VLQ2yKMSsR2wCpPVT3FB5A_JCB5ENRZakcAlTvZiI-TV2iZz-hLGg62MA9VxbS77jQ&components=hosted-buttons&enable-funding=venmo&currency=USD"
+        strategy="afterInteractive"
+        onLoad={renderPayPalButton}
+      />
     </Layout>
   );
 }
