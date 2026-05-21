@@ -40,13 +40,12 @@ export default function Navbar() {
   const textClass = scrolled || !isHomePage ? 'text-navy' : 'text-white';
   
   return (
-    <header className={`fixed top-0 left-0 w-full z-50 transition backdrop-blur ${bgClass}`}>
+    <header className={`fixed top-0 left-0 w-full z-[200] transition backdrop-blur ${bgClass}`}>
       <Link
         href="/event-gallery"
         className="block border-b border-white/10 bg-navy px-4 py-3 text-center text-white transition hover:bg-navy/95 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
         aria-label="View The Big Take Back on-sale update"
       >
-        <span className="block text-[11px] font-semibold uppercase tracking-[0.22em] text-white/75">Book Update</span>
         <span className="hidden text-sm font-bold md:block">The Big Take Back: What I Left Behind is ON SALE NOW</span>
         <span className="text-sm font-bold md:hidden">ON SALE NOW</span>
       </Link>

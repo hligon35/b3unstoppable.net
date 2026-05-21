@@ -5,8 +5,18 @@ import Script from 'next/script';
 import { useEffect } from 'react';
 import BookImage from '@/images/shop/bookCover.png';
 
-const PAYPAL_CONTAINER_ID = 'paypal-container-UCC2NQWJMK3TU';
-const PAYPAL_HOSTED_BUTTON_ID = 'UCC2NQWJMK3TU';
+const PAYPAL_BUTTONS = [
+  {
+    label: 'Paperback',
+    containerId: 'paypal-container-RDELK856FXAPN',
+    hostedButtonId: 'RDELK856FXAPN',
+  },
+  {
+    label: 'Hardcover',
+    containerId: 'paypal-container-XMM68ZBM73KMG',
+    hostedButtonId: 'XMM68ZBM73KMG',
+  },
+] as const;
 
 type PayPalWindow = Window & {
   paypal?: {
@@ -23,13 +33,19 @@ export default function ShopPage() {
     }
 
     const paypal = (window as PayPalWindow).paypal;
-    const container = document.getElementById(PAYPAL_CONTAINER_ID);
-
-    if (!paypal || !container || container.childElementCount > 0) {
+    if (!paypal) {
       return;
     }
 
-    paypal.HostedButtons({ hostedButtonId: PAYPAL_HOSTED_BUTTON_ID }).render(`#${PAYPAL_CONTAINER_ID}`);
+    PAYPAL_BUTTONS.forEach(({ containerId, hostedButtonId }) => {
+      const container = document.getElementById(containerId);
+
+      if (!container || container.childElementCount > 0) {
+        return;
+      }
+
+      paypal.HostedButtons({ hostedButtonId }).render(`#${containerId}`);
+    });
   };
 
   useEffect(() => {
@@ -43,15 +59,18 @@ export default function ShopPage() {
     >
       <section className="section-padding bg-[linear-gradient(180deg,#fff_0%,#fff4eb_100%)]">
         <div className="mx-auto max-w-6xl">
-          <div className="mb-10 max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">Featured book</p>
-            <h1 className="mt-4 text-4xl font-bold md:text-5xl">The Big Take Back: What I Left Behind</h1>
-            <p className="mt-5 text-lg text-navy/80">
-              More than a memoir, this book is a movement and a method. Dr. Bree Charles shares the raw truth of trauma, loss, fear, and survival, then walks readers toward healing, clarity, and the decision to take their lives back.
-            </p>
-          </div>
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.2fr)] lg:items-center">
+            <div className="max-w-2xl">
+              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">Featured book</p>
+              <h1 className="mt-4 text-4xl font-bold md:text-5xl">The Big Take Back: What I Left Behind</h1>
+              <p className="mt-5 text-lg text-navy/80">
+                More than a memoir, this book is a movement and a method. Dr. Bree Charles shares the raw truth of trauma, loss, fear, and survival, then walks readers toward healing, clarity, and the decision to take their lives back.
+              </p>
+              <p className="mt-5 text-base leading-relaxed text-navy/70 md:text-lg">
+                This is for the reader who is ready to stop living on survival mode, confront what has been carried too long, and rebuild life with clarity, confidence, and conviction.
+              </p>
+            </div>
 
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_420px] lg:items-start">
             <div className="overflow-hidden rounded-[2rem] border border-black/10 bg-navy shadow-[0_25px_80px_rgba(11,28,48,0.18)]">
               <div className="p-4 md:p-5">
                 <video
@@ -75,22 +94,29 @@ export default function ShopPage() {
                 </p>
               </div>
             </div>
+          </div>
 
-            <div className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-lg">
-              <div className="mt-6 text-center lg:text-left">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brandOrange">Take the next step</p>
-                <h2 className="mt-3 text-2xl font-bold text-navy">Order your copy now</h2>
-                <p className="mt-3 text-sm leading-relaxed text-navy/75">
-                  The Big Take Back is ON SALE NOW. Follow the latest updates, stay connected to the message, and keep building the kind of freedom that changes what comes next.
-                </p>
-                <div className="mt-6 min-h-[56px]">
-                  <div id={PAYPAL_CONTAINER_ID} />
+          <div className="mx-auto mt-10 max-w-5xl rounded-[2rem] border border-black/10 bg-white p-6 shadow-lg md:p-8">
+            <div className="text-center">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brandOrange">Choose your format</p>
+              <h2 className="mt-3 text-2xl font-bold text-navy">Order your copy now</h2>
+              <p className="mt-3 text-sm leading-relaxed text-navy/75">
+                The Big Take Back is ON SALE NOW. Select the edition that fits your shelf and keep building the kind of freedom that changes what comes next.
+              </p>
+            </div>
+            <div className="mt-6 grid gap-5 md:grid-cols-2 md:items-start">
+              {PAYPAL_BUTTONS.map(({ label, containerId }) => (
+                <div key={containerId} className="rounded-2xl border border-black/10 bg-[#fff8f3] p-4 text-center">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-navy/60">{label}</p>
+                  <div className="mt-3 min-h-[56px]">
+                    <div id={containerId} />
+                  </div>
                 </div>
-                <div className="mt-6 flex flex-col gap-3">
-                  <Link href="/#newsletter" className="btn-outline text-center">Join The Take Back Weekly</Link>
-                  <Link href="/contact" className="text-sm font-semibold text-brandOrange transition hover:text-brandOrange-dark">Contact B3U about the book</Link>
-                </div>
-              </div>
+              ))}
+            </div>
+            <div className="mt-6 flex flex-col items-center gap-3">
+              <Link href="/#newsletter" className="btn-outline w-full max-w-md text-center">Join The Take Back Weekly</Link>
+              <Link href="/contact" className="text-sm font-semibold text-brandOrange transition hover:text-brandOrange-dark">Contact B3U about the book</Link>
             </div>
           </div>
         </div>
