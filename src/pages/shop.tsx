@@ -57,7 +57,7 @@ export default function ShopPage() {
       title="Shop | The Big Take Back | B3U"
       description="Discover The Big Take Back: What I Left Behind by Dr. Bree Charles, a memoir and method for breaking cycles, healing deeply, and reclaiming your life."
     >
-      <section className="section-padding bg-[linear-gradient(180deg,#fff_0%,#fff4eb_100%)]">
+      <section className="section-padding relative z-0 bg-[linear-gradient(180deg,#fff_0%,#fff4eb_100%)]">
         <div className="mx-auto max-w-6xl">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.2fr)] lg:items-center">
             <div className="max-w-2xl">
@@ -71,7 +71,7 @@ export default function ShopPage() {
               </p>
             </div>
 
-            <div className="overflow-hidden rounded-[2rem] border border-black/10 bg-navy shadow-[0_25px_80px_rgba(11,28,48,0.18)]">
+            <div className="relative z-0 overflow-hidden rounded-[2rem] border border-black/10 bg-navy shadow-[0_25px_80px_rgba(11,28,48,0.18)]">
               <div className="p-4 md:p-5">
                 <video
                   className="aspect-video w-full rounded-[1.5rem] bg-black object-cover"
@@ -96,7 +96,7 @@ export default function ShopPage() {
             </div>
           </div>
 
-          <div className="mx-auto mt-10 max-w-5xl rounded-[2rem] border border-black/10 bg-white p-6 shadow-lg md:p-8">
+          <div className="relative z-0 mx-auto mt-10 max-w-5xl rounded-[2rem] border border-black/10 bg-white p-6 shadow-lg md:p-8">
             <div className="text-center">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brandOrange">Choose your format</p>
               <h2 className="mt-3 text-2xl font-bold text-navy">Order your copy now</h2>
@@ -106,7 +106,7 @@ export default function ShopPage() {
             </div>
             <div className="mt-6 grid gap-5 md:grid-cols-2 md:items-start">
               {PAYPAL_BUTTONS.map(({ label, containerId }) => (
-                <div key={containerId} className="rounded-2xl border border-black/10 bg-[#fff8f3] p-4 text-center">
+                <div key={containerId} className="relative z-0 rounded-2xl border border-black/10 bg-[#fff8f3] p-4 text-center">
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-navy/60">{label}</p>
                   <div className="mt-3 min-h-[56px]">
                     <div id={containerId} />
