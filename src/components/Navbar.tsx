@@ -71,7 +71,7 @@ export default function Navbar() {
             </div>
           </Link>
 
-          <ul className="hidden md:flex flex-1 flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm font-semibold lg:gap-x-5 lg:text-base xl:gap-x-8">
+          <ul className="max-md:hidden md:flex flex-1 flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm font-semibold lg:gap-x-5 lg:text-base xl:gap-x-8">
             {navItems.map(item => (
               <li key={item.href}>
                 <Link
@@ -88,7 +88,7 @@ export default function Navbar() {
             ))}
           </ul>
 
-          <div className="hidden md:flex items-center">
+          <div className="max-md:hidden md:flex items-center">
             <a
               href={communityEvent.url}
               target="_blank"

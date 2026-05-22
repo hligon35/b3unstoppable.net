@@ -27,9 +27,15 @@ export async function logServerEntry(input: ServerEntryInput): Promise<Monitorin
 
 export async function persistServerEntry(entry: MonitoringEntry): Promise<void> {
   const config = getDebugConfig('server');
-  await fs.mkdir(LOG_DIRECTORY, { recursive: true });
-  await fs.appendFile(LOG_FILE, `${JSON.stringify(entry)}\n`, 'utf8');
-  await rotateServerLog(config.maxServerEntries, config.maxLogFileBytes);
+  try {
+    await fs.mkdir(LOG_DIRECTORY, { recursive: true });
+    await fs.appendFile(LOG_FILE, `${JSON.stringify(entry)}\n`, 'utf8');
+    await rotateServerLog(config.maxServerEntries, config.maxLogFileBytes);
+  } catch (error) {
+    if (config.debug) {
+      console.warn('Monitoring log persistence skipped:', error);
+    }
+  }
 }
 
 export async function readServerEntries(limit = 250): Promise<MonitoringEntry[]> {
