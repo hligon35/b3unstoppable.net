@@ -24,7 +24,6 @@
     "@stripe/stripe-js": "^2.4.0",
     "@types/better-sqlite3": "^7.6.13",
     "@vercel/analytics": "^1.6.1",
-    "baseline-browser-mapping": "^2.9.19",
     "better-sqlite3": "^12.6.2",
     "framer-motion": "^11.0.8",
     "gsap": "^3.12.5",
