@@ -66,7 +66,7 @@ export default function ContactPage() {
   return (
     <Layout
       title="Contact | Richmond, VA & Surrounding Areas | B3U"
-      description="Contact B3U and Bree Charles for speaking, collaboration, and community opportunities in Richmond, VA and surrounding Central Virginia areas."
+      description="Contact B3U and Dr. Bree Charles for speaking, collaboration, and community opportunities in Richmond, VA and surrounding Central Virginia areas."
     >
       <section className="section-padding bg-gradient-to-br from-brandBlue-light to-white">
         <div className="max-w-4xl mx-auto">

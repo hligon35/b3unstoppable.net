@@ -69,14 +69,14 @@ export default function HomePage() {
   return (
     <Layout
       title="B3U — Burn, Break, Become Unstoppable | Richmond, VA"
-      description="Empowerment, speaking, and community with Bree Charles. B3U (Burn, Break, Become Unstoppable) is based in Richmond, VA and serves surrounding areas across Central Virginia."
+      description="Empowerment, speaking, and community with Dr. Bree Charles. B3U (Burn, Break, Become Unstoppable) is based in Richmond, VA and serves surrounding areas across Central Virginia."
       structuredData={eventStructuredData}
     >
       <Hero />
       <section id="about" className="section-padding bg-white">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">About <span className="text-brandOrange">Bree Charles</span></h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">About <span className="text-brandOrange">Dr. Bree Charles</span></h2>
             <p className="text-navy/80 leading-relaxed mb-6">
               Transformational speaker, author, U.S. Army veteran, and creator of the B3U Podcast. Bree has turned her pain into purpose, proving that brokenness doesn't mean defeat  it means rebirth.
             </p>

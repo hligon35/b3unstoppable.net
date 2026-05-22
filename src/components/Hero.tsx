@@ -11,7 +11,7 @@ export default function Hero() {
       <div className="absolute inset-0">
         <Image
           src={HeroBg}
-          alt="Bree Charles hero background"
+          alt="Dr. Bree Charles hero background"
           fill
           priority
           className="object-cover object-[center_10%] opacity-30"
@@ -58,7 +58,7 @@ export default function Hero() {
           transition={{ delay: 0.4, duration: 0.8 }}
           className="mt-6 text-lg text-white/90 font-semibold"
         >
-          Bree Charles is now available for speaking engagements, workshops, and events. <Link href="/contact" className="underline text-brandOrange">Inquire about booking</Link> today!
+          Dr. Bree Charles is now available for speaking engagements, workshops, and events. <Link href="/contact" className="underline text-brandOrange">Inquire about booking</Link> today!
         </motion.div>
         <motion.div
           initial={{ opacity: 0, y: 40 }}

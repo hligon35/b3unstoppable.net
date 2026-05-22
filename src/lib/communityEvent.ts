@@ -52,7 +52,7 @@ export function createCommunityEventStructuredData(params: {
     },
     performer: {
       '@type': 'Person',
-      name: 'Bree Charles',
+      name: 'Dr. Bree Charles',
       url: siteUrl,
     },
     offers: {

@@ -31,7 +31,7 @@ export default function EventGalleryPage() {
   return (
     <Layout
       title="Events | B3U"
-      description="Explore Bree Charles event highlights, book updates, and the latest Prosper on Purpose Brunch event details."
+      description="Explore Dr. Bree Charles event highlights, book updates, and the latest Prosper on Purpose Brunch event details."
       structuredData={eventStructuredData}
     >
       <section className="section-padding bg-white">

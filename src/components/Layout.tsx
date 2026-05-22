@@ -16,7 +16,7 @@ const SITE_URL = 'https://www.b3unstoppable.net';
 
 const DEFAULT_TITLE = `${SITE_NAME} | Richmond, VA`;
 const DEFAULT_DESCRIPTION =
-  'B3U (Burn, Break, Become Unstoppable) with Bree Charles — empowerment, community, and speaking in Richmond, VA and surrounding areas across Central Virginia.';
+  'B3U (Burn, Break, Become Unstoppable) with Dr. Bree Charles — empowerment, community, and speaking in Richmond, VA and surrounding areas across Central Virginia.';
 
 const OG_IMAGE_URL = `${SITE_URL}/og.png`;
 
@@ -38,7 +38,7 @@ export default function Layout({ children, title, description, structuredData }:
     return {
       '@context': 'https://schema.org',
       '@type': 'Person',
-      name: 'Bree Charles',
+      name: 'Dr. Bree Charles',
       url: SITE_URL,
       worksFor: {
         '@type': 'Organization',

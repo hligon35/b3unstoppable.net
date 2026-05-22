@@ -7,14 +7,14 @@ import aboutBree from '@/images/content/aboutBree.jpeg';
 export default function AboutPage() {
   return (
     <Layout
-      title="About Bree Charles | Richmond, VA Speaker & Community Builder"
-      description="Meet Bree Charles — transformational speaker, author, and creator of B3U. Based in Richmond, VA and serving surrounding Central Virginia communities."
+      title="About Dr. Bree Charles | Richmond, VA Speaker & Community Builder"
+      description="Meet Dr. Bree Charles — transformational speaker, author, and creator of B3U. Based in Richmond, VA and serving surrounding Central Virginia communities."
     >
-      {/* Meet Bree Charles Section */}
+      {/* Meet Dr. Bree Charles Section */}
       <section className="section-padding bg-white">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold mb-6 text-center">
-            Meet <span className="text-brandOrange">Bree Charles</span>
+            Meet <span className="text-brandOrange">Dr. Bree Charles</span>
           </h1>
           <p className="text-xl text-center text-navy/80 mb-12 italic">
             Breaking Cycles. Building Legacies.
@@ -23,7 +23,7 @@ export default function AboutPage() {
           <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
             <div className="order-1 md:order-2">
               <p className="text-lg text-navy/80 leading-relaxed mb-6">
-                Bree Charles is a transformational speaker, author, U.S. Army veteran, and creator of the B3U Podcast – Burn, Break, Become Unstoppable. Her story is one of courage, faith, and relentless resilience.
+                Dr. Bree Charles is a transformational speaker, author, U.S. Army veteran, and creator of the B3U Podcast – Burn, Break, Become Unstoppable. Her story is one of courage, faith, and relentless resilience.
               </p>
               <p className="text-lg text-navy/80 leading-relaxed mb-6">
                 Having overcome childhood trauma, sexual violence, and a twelve-year abusive marriage, Bree has turned her pain into purpose. She stands as living proof that brokenness doesn't mean defeat — it means rebirth.
@@ -35,7 +35,7 @@ export default function AboutPage() {
             <div className="relative order-2 md:order-1">
               <Image
                 src={aboutBree}
-                alt="Bree Charles"
+                alt="Dr. Bree Charles"
                 className="w-full h-auto rounded-3xl shadow-2xl"
                 sizes="(max-width: 768px) 100vw, 50vw"
                 priority
@@ -85,7 +85,7 @@ export default function AboutPage() {
               Every time I share my story, I set somebody else free.
               <span className="align-top text-white">"</span>
             </blockquote>
-            <cite className="text-lg text-brandOrange font-semibold">— Bree Charles</cite>
+            <cite className="text-lg text-brandOrange font-semibold">— Dr. Bree Charles</cite>
           </div>
         </div>
       </section>

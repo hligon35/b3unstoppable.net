@@ -58,7 +58,7 @@ export default function Footer() {
             </div>
           </div>
           <div className="mb-4">
-            <p className="text-lg font-script text-brandOrange mb-2">Bree Charles</p>
+            <p className="text-lg font-script text-brandOrange mb-2">Dr. Bree Charles</p>
             <p className="text-sm text-white/70 italic">Breaking Cycles. Building Legacies.</p>
           </div>
           <p className="text-sm text-white/70 max-w-xs">Burn, Break, Become Unstoppable. Transforming pain into purpose through authentic storytelling and community.</p>

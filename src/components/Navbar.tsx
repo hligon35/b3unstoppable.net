@@ -59,21 +59,21 @@ export default function Navbar() {
         <span className="hidden md:inline">{communityEvent.shortName} • {communityEvent.scheduleLabel} • {communityEvent.venueName}, {communityEvent.cityStateZip} • Register on Eventbrite</span>
         <span className="md:hidden">{communityEvent.shortName} • Register Now</span>
       </a>
-      <nav className={`max-w-7xl mx-auto px-6 py-2 md:px-10 md:py-3 ${textClass}`}>
-        <div className="flex items-center justify-between gap-4 md:gap-5 lg:gap-8">
+      <nav className={`max-w-7xl mx-auto px-4 py-2 sm:px-6 md:px-10 md:py-3 ${textClass}`}>
+        <div className="flex items-center justify-between gap-3 sm:gap-4 md:gap-5 lg:gap-8">
           <Link href="/" className={`flex items-center font-display text-2xl tracking-wide ${textClass}`}>
-            <div className="relative h-18 w-18 md:h-20 md:w-20 lg:h-24 lg:w-24">
+            <div className="relative h-16 w-16 sm:h-18 sm:w-18 md:h-20 md:w-20 lg:h-24 lg:w-24">
               <Image 
                 src={B3ULogo} 
                 alt="B3U Logo"
                 fill
-                sizes="(max-width: 768px) 72px, (max-width: 1024px) 80px, 96px"
+                sizes="(max-width: 640px) 64px, (max-width: 768px) 72px, (max-width: 1024px) 80px, 96px"
                 className="object-contain"
               />
             </div>
           </Link>
 
-          <ul className="hidden md:flex flex-1 flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm font-semibold lg:gap-x-5 lg:text-base xl:gap-x-8">
+          <ul className="hidden sm:flex flex-1 flex-wrap items-center justify-center gap-x-3 gap-y-2 text-sm font-semibold md:gap-x-4 lg:gap-x-5 lg:text-base xl:gap-x-8">
             {navItems.map(item => (
               <li key={item.href}>
                 <Link
@@ -90,19 +90,19 @@ export default function Navbar() {
             ))}
           </ul>
 
-          <div className="hidden md:flex items-center">
+          <div className="hidden sm:flex items-center">
             <a
               href={communityEvent.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-primary px-4 py-2 text-sm lg:px-5 lg:py-2.5"
+              className="btn-primary px-3 py-2 text-sm md:px-4 lg:px-5 lg:py-2.5"
               aria-label={`Register for ${communityEvent.name} on Eventbrite`}
             >
               Reserve Your Seat
             </a>
           </div>
 
-          <div className="flex items-center gap-3 md:hidden">
+          <div className="flex items-center gap-3 sm:hidden">
             <button 
               className={`px-4 py-2 rounded-md font-semibold text-sm transition-colors ${
                 scrolled || !isHomePage 
@@ -126,7 +126,7 @@ export default function Navbar() {
 
       {/* Mobile menu dropdown */}
       {mobileMenuOpen && (
-        <div className="bg-white shadow-lg border-t md:hidden">
+        <div className="bg-white shadow-lg border-t sm:hidden">
           <nav className="container mx-auto px-4 py-4">
             <a
               href={communityEvent.url}

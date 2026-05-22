@@ -36,8 +36,8 @@ const testimonials = [
 export default function MasterclassPage() {
   return (
     <Layout
-      title="Free Masterclass with Bree Charles | Unbroken: Burn, Break & Become Unstoppable"
-      description="Join Bree Charles for a free transformational masterclass to break through fear, burn the lies, break old patterns, and become unstoppable in purpose-driven living."
+      title="Free Masterclass with Dr. Bree Charles | Unbroken: Burn, Break & Become Unstoppable"
+      description="Join Dr. Bree Charles for a free transformational masterclass to break through fear, burn the lies, break old patterns, and become unstoppable in purpose-driven living."
     >
       {/* Hero */}
       <section className="relative overflow-hidden gradient-hero text-white">
@@ -213,7 +213,7 @@ export default function MasterclassPage() {
                 <div className="rounded-2xl overflow-hidden border border-black/5 shadow-lg">
                   <Image
                     src={aboutBree}
-                    alt="Bree Charles"
+                    alt="Dr. Bree Charles"
                     className="w-full h-auto"
                     sizes="(max-width: 1024px) 100vw, 40vw"
                   />
