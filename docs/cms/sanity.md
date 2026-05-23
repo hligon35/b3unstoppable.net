@@ -31,7 +31,7 @@ Add these variables in Vercel Project Settings and `.env.local`:
 
 Open preview mode with:
 
-`/api/preview?secret=YOUR_SANITY_PREVIEW_SECRET&slug=/`
+`/api/preview?secret=YOUR_SANITY_PREVIEW_SECRET`
 
 Exit preview mode with:
 

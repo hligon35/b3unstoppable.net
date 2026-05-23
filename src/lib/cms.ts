@@ -166,7 +166,7 @@ export const fallbackHomePageContent: HomePageContent = {
   about: {
     title: 'About Dr. Bree Charles',
     descriptionPrimary:
-      "Transformational speaker, author, U.S. Army veteran, and creator of the B3U Podcast. Bree has turned her pain into purpose, proving that brokenness doesn't mean defeat  it means rebirth.",
+      "Transformational speaker, author, U.S. Army veteran, and creator of the B3U Podcast. Bree has turned her pain into purpose, proving that brokenness doesn't mean defeat it means rebirth.",
     descriptionSecondary:
       'Through courage, faith, and relentless resilience, she helps others burn away fear, break destructive patterns, and become who they were created to be.',
     quote: 'Breaking Cycles. Building Legacies.',
