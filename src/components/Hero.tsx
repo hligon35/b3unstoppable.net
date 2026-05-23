@@ -11,6 +11,7 @@ type HeroProps = {
 
 export default function Hero({ content }: HeroProps) {
   const heroImageSrc = content.backgroundImageUrl?.trim() || HeroBg;
+  const [heroHeadingLead, heroHeadingHighlight] = content.heading.split('—', 2).map((part) => part?.trim() || '');
 
   return (
     <section className="relative flex min-h-[90vh] items-center justify-center overflow-hidden gradient-hero pt-28 md:pt-32">
@@ -32,7 +33,13 @@ export default function Hero({ content }: HeroProps) {
           transition={{ duration: 0.8 }}
           className="text-5xl md:text-6xl font-display font-bold mb-6"
         >
-          {content.heading}
+          {heroHeadingLead}
+          {heroHeadingHighlight ? (
+            <>
+              {' — '}
+              <span className="text-brandOrange">{heroHeadingHighlight}</span>
+            </>
+          ) : null}
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 40 }}
