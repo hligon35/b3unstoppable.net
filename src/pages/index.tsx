@@ -1,7 +1,8 @@
 ﻿import Layout from '@/components/Layout';
 import Hero from '@/components/Hero';
-import Image from 'next/image';
+import Image, { type StaticImageData } from 'next/image';
 import Link from 'next/link';
+import type { GetStaticProps } from 'next';
 import { useEffect, useRef, useState } from 'react';
 import about1 from '@/images/content/about1.jpeg';
 import about2 from '@/images/content/about2.jpeg';
@@ -18,11 +19,21 @@ import Test2 from '@/images/content/test2.JPEG';
 import { useFormsApi } from '@/lib/useFormsApi';
 import { submitFormToEndpoint } from '@/lib/formsSubmit';
 import { communityEvent, createCommunityEventStructuredData, siteUrl } from '@/lib/communityEvent';
+import { fetchHomePageContent, type HomePageContent } from '@/lib/sanity';
 
 const EMAIL_FIELD_MIN = 6;
 const EMAIL_FIELD_MAX = 254;
 
-export default function HomePage() {
+type HomePageProps = {
+  cmsContent: HomePageContent | null;
+};
+
+type AboutImage = {
+  alt: string;
+  src: string | StaticImageData;
+};
+
+export default function HomePage({ cmsContent }: HomePageProps) {
   const [subscribed, setSubscribed] = useState(false);
   const [subPending, setSubPending] = useState(false);
   const newsletterFormRef = useRef<HTMLFormElement | null>(null);
@@ -34,6 +45,28 @@ export default function HomePage() {
   }))[0];
 
   const [subError, setSubError] = useState<string | null>(null);
+  const defaultAboutImages: AboutImage[] = [
+    { src: about1, alt: 'Dr. Bree Charles speaking portrait' },
+    { src: about4, alt: 'Dr. Bree Charles event portrait' },
+    { src: about3, alt: 'Dr. Bree Charles candid portrait' },
+    { src: about2, alt: 'Dr. Bree Charles smiling portrait' },
+  ];
+  const cmsAboutImages = (cmsContent?.aboutImages || []).filter((image): image is { url: string; alt?: string } => Boolean(image?.url)).map((image, index) => ({
+    src: image.url,
+    alt: image.alt?.trim() || `About image ${index + 1}`,
+  }));
+  const aboutImages = cmsAboutImages.length ? cmsAboutImages : defaultAboutImages;
+  const aboutHeading = cmsContent?.aboutHeading || 'About Dr. Bree Charles';
+  const aboutParagraphOne = cmsContent?.aboutParagraphOne || 'Transformational speaker, author, U.S. Army veteran, and creator of the B3U Podcast. Bree has turned her pain into purpose, proving that brokenness doesn\'t mean defeat  it means rebirth.';
+  const aboutParagraphTwo = cmsContent?.aboutParagraphTwo || 'Through courage, faith, and relentless resilience, she helps others burn away fear, break destructive patterns, and become who they were created to be.';
+  const aboutTagline = cmsContent?.aboutTagline || 'Breaking Cycles. Building Legacies.';
+  const aboutCtaLabel = cmsContent?.aboutCtaLabel || 'Learn More About Bree';
+  const aboutCtaHref = cmsContent?.aboutCtaHref || '/about';
+  const shopVideoUrl = cmsContent?.featuredVideo?.url || '/videos/the-big-take-back-promo.mp4';
+  const shopVideoPosterUrl = cmsContent?.featuredVideoPoster?.url || BookImage.src;
+  const newsletterHeading = cmsContent?.newsletterHeading || 'Join "The Take Back Weekly"';
+  const newsletterDescription = cmsContent?.newsletterDescription || 'Get new episodes, inspiration, and community opportunities delivered to your inbox.';
+
   async function handleNewsletterSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (subPending) return; // guard against double submissions
@@ -76,22 +109,18 @@ export default function HomePage() {
       <section id="about" className="section-padding bg-white">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">About <span className="text-brandOrange">Dr. Bree Charles</span></h2>
-            <p className="text-navy/80 leading-relaxed mb-6">
-              Transformational speaker, author, U.S. Army veteran, and creator of the B3U Podcast. Bree has turned her pain into purpose, proving that brokenness doesn't mean defeat  it means rebirth.
-            </p>
-            <p className="text-navy/80 leading-relaxed mb-6">
-              Through courage, faith, and relentless resilience, she helps others burn away fear, break destructive patterns, and become who they were created to be.
-            </p>
-            <p className="text-brandOrange font-semibold mb-6 italic">Breaking Cycles. Building Legacies.</p>
-            <Link href="/about" className="btn-outline">Learn More About Bree</Link>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">{aboutHeading}</h2>
+            <p className="text-navy/80 leading-relaxed mb-6">{aboutParagraphOne}</p>
+            <p className="text-navy/80 leading-relaxed mb-6">{aboutParagraphTwo}</p>
+            <p className="text-brandOrange font-semibold mb-6 italic">{aboutTagline}</p>
+            <Link href={aboutCtaHref} className="btn-outline">{aboutCtaLabel}</Link>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            {[about1, about4, about3, about2].map((img, i) => (
+            {aboutImages.map((img, i) => (
               <Image
                 key={i}
-                src={img}
-                alt={`Highlight image ${i + 1}`}
+                src={img.src}
+                alt={img.alt}
                 width={800}
                 height={800}
                 className={`w-full aspect-square rounded-3xl object-cover ${i === 2 ? 'object-top' : 'object-center'}`}
@@ -317,9 +346,9 @@ export default function HomePage() {
                 playsInline
                 controls
                 preload="metadata"
-                poster={BookImage.src}
+                poster={shopVideoPosterUrl}
               >
-                <source src="/videos/the-big-take-back-promo.mp4" type="video/mp4" />
+                <source src={shopVideoUrl} type="video/mp4" />
                 Your browser does not support the promo video.
               </video>
             </div>
@@ -342,8 +371,8 @@ export default function HomePage() {
       </section>
       <section id="newsletter" className="section-padding bg-[#F4F8FB]">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Join "The Take Back Weekly"</h2>
-          <p className="text-navy/70 mb-6">Get new episodes, inspiration, and community opportunities delivered to your inbox.</p>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">{newsletterHeading}</h2>
+          <p className="text-navy/70 mb-6">{newsletterDescription}</p>
           <form
             className="flex flex-col sm:flex-row gap-4 justify-center"
             onSubmit={handleNewsletterSubmit}
@@ -383,6 +412,12 @@ export default function HomePage() {
   );
 }
 
-export async function getStaticProps() {
-  return { props: {} };
-}
+export const getStaticProps: GetStaticProps<HomePageProps> = async ({ preview = false }) => {
+  const cmsContent = await fetchHomePageContent({ preview });
+  return {
+    props: {
+      cmsContent,
+    },
+    revalidate: 60,
+  };
+};

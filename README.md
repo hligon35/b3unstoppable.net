@@ -62,16 +62,28 @@ SENDGRID_FROM_EMAIL=info@b3unstoppable.net
 SENDGRID_FROM_NAME=B3U
 SENDGRID_REPLY_TO=info@b3unstoppable.net
 SENDGRID_TO_EMAIL=info@b3unstoppable.net
+SANITY_PROJECT_ID=your-project-id
+SANITY_DATASET=production
+SANITY_API_VERSION=2026-01-01
+SANITY_API_READ_TOKEN=sanity-read-token-for-preview
+SANITY_PREVIEW_SECRET=any-long-random-string
+SANITY_REVALIDATE_SECRET=any-long-random-string
 ```
 
 ## Vercel Deployment
 - Deploy this repo to Vercel as a standard Next.js project.
 - Connect Vercel to the `main` branch so every push deploys automatically.
 - The site now uses the Next API route at `src/pages/api/forms/[[...path]].ts` for SendGrid-first form handling.
+- The homepage now supports Sanity-powered dynamic content via `@sanity/client` in `src/lib/sanity.ts`.
+- Preview mode endpoint: `/api/preview?secret=<SANITY_PREVIEW_SECRET>&slug=/`
+- Exit preview endpoint: `/api/exit-preview`
+- Revalidation webhook endpoint: `POST /api/revalidate` with header `x-vercel-reval-key: <SANITY_REVALIDATE_SECRET>`
 - Google Apps Script remains the persistence layer and fallback mailer. Story submissions still rely on it for moderation links and the approved-story feed.
 - Vercel Analytics is enabled in `src/pages/_app.tsx` through `@vercel/analytics/react`.
 - Cloudflare Web Analytics can run alongside Vercel Analytics by setting `NEXT_PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN`.
 - Required Vercel env vars: `NEXT_PUBLIC_FORMS_API`, `NEXT_PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN`, `FORMS_BACKUP_URL`, `FORMS_SIGNING_SECRET`, `SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL`, `SENDGRID_FROM_NAME`, `SENDGRID_REPLY_TO`, `SENDGRID_TO_EMAIL`.
+- Required Sanity env vars for Vercel: `SANITY_PROJECT_ID`, `SANITY_DATASET`, `SANITY_API_VERSION`, `SANITY_PREVIEW_SECRET`, `SANITY_REVALIDATE_SECRET`.
+- Optional Sanity env var for previewing drafts: `SANITY_API_READ_TOKEN`.
 - Optional weekly-report analytics merge vars: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_TAG`, `CLOUDFLARE_ANALYTICS_TOKEN`.
 - Optional Vercel env var: `SENDGRID_MARKETING_LIST_IDS` as a comma-separated list of SendGrid Marketing list IDs. Newsletter signups are upserted into SendGrid Marketing Contacts and attached to those lists when provided.
 - GitHub Pages deployment has been removed from this repo. If the site is down, check Vercel project status and domain assignment first.
@@ -89,6 +101,24 @@ SENDGRID_TO_EMAIL=info@b3unstoppable.net
 
 ## Code Organization
 ```
+
+## Sanity CMS Setup (client editing)
+- Sanity Studio is hosted by Sanity.io (recommended) and used as the admin UI for clients.
+- Schema files for this project are in `sanity/schemaTypes/`.
+- Copy these schema files into your Sanity Studio project and register `schemaTypes` in Studio config.
+- Create one `homePage` document in Studio and publish it to drive:
+  - About section text + CTA
+  - About images
+  - Featured video + poster media
+  - Newsletter heading + description
+- Client account setup:
+  1. Sanity project dashboard → **Members**.
+  2. Invite client users with **Editor** role.
+  3. Share Studio URL and editing flow guide in `sanity/README.md`.
+- Configure a Sanity webhook to `https://<your-vercel-domain>/api/revalidate`:
+  - HTTP method: `POST`
+  - Header: `x-vercel-reval-key: <SANITY_REVALIDATE_SECRET>`
+  - JSON body example: `{ "paths": ["/"] }`
 src/
   components/  # UI building blocks
   pages/       # Route pages

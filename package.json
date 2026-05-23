@@ -21,6 +21,7 @@
     "@cloudflare/workers-types": "^4.20260124.0",
     "@headlessui/react": "^1.7.18",
     "@heroicons/react": "^2.1.5",
+    "@sanity/client": "^7.22.0",
     "@stripe/stripe-js": "^2.4.0",
     "@types/better-sqlite3": "^7.6.13",
     "@vercel/analytics": "^1.6.1",
