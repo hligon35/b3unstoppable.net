@@ -58,8 +58,9 @@ export default function HomePage({ cmsContent }: HomePageProps) {
     src: image.url,
     alt: image.alt?.trim() || `About image ${index + 1}`,
   }));
-  const aboutImages = cmsAboutImages.length ? cmsAboutImages : defaultAboutImages;
-  const aboutHeading = cmsContent?.aboutHeading || 'About Dr. Bree Charles';
+  const aboutImages = defaultAboutImages.map((defaultImage, index) => cmsAboutImages[index] ?? defaultImage);
+  const aboutHeading = cmsContent?.aboutHeading?.trim() || 'About Dr. Bree Charles';
+  const styledAboutHeadingName = aboutHeading.match(/^About\s+(.+)$/i)?.[1]?.trim();
   const aboutParagraphOne = cmsContent?.aboutParagraphOne || 'Transformational speaker, author, U.S. Army veteran, and creator of the B3U Podcast. Bree has turned her pain into purpose, proving that brokenness doesn\'t mean defeat it means rebirth.';
   const aboutParagraphTwo = cmsContent?.aboutParagraphTwo || 'Through courage, faith, and relentless resilience, she helps others burn away fear, break destructive patterns, and become who they were created to be.';
   const aboutTagline = cmsContent?.aboutTagline || 'Breaking Cycles. Building Legacies.';
@@ -112,7 +113,13 @@ export default function HomePage({ cmsContent }: HomePageProps) {
       <section id="about" className="section-padding bg-white">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">{aboutHeading}</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">
+              {styledAboutHeadingName ? (
+                <>
+                  About <span className="text-brandOrange">{styledAboutHeadingName}</span>
+                </>
+              ) : aboutHeading}
+            </h2>
             <p className="text-navy/80 leading-relaxed mb-6">{aboutParagraphOne}</p>
             <p className="text-navy/80 leading-relaxed mb-6">{aboutParagraphTwo}</p>
             <p className="text-brandOrange font-semibold mb-6 italic">{aboutTagline}</p>

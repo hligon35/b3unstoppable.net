@@ -7,7 +7,13 @@ export const homePage = {
       name: 'aboutHeading',
       title: 'About Heading',
       type: 'string',
-      validation: (Rule) => Rule.required(),
+      description: 'Keep the format "About Name" so the homepage keeps the highlighted name styling.',
+      initialValue: 'About Dr. Bree Charles',
+      validation: (Rule) =>
+        Rule.required().custom((value) => {
+          if (!value) return 'About heading is required.';
+          return /^About\s+.+/.test(value.trim()) || 'Use the format "About Name" to preserve the homepage heading style.';
+        }),
     },
     {
       name: 'aboutParagraphOne',
@@ -42,6 +48,7 @@ export const homePage = {
       name: 'aboutImages',
       title: 'About images',
       type: 'array',
+      description: 'Upload exactly 4 images in display order to preserve the 2x2 homepage collage.',
       of: [
         {
           type: 'image',
@@ -51,11 +58,12 @@ export const homePage = {
               name: 'alt',
               title: 'Alt text',
               type: 'string',
+              description: 'Describe the image for screen readers.',
             },
           ],
         },
       ],
-      validation: (Rule) => Rule.max(4),
+      validation: (Rule) => Rule.required().min(4).max(4),
     },
     {
       name: 'featuredVideo',
