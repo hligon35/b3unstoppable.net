@@ -1,6 +1,6 @@
 # B3U Website v3 (Next.js)
 
-Modern rebuild of the B3U podcast & community platform inspired by the section flow of ericthomas.com but fully rebranded.
+Modern rebuild of the B3U podcast & community platform.
 
 ## Tech Stack
 - Next.js 15 (Pages Router)
