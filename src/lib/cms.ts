@@ -67,6 +67,7 @@ export type HomePageContent = {
 
 const SANITY_API_VERSION = process.env.SANITY_API_VERSION || '2025-01-01';
 const SANITY_DATASET = process.env.SANITY_DATASET || 'production';
+export const CMS_REVALIDATE_SECONDS = 120;
 
 function getSanityApiBase(preview: boolean) {
   const projectId = process.env.SANITY_PROJECT_ID;
@@ -222,7 +223,7 @@ export async function getHomePageContent(preview: boolean): Promise<HomePageCont
   try {
     const response = await fetch(url, {
       headers: { Accept: 'application/json' },
-      next: { revalidate: 120 },
+      next: { revalidate: CMS_REVALIDATE_SECONDS },
     });
 
     if (!response.ok) return fallbackHomePageContent;

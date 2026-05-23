@@ -19,7 +19,7 @@ import Test2 from '@/images/content/test2.JPEG';
 import { useFormsApi } from '@/lib/useFormsApi';
 import { submitFormToEndpoint } from '@/lib/formsSubmit';
 import { communityEvent, createCommunityEventStructuredData, siteUrl } from '@/lib/communityEvent';
-import { getHomePageContent, type HomePageContent } from '@/lib/cms';
+import { CMS_REVALIDATE_SECONDS, getHomePageContent, type HomePageContent } from '@/lib/cms';
 
 const EMAIL_FIELD_MIN = 6;
 const EMAIL_FIELD_MAX = 254;
@@ -403,6 +403,6 @@ export async function getStaticProps(context: GetStaticPropsContext) {
       homeContent,
       previewMode,
     },
-    revalidate: 120,
+    revalidate: CMS_REVALIDATE_SECONDS,
   };
 }
