@@ -74,6 +74,8 @@ SENDGRID_TO_EMAIL=info@b3unstoppable.net
 - Required Vercel env vars: `NEXT_PUBLIC_FORMS_API`, `NEXT_PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN`, `FORMS_BACKUP_URL`, `FORMS_SIGNING_SECRET`, `SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL`, `SENDGRID_FROM_NAME`, `SENDGRID_REPLY_TO`, `SENDGRID_TO_EMAIL`.
 - Optional weekly-report analytics merge vars: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_TAG`, `CLOUDFLARE_ANALYTICS_TOKEN`.
 - Optional Vercel env var: `SENDGRID_MARKETING_LIST_IDS` as a comma-separated list of SendGrid Marketing list IDs. Newsletter signups are upserted into SendGrid Marketing Contacts and attached to those lists when provided.
+- Homepage CMS integration is available via Sanity. Setup and client editing guide: `docs/cms/sanity.md`.
+- Additional Vercel env vars for CMS: `SANITY_PROJECT_ID`, `SANITY_DATASET`, `SANITY_API_VERSION`, `SANITY_READ_TOKEN`, `SANITY_PREVIEW_SECRET`, `SANITY_REVALIDATE_SECRET`.
 - GitHub Pages deployment has been removed from this repo. If the site is down, check Vercel project status and domain assignment first.
 
 ## GitHub Actions Monitoring Secrets

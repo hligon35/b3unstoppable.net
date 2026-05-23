@@ -3,6 +3,7 @@ import Hero from '@/components/Hero';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
+import type { GetStaticPropsContext } from 'next';
 import about1 from '@/images/content/about1.jpeg';
 import about2 from '@/images/content/about2.jpeg';
 import BookImage from '@/images/shop/bookCover.png';
@@ -18,11 +19,17 @@ import Test2 from '@/images/content/test2.JPEG';
 import { useFormsApi } from '@/lib/useFormsApi';
 import { submitFormToEndpoint } from '@/lib/formsSubmit';
 import { communityEvent, createCommunityEventStructuredData, siteUrl } from '@/lib/communityEvent';
+import { getHomePageContent, type HomePageContent } from '@/lib/cms';
 
 const EMAIL_FIELD_MIN = 6;
 const EMAIL_FIELD_MAX = 254;
 
-export default function HomePage() {
+type HomePageProps = {
+  homeContent: HomePageContent;
+  previewMode: boolean;
+};
+
+export default function HomePage({ homeContent, previewMode }: HomePageProps) {
   const [subscribed, setSubscribed] = useState(false);
   const [subPending, setSubPending] = useState(false);
   const newsletterFormRef = useRef<HTMLFormElement | null>(null);
@@ -68,24 +75,29 @@ export default function HomePage() {
 
   return (
     <Layout
-      title="B3U — Burn, Break, Become Unstoppable | Richmond, VA"
-      description="Empowerment, speaking, and community with Dr. Bree Charles. B3U (Burn, Break, Become Unstoppable) is based in Richmond, VA and serves surrounding areas across Central Virginia."
+      title={homeContent.seoTitle}
+      description={homeContent.seoDescription}
       structuredData={eventStructuredData}
     >
-      <Hero />
-      <section id="about" className="section-padding bg-white">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">About <span className="text-brandOrange">Dr. Bree Charles</span></h2>
-            <p className="text-navy/80 leading-relaxed mb-6">
-              Transformational speaker, author, U.S. Army veteran, and creator of the B3U Podcast. Bree has turned her pain into purpose, proving that brokenness doesn't mean defeat  it means rebirth.
-            </p>
-            <p className="text-navy/80 leading-relaxed mb-6">
-              Through courage, faith, and relentless resilience, she helps others burn away fear, break destructive patterns, and become who they were created to be.
-            </p>
-            <p className="text-brandOrange font-semibold mb-6 italic">Breaking Cycles. Building Legacies.</p>
-            <Link href="/about" className="btn-outline">Learn More About Bree</Link>
-          </div>
+    {previewMode && (
+      <div className="mx-auto mt-24 max-w-6xl rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        Preview mode is enabled. <a href="/api/exit-preview" className="underline font-semibold">Exit preview</a>
+      </div>
+    )}
+    <Hero content={homeContent.hero} />
+    <section id="about" className="section-padding bg-white">
+      <div className="grid md:grid-cols-2 gap-12 items-center">
+        <div>
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">{homeContent.about.title}</h2>
+          <p className="text-navy/80 leading-relaxed mb-6">
+            {homeContent.about.descriptionPrimary}
+          </p>
+          <p className="text-navy/80 leading-relaxed mb-6">
+            {homeContent.about.descriptionSecondary}
+          </p>
+          <p className="text-brandOrange font-semibold mb-6 italic">{homeContent.about.quote}</p>
+          <Link href={homeContent.about.ctaHref} className="btn-outline">{homeContent.about.ctaLabel}</Link>
+        </div>
           <div className="grid grid-cols-2 gap-4">
             {[about1, about4, about3, about2].map((img, i) => (
               <Image
@@ -104,13 +116,13 @@ export default function HomePage() {
       <section id="podcast" className="section-padding bg-[#F4F8FB]">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-10 mb-10">
           <div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">The B3U Podcast</h2>
-            <h3 className="text-xl text-brandOrange font-semibold mb-4">Burn, Break, Become Unstoppable</h3>
-            <p className="text-navy/70 max-w-xl">Conversations featuring stories of resilience, transformation, and the courage to rebuild. Every episode is a reminder that your pain can become your purpose.</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">{homeContent.podcast.title}</h2>
+            <h3 className="text-xl text-brandOrange font-semibold mb-4">{homeContent.podcast.subtitle}</h3>
+            <p className="text-navy/70 max-w-xl">{homeContent.podcast.description}</p>
           </div>
           <div className="w-full md:w-[420px]">
             <a
-              href="https://www.youtube.com/channel/UCSrtA1gGlgo4cQUzoSlzZ5w"
+              href={homeContent.podcast.youtubeUrl}
               target="_blank"
               rel="noopener"
               aria-label="Watch B3U on YouTube"
@@ -147,7 +159,7 @@ export default function HomePage() {
               {/* bottom-right caption */}
               <div className="absolute bottom-3 right-3">
                 <span className="rounded-md bg-black/50 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur">
-                  Watch now
+                  {homeContent.podcast.watchNowLabel}
                 </span>
               </div>
             </a>
@@ -155,10 +167,10 @@ export default function HomePage() {
         </div>
         <div className="mt-10">
           <div className="text-center mb-8 max-w-3xl mx-auto">
-            <h2 className="text-2xl md:text-3xl font-bold mb-3">Watch B3U</h2>
+            <h2 className="text-2xl md:text-3xl font-bold mb-3">{homeContent.podcast.watchTitle}</h2>
             <div className="flex flex-col items-center gap-3 text-navy/70">
               <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
-                <span>Watch new content online, or through</span>
+                <span>{homeContent.podcast.watchDescription}</span>
                 <span className="inline-flex items-center gap-3" aria-label="Available on Roku and Fire TV">
                   <span className="relative h-8 w-[86px]">
                     <Image src={RokuLogo} alt="Roku" fill className="object-contain" sizes="86px" />
@@ -212,8 +224,8 @@ export default function HomePage() {
       </section>
       <section id="community" className="section-padding alt-band">
         <div className="text-center mb-12 max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">The Take Back Community</h2>
-          <p className="text-black">Stories from listeners who have found the courage to burn away fear, break cycles, and become unstoppable.</p>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">{homeContent.community.title}</h2>
+          <p className="text-black">{homeContent.community.description}</p>
         </div>
         <div className="card max-w-4xl mx-auto mb-10 border-brandOrange/20 bg-white/95">
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
@@ -285,17 +297,17 @@ export default function HomePage() {
       <section id="shop" className="section-padding bg-[#FFF5EE]">
         <div className="grid gap-10 lg:grid-cols-[1.1fr_minmax(0,1fr)] lg:items-center">
           <div className="max-w-2xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">Featured release</p>
-            <h2 className="mt-4 text-3xl font-bold md:text-4xl">Order yours NOW - The Big Take Back: What I Left Behind</h2>
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">{homeContent.shop.eyebrow}</p>
+            <h2 className="mt-4 text-3xl font-bold md:text-4xl">{homeContent.shop.title}</h2>
             <p className="mt-5 text-lg text-navy/80">
-              This is for the reader who is done surviving on autopilot and ready to reclaim what life tried to take. Dr. Bree Charles writes with honesty, hard-won insight, and practical guidance for healing and forward movement.
+              {homeContent.shop.descriptionPrimary}
             </p>
             <p className="mt-4 text-navy/75">
-              The Big Take Back: What I Left Behind is more than a memoir. It is a call to break repeating cycles, face what you have been avoiding, and rebuild your life with clarity, confidence, and conviction.
+              {homeContent.shop.descriptionSecondary}
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link href="/shop" className="btn-primary">Get the Book</Link>
-              <Link href="/event-gallery" className="btn-outline">See Book Details</Link>
+              <Link href={homeContent.shop.primaryCtaHref} className="btn-primary">{homeContent.shop.primaryCtaLabel}</Link>
+              <Link href={homeContent.shop.secondaryCtaHref} className="btn-outline">{homeContent.shop.secondaryCtaLabel}</Link>
             </div>
             <div className="mt-8 flex flex-wrap gap-3 text-sm font-medium text-navy/75">
               <span className="rounded-full bg-white px-4 py-2 shadow-sm ring-1 ring-black/5">Healing</span>
@@ -342,8 +354,8 @@ export default function HomePage() {
       </section>
       <section id="newsletter" className="section-padding bg-[#F4F8FB]">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Join "The Take Back Weekly"</h2>
-          <p className="text-navy/70 mb-6">Get new episodes, inspiration, and community opportunities delivered to your inbox.</p>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">{homeContent.newsletter.title}</h2>
+          <p className="text-navy/70 mb-6">{homeContent.newsletter.description}</p>
           <form
             className="flex flex-col sm:flex-row gap-4 justify-center"
             onSubmit={handleNewsletterSubmit}
@@ -363,7 +375,7 @@ export default function HomePage() {
               className="flex-1 px-5 py-3 rounded-md bg-white border border-black/10 focus:outline-none focus:ring-2 focus:ring-brandBlue"
             />
             <button className="btn-primary" type="submit" disabled={subPending}>
-              {subPending ? 'Subscribing…' : 'Subscribe'}
+              {subPending ? 'Subscribing…' : homeContent.newsletter.buttonLabel}
             </button>
             {subscribed && (
               <div className="w-full text-sm text-green-700 bg-green-50 border border-green-200 rounded-md px-3 py-2 sm:ml-4 sm:mt-0 mt-2">
@@ -383,6 +395,14 @@ export default function HomePage() {
   );
 }
 
-export async function getStaticProps() {
-  return { props: {} };
+export async function getStaticProps(context: GetStaticPropsContext) {
+  const previewMode = Boolean(context.preview);
+  const homeContent = await getHomePageContent(previewMode);
+  return {
+    props: {
+      homeContent,
+      previewMode,
+    },
+    revalidate: 120,
+  };
 }
