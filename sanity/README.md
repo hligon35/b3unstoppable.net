@@ -24,7 +24,7 @@ Inside the **Home Page** document:
 ## 4) Preview draft flow
 Use this URL format to preview draft content before publish:
 
-`https://<your-site-domain>/api/preview?secret=<SANITY_PREVIEW_SECRET>&slug=/`
+`https://<your-site-domain>/api/preview?secret=<SANITY_PREVIEW_SECRET>`
 
 To leave preview mode:
 

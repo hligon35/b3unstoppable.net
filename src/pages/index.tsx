@@ -51,13 +51,16 @@ export default function HomePage({ cmsContent }: HomePageProps) {
     { src: about3, alt: 'Dr. Bree Charles candid portrait' },
     { src: about2, alt: 'Dr. Bree Charles smiling portrait' },
   ];
-  const cmsAboutImages = (cmsContent?.aboutImages || []).filter((image): image is { url: string; alt?: string } => Boolean(image?.url)).map((image, index) => ({
+  const cmsAboutImagesRaw = (cmsContent?.aboutImages || []).filter(
+    (image): image is { url: string; alt?: string } => Boolean(image?.url),
+  );
+  const cmsAboutImages = cmsAboutImagesRaw.map((image, index) => ({
     src: image.url,
     alt: image.alt?.trim() || `About image ${index + 1}`,
   }));
   const aboutImages = cmsAboutImages.length ? cmsAboutImages : defaultAboutImages;
   const aboutHeading = cmsContent?.aboutHeading || 'About Dr. Bree Charles';
-  const aboutParagraphOne = cmsContent?.aboutParagraphOne || 'Transformational speaker, author, U.S. Army veteran, and creator of the B3U Podcast. Bree has turned her pain into purpose, proving that brokenness doesn\'t mean defeat  it means rebirth.';
+  const aboutParagraphOne = cmsContent?.aboutParagraphOne || 'Transformational speaker, author, U.S. Army veteran, and creator of the B3U Podcast. Bree has turned her pain into purpose, proving that brokenness doesn\'t mean defeat it means rebirth.';
   const aboutParagraphTwo = cmsContent?.aboutParagraphTwo || 'Through courage, faith, and relentless resilience, she helps others burn away fear, break destructive patterns, and become who they were created to be.';
   const aboutTagline = cmsContent?.aboutTagline || 'Breaking Cycles. Building Legacies.';
   const aboutCtaLabel = cmsContent?.aboutCtaLabel || 'Learn More About Bree';

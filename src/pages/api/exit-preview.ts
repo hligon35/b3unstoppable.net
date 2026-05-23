@@ -6,8 +6,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     return;
   }
 
-  const slug = typeof req.query.slug === 'string' && req.query.slug.startsWith('/') ? req.query.slug : '/';
   res.clearPreviewData();
-  res.writeHead(307, { Location: slug });
+  res.writeHead(307, { Location: '/' });
   res.end();
 }

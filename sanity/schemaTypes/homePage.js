@@ -5,7 +5,7 @@ export const homePage = {
   fields: [
     {
       name: 'aboutHeading',
-      title: 'About heading',
+      title: 'About Heading',
       type: 'string',
       validation: (Rule) => Rule.required(),
     },

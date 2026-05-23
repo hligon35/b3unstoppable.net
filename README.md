@@ -75,7 +75,7 @@ SANITY_REVALIDATE_SECRET=any-long-random-string
 - Connect Vercel to the `main` branch so every push deploys automatically.
 - The site now uses the Next API route at `src/pages/api/forms/[[...path]].ts` for SendGrid-first form handling.
 - The homepage now supports Sanity-powered dynamic content via `@sanity/client` in `src/lib/sanity.ts`.
-- Preview mode endpoint: `/api/preview?secret=<SANITY_PREVIEW_SECRET>&slug=/`
+- Preview mode endpoint: `/api/preview?secret=<SANITY_PREVIEW_SECRET>`
 - Exit preview endpoint: `/api/exit-preview`
 - Revalidation webhook endpoint: `POST /api/revalidate` with header `x-vercel-reval-key: <SANITY_REVALIDATE_SECRET>`
 - Google Apps Script remains the persistence layer and fallback mailer. Story submissions still rely on it for moderation links and the approved-story feed.
