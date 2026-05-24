@@ -2,31 +2,38 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 
 import { clearAdminSessionCookie, createAdminSessionCookie } from '../../lib/adminAuth';
 
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-const CSRF_TOKEN = process.env.CSRF_TOKEN;
-
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  const adminUsername = process.env.ADMIN_USERNAME;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  const csrfToken = process.env.CSRF_TOKEN;
+
   if (req.method === 'POST') {
-    if (CSRF_TOKEN) {
+    if (csrfToken) {
       const csrfHeader = req.headers['x-csrf-token'];
 
-      if (csrfHeader !== CSRF_TOKEN) {
+      if (csrfHeader !== csrfToken) {
         return res.status(403).json({ message: 'Invalid CSRF token' });
       }
     }
 
     const { username, password } = req.body ?? {};
 
-    if (!ADMIN_USERNAME || !ADMIN_PASSWORD) {
-      return res.status(500).json({ message: 'Admin credentials are not configured' });
+    if (!adminUsername || !adminPassword) {
+      const missing = [
+        !adminUsername ? 'ADMIN_USERNAME' : null,
+        !adminPassword ? 'ADMIN_PASSWORD' : null,
+      ].filter(Boolean);
+
+      return res.status(500).json({
+        message: `Admin credentials are not configured${missing.length ? `: missing ${missing.join(', ')}` : ''}`,
+      });
     }
 
     if (!username || !password) {
       return res.status(400).json({ message: 'Username and password are required' });
     }
 
-    if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+    if (username !== adminUsername || password !== adminPassword) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
