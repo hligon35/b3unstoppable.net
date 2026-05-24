@@ -31,7 +31,6 @@
   },
   "dependencies": {
     "@cloudflare/workers-types": "^4.20260124.0",
-    "@headlessui/react": "^1.7.18",
     "@heroicons/react": "^2.1.5",
     "@opennextjs/cloudflare": "^1.6.4",
     "@stripe/stripe-js": "^2.4.0",
