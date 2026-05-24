@@ -1,5 +1,9 @@
 import type { MonitoringEntry } from './types';
 
+function isNextDataRoute(target: string): boolean {
+  return /\/\_next\/data\/[^/]+\/.+\.json(?:$|\?)/i.test(target);
+}
+
 export function explainIssue(entry: MonitoringEntry): string {
   const message = `${entry.message} ${entry.responsePreview || ''} ${entry.payloadPreview || ''}`.toLowerCase();
   const target = entry.endpoint || entry.url || entry.route || 'the application';
@@ -9,6 +13,10 @@ export function explainIssue(entry: MonitoringEntry): string {
   }
 
   if (entry.kind === 'api' && entry.status === 404) {
+    if (isNextDataRoute(target)) {
+      return `A browser request hit a Next.js data URL from an older build at ${target}. This usually happens right after a deploy when a tab or cached client bundle still points at the previous build ID, and it is usually resolved by a hard refresh or retry.`;
+    }
+
     return `A request reached ${target}, but the server could not find the resource. This often means the route path is wrong, a deployment is missing a file, or a trailing-slash mismatch is sending traffic to the wrong endpoint.`;
   }
 
@@ -49,6 +57,12 @@ export function suggestFixes(entry: MonitoringEntry): string[] {
   }
 
   if (entry.status === 404) {
+    if (entry.endpoint && isNextDataRoute(entry.endpoint)) {
+      suggestions.push('Hard refresh the page or reopen the tab so the browser loads the latest deployed build manifest and data routes.');
+      suggestions.push('If the issue only appears immediately after deploy, treat it as a stale client cache rather than a missing application route.');
+      return Array.from(new Set(suggestions)).slice(0, 4);
+    }
+
     suggestions.push('Confirm the requested route exists in the current deployment and that the URL matches the expected trailing-slash pattern.');
   }
 

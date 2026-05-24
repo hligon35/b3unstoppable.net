@@ -1,5 +1,6 @@
 ﻿import Layout from '@/components/Layout';
 import Hero from '@/components/Hero';
+import TurnstileField, { useTurnstileConfig } from '@/components/TurnstileField';
 import Image, { type StaticImageData } from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
@@ -29,12 +30,15 @@ export default function HomePage() {
   const [subPending, setSubPending] = useState(false);
   const newsletterFormRef = useRef<HTMLFormElement | null>(null);
   const [t0, setT0] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const { formsApi, debugEnabled } = useFormsApi();
   const imageSelections = useSavedSiteImageSelections();
   const eventStructuredData = useState(() => createCommunityEventStructuredData({
     pageUrl: `${siteUrl}/`,
     imageUrl: new URL(communityEvent.imagePath, siteUrl).toString(),
   }))[0];
+  const { isEnabled: turnstileRequired, isLoading: turnstileLoading } = useTurnstileConfig();
 
   const [subError, setSubError] = useState<string | null>(null);
   const aboutImages: AboutImage[] = [
@@ -65,6 +69,14 @@ export default function HomePage() {
       console.warn('B3U Forms: NEXT_PUBLIC_FORMS_API is not configured; blocking newsletter submit.');
       return;
     }
+    if (turnstileLoading) {
+      setSubError('Security check is still loading. Please try again in a moment.');
+      return;
+    }
+    if (turnstileRequired && !turnstileToken) {
+      setSubError('Please complete the security check before subscribing.');
+      return;
+    }
     setSubError(null);
     setSubPending(true);
     try {
@@ -73,6 +85,8 @@ export default function HomePage() {
 
       setSubscribed(true);
       try { newsletterFormRef.current?.reset(); } catch {}
+      setTurnstileToken('');
+      setTurnstileResetKey((value) => value + 1);
       try { setT0(String(Date.now())); } catch {}
       try { document.getElementById('newsletter')?.scrollIntoView({ behavior: 'smooth' }); } catch {}
     } catch {
@@ -369,7 +383,7 @@ export default function HomePage() {
           <h2 className="text-3xl md:text-4xl font-bold mb-4">{newsletterHeading}</h2>
           <p className="text-navy/70 mb-6">{newsletterDescription}</p>
           <form
-            className="flex flex-col sm:flex-row gap-4 justify-center"
+            className="space-y-4"
             onSubmit={handleNewsletterSubmit}
             ref={newsletterFormRef}
           >
@@ -377,18 +391,28 @@ export default function HomePage() {
             <input type="text" name="hp" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
             <input type="hidden" name="t0" value={t0} />
             {debugEnabled && <input type="hidden" name="debug" value="1" />}
-            <input
-              type="email"
-              name="email"
-              required
-              minLength={EMAIL_FIELD_MIN}
-              maxLength={EMAIL_FIELD_MAX}
-              placeholder="Email address"
-              className="flex-1 px-5 py-3 rounded-md bg-white border border-black/10 focus:outline-none focus:ring-2 focus:ring-brandBlue"
-            />
-            <button className="btn-primary" type="submit" disabled={subPending}>
-              {subPending ? 'Subscribing…' : 'Subscribe'}
-            </button>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <input
+                type="email"
+                name="email"
+                required
+                minLength={EMAIL_FIELD_MIN}
+                maxLength={EMAIL_FIELD_MAX}
+                placeholder="Email address"
+                className="flex-1 px-5 py-3 rounded-md bg-white border border-black/10 focus:outline-none focus:ring-2 focus:ring-brandBlue"
+              />
+              <button className="btn-primary" type="submit" disabled={subPending}>
+                {subPending ? 'Subscribing…' : 'Subscribe'}
+              </button>
+            </div>
+            <div className="flex justify-center">
+              <TurnstileField
+                className="inline-flex flex-col items-center"
+                token={turnstileToken}
+                onTokenChange={setTurnstileToken}
+                resetKey={turnstileResetKey}
+              />
+            </div>
             {subscribed && (
               <div className="w-full text-sm text-green-700 bg-green-50 border border-green-200 rounded-md px-3 py-2 sm:ml-4 sm:mt-0 mt-2">
                 Thanks! You’re subscribed.

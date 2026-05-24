@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { isAuthenticatedRequest } from '../../lib/adminAuth';
 import { getSubscribers, insertSubscriber } from '../../lib/db';
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     const { email } = req.body ?? {};
 
@@ -12,7 +12,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     }
 
     try {
-      void insertSubscriber(email);
+      await insertSubscriber(email);
       return res.status(200).json({ message: 'Subscribed successfully' });
     } catch (error) {
       console.error('Failed to subscribe', error);
@@ -25,15 +25,11 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    void (async () => {
-      try {
-        return res.status(200).json(await getSubscribers());
-      } catch (error) {
-        console.error('Failed to fetch subscribers', error);
-        return res.status(500).json({ error: 'Failed to fetch subscribers', details: error instanceof Error ? error.message : 'Unknown error' });
-      }
-    })();
-    return;
+    try {
+      return res.status(200).json(await getSubscribers());
+    } catch (error) {
+      console.error('Failed to fetch subscribers', error);
+      return res.status(500).json({ error: 'Failed to fetch subscribers', details: error instanceof Error ? error.message : 'Unknown error' });
     }
   }
 

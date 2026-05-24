@@ -5,12 +5,14 @@ type Env = {
   FORMS_BACKUP_URL?: string;
   FORMS_SIGNING_SECRET?: string;
   NEXT_PUBLIC_SITE_URL?: string;
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY?: string;
   SENDGRID_API_KEY?: string;
   SENDGRID_FROM_EMAIL?: string;
   SENDGRID_FROM_NAME?: string;
   SENDGRID_MARKETING_LIST_IDS?: string;
   SENDGRID_REPLY_TO?: string;
   SENDGRID_TO_EMAIL?: string;
+  TURNSTILE_SECRET_KEY?: string;
 };
 
 type PagesHandlerContext<TEnv> = {
@@ -28,6 +30,12 @@ type SubmissionPayload = {
   story: string;
   consent: boolean;
   debug: boolean;
+  turnstileToken: string;
+};
+
+type TurnstileVerificationResult = {
+  ok: boolean;
+  codes: string[];
 };
 
 const NAME_FIELD_MIN = 2;
@@ -38,6 +46,7 @@ const SUBJECT_FIELD_MIN = 12;
 const SUBJECT_FIELD_MAX = 128;
 const LONG_FIELD_MIN = 30;
 const LONG_FIELD_MAX = 240;
+const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
 const JSON_HEADERS = {
   'content-type': 'application/json; charset=utf-8',
@@ -82,6 +91,7 @@ async function handleGet(route: Route, url: URL, env: Env): Promise<Response> {
       routes: ['contact', 'newsletter', 'submit', 'stories', 'moderate'],
       backupConfigured: Boolean(normalizeUrl(env.FORMS_BACKUP_URL)),
       sendgridConfigured: hasSendGridConfig(env),
+      turnstileSiteKey: String(env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '').trim(),
     });
   }
 
@@ -123,6 +133,15 @@ async function handlePost(route: Route, request: Request, env: Env): Promise<Res
   const tooShort = validateFieldMinimums(route, payload);
   if (tooShort.length > 0) {
     return json({ ok: false, error: 'field-too-short', fields: tooShort }, 400);
+  }
+
+  const turnstileResult = await verifyTurnstileToken(payload.turnstileToken, request, env);
+  if (!turnstileResult.ok) {
+    return json({
+      ok: false,
+      error: 'turnstile-verification-failed',
+      codes: payload.debug ? turnstileResult.codes : undefined,
+    }, 403);
   }
 
   if (route === 'submit' && !backupUrl) {
@@ -199,10 +218,57 @@ function parsePayload(formData: FormData): SubmissionPayload & { honeypot: strin
     story: String(formData.get('story') || '').trim(),
     consent: formData.get('consent') === 'on' || formData.get('consent') === 'true' || formData.get('consent') === '1',
     debug: isTruthy(formData.get('debug')),
+    turnstileToken: String(formData.get('turnstileToken') || formData.get('cf-turnstile-response') || '').trim(),
     honeypot,
     timingRejected,
     fillMs,
   };
+}
+
+async function verifyTurnstileToken(token: string, request: Request, env: Env): Promise<TurnstileVerificationResult> {
+  const secret = String(env.TURNSTILE_SECRET_KEY || '').trim();
+  if (!secret) {
+    return { ok: true, codes: [] };
+  }
+
+  if (!token) {
+    return { ok: false, codes: ['missing-input-response'] };
+  }
+
+  const body = new URLSearchParams();
+  body.set('secret', secret);
+  body.set('response', token);
+
+  const ip = getClientIp(request);
+  if (ip) {
+    body.set('remoteip', ip);
+  }
+
+  const response = await fetch(TURNSTILE_VERIFY_URL, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/x-www-form-urlencoded',
+    },
+    body,
+  });
+
+  if (!response.ok) {
+    return { ok: false, codes: [`turnstile-http-${response.status}`] };
+  }
+
+  const result = (await response.json()) as { success?: boolean; 'error-codes'?: string[] };
+  return {
+    ok: Boolean(result.success),
+    codes: Array.isArray(result['error-codes']) ? result['error-codes'] : [],
+  };
+}
+
+function getClientIp(request: Request): string {
+  const forwarded = request.headers.get('x-forwarded-for');
+  if (forwarded) {
+    return forwarded.split(',')[0].trim();
+  }
+  return request.headers.get('cf-connecting-ip') || '';
 }
 
 function validatePayload(route: Route, payload: SubmissionPayload): string[] {

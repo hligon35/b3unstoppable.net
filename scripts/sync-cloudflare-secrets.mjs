@@ -24,6 +24,7 @@ const SECRET_KEYS = [
   'SENDGRID_MARKETING_LIST_IDS',
   'SENDGRID_REPLY_TO',
   'SENDGRID_TO_EMAIL',
+  'TURNSTILE_SECRET_KEY',
 ];
 
 const [, , envFileArg = 'env.cloudflare', ...flags] = process.argv;

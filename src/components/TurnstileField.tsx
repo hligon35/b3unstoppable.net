@@ -1,9 +1,82 @@
+import { useEffect, useState } from 'react';
 import Turnstile from 'react-turnstile';
 
 const TURNSTILE_SITE_KEY = (process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY as string) || '';
+const TURNSTILE_CONFIG_ENDPOINT = '/api/forms';
+
+let cachedTurnstileSiteKey = TURNSTILE_SITE_KEY.trim();
+let runtimeSiteKeyPromise: Promise<string> | null = null;
 
 export function isTurnstileEnabled(): boolean {
-  return TURNSTILE_SITE_KEY.trim().length > 0;
+  return cachedTurnstileSiteKey.length > 0;
+}
+
+async function loadRuntimeTurnstileSiteKey(): Promise<string> {
+  if (cachedTurnstileSiteKey) {
+    return cachedTurnstileSiteKey;
+  }
+
+  if (typeof window === 'undefined') {
+    return '';
+  }
+
+  if (!runtimeSiteKeyPromise) {
+    runtimeSiteKeyPromise = fetch(TURNSTILE_CONFIG_ENDPOINT, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+      },
+      credentials: 'omit',
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          return '';
+        }
+
+        const payload = (await response.json().catch(() => null)) as { turnstileSiteKey?: string } | null;
+        cachedTurnstileSiteKey = String(payload?.turnstileSiteKey || '').trim();
+        return cachedTurnstileSiteKey;
+      })
+      .catch(() => '')
+      .finally(() => {
+        runtimeSiteKeyPromise = null;
+      });
+  }
+
+  return runtimeSiteKeyPromise;
+}
+
+export function useTurnstileConfig() {
+  const [siteKey, setSiteKey] = useState(cachedTurnstileSiteKey);
+  const [isLoading, setIsLoading] = useState(!cachedTurnstileSiteKey);
+
+  useEffect(() => {
+    if (siteKey) {
+      setIsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    void loadRuntimeTurnstileSiteKey().then((nextSiteKey) => {
+      if (cancelled) {
+        return;
+      }
+
+      setSiteKey(nextSiteKey);
+      setIsLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [siteKey]);
+
+  return {
+    siteKey,
+    isEnabled: siteKey.trim().length > 0,
+    isLoading,
+  };
 }
 
 type TurnstileFieldProps = {
@@ -21,7 +94,12 @@ export default function TurnstileField({
   className,
   theme = 'auto',
 }: TurnstileFieldProps) {
-  if (!isTurnstileEnabled()) {
+  const { siteKey, isEnabled, isLoading } = useTurnstileConfig();
+
+  if (!isEnabled) {
+    if (isLoading) {
+      return <div className={className}><p className="mt-2 text-xs text-navy/60">Loading security check…</p></div>;
+    }
     return null;
   }
 
@@ -29,7 +107,7 @@ export default function TurnstileField({
     <div className={className}>
       <Turnstile
         key={resetKey}
-        sitekey={TURNSTILE_SITE_KEY}
+        sitekey={siteKey}
         theme={theme}
         refreshExpired="auto"
         onVerify={(nextToken) => onTokenChange(nextToken || '')}

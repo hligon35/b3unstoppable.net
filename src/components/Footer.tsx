@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import B3ULogo from '@/images/logos/B3U3D.png';
+import TurnstileField, { useTurnstileConfig } from '@/components/TurnstileField';
 import { useFormsApi } from '@/lib/useFormsApi';
 import { submitFormToEndpoint } from '@/lib/formsSubmit';
 
@@ -14,7 +15,10 @@ export default function Footer() {
   const [footPending, setFootPending] = useState(false);
   const [footError, setFootError] = useState<string | null>(null);
   const [t0, setT0] = useState('');
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const footFormRef = useRef<HTMLFormElement | null>(null);
+  const { isEnabled: turnstileRequired, isLoading: turnstileLoading } = useTurnstileConfig();
   const onFootSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
     if (footPending) return; // guard against double submissions
@@ -22,6 +26,14 @@ export default function Footer() {
       setFootError('Subscriptions are temporarily unavailable. Please try again shortly.');
       // eslint-disable-next-line no-console
       console.warn('B3U Forms: NEXT_PUBLIC_FORMS_API is not configured; blocking footer newsletter submit.');
+      return;
+    }
+    if (turnstileLoading) {
+      setFootError('Security check is still loading. Please try again in a moment.');
+      return;
+    }
+    if (turnstileRequired && !turnstileToken) {
+      setFootError('Please complete the security check before subscribing.');
       return;
     }
     setFootError(null);
@@ -32,6 +44,8 @@ export default function Footer() {
 
       setFootSubbed(true);
       try { footFormRef.current?.reset(); } catch {}
+      setTurnstileToken('');
+      setTurnstileResetKey((value) => value + 1);
       try { setT0(String(Date.now())); } catch {}
     } catch {
       setFootError('Subscription failed. Please try again later.');
@@ -110,6 +124,12 @@ export default function Footer() {
             <input type="hidden" name="t0" value={t0} />
             {debugEnabled && <input type="hidden" name="debug" value="1" />}
             <input name="email" type="email" required minLength={EMAIL_FIELD_MIN} maxLength={EMAIL_FIELD_MAX} placeholder="Email address" className="w-full px-4 py-2 rounded-md bg-white/10 border border-white/20 focus:outline-none focus:ring-2 focus:ring-brandBlue" />
+            <TurnstileField
+              token={turnstileToken}
+              onTokenChange={setTurnstileToken}
+              resetKey={turnstileResetKey}
+              theme="dark"
+            />
             <button className="btn-primary w-full disabled:opacity-50" type="submit" disabled={footPending}>
               {footPending ? 'Subscribing…' : 'Subscribe'}
             </button>

@@ -44,13 +44,13 @@ export default function CloudflareAnalyticsPanel() {
 
       try {
         const response = await fetch('/api/cf-analytics');
-        const payload = (await response.json()) as CloudflarePayload;
+        const payload = (await response.json().catch(() => null)) as CloudflarePayload | null;
 
         if (!response.ok) {
-          throw new Error(payload.error || 'Failed to fetch Cloudflare analytics');
+          throw new Error(payload?.error || `Cloudflare analytics request failed with status ${response.status}`);
         }
 
-        const zone = payload.viewer?.zones?.[0];
+        const zone = payload?.viewer?.zones?.[0];
         setGroups(zone?.httpRequests1dGroups || []);
       } catch (fetchError) {
         setError(fetchError instanceof Error ? fetchError.message : 'Failed to fetch Cloudflare analytics');

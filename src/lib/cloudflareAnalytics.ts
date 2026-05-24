@@ -3,6 +3,14 @@ type CloudflareGraphQlResponse<T> = {
   errors?: Array<{ message?: string }>;
 };
 
+function normalizeCloudflareAnalyticsError(message: string) {
+  if (/zone\.analytics\.read/i.test(message) || /does not have permission/i.test(message)) {
+    return 'Cloudflare API token is missing Zone Analytics Read permission for this zone.';
+  }
+
+  return message;
+}
+
 export async function fetchCloudflareAnalytics<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
   const apiToken = process.env.CLOUDFLARE_API_TOKEN;
   const zoneId = process.env.CLOUDFLARE_ZONE_ID;
@@ -28,7 +36,7 @@ export async function fetchCloudflareAnalytics<T>(query: string, variables: Reco
 
   const payload = (await response.json()) as CloudflareGraphQlResponse<T>;
   if (!response.ok || payload.errors?.length) {
-    throw new Error(payload.errors?.[0]?.message || 'Cloudflare API error');
+    throw new Error(normalizeCloudflareAnalyticsError(payload.errors?.[0]?.message || 'Cloudflare API error'));
   }
 
   if (!payload.data) {

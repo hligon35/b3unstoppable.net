@@ -72,6 +72,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, route: Route
       routes: ['contact', 'newsletter', 'submit', 'stories', 'moderate'],
       backupConfigured: Boolean(normalizeUrl(process.env.FORMS_BACKUP_URL)),
       sendgridConfigured: hasSendGridConfig(),
+      turnstileSiteKey: String(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '').trim(),
       runtime: 'node',
     });
     return;
@@ -123,7 +124,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, route: Rout
     return;
   }
 
-  if (route === 'contact' || route === 'submit') {
+  if (route === 'contact' || route === 'newsletter' || route === 'submit') {
     const turnstileResult = await verifyTurnstileToken(payload.turnstileToken, req);
     if (!turnstileResult.ok) {
       res.status(403).json({

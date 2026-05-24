@@ -1,5 +1,5 @@
 import Layout from '@/components/Layout';
-import TurnstileField, { isTurnstileEnabled } from '@/components/TurnstileField';
+import TurnstileField, { useTurnstileConfig } from '@/components/TurnstileField';
 import { useEffect, useRef, useState } from 'react';
 import { useFormsApi } from '@/lib/useFormsApi';
 import { submitFormToEndpoint } from '@/lib/formsSubmit';
@@ -22,7 +22,7 @@ export default function ContactPage() {
   const formRef = useRef<HTMLFormElement | null>(null);
   const [overrideInput, setOverrideInput] = useState('');
   const [messageValue, setMessageValue] = useState('');
-  const turnstileRequired = isTurnstileEnabled();
+  const { isEnabled: turnstileRequired, isLoading: turnstileLoading } = useTurnstileConfig();
 
   const onSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
@@ -32,6 +32,10 @@ export default function ContactPage() {
       console.warn('B3U Forms: NEXT_PUBLIC_FORMS_API is not configured; blocking submit to avoid 405.');
       setPending(false);
       setSent(false);
+      return;
+    }
+    if (turnstileLoading) {
+      setSubmitError('Security check is still loading. Please try again in a moment.');
       return;
     }
     if (turnstileRequired && !turnstileToken) {

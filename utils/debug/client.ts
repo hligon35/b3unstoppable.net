@@ -15,6 +15,10 @@ type ClientFetchOptions = {
   suppressErrorLogging?: boolean;
 };
 
+function isNextDataRequest(targetUrl: string): boolean {
+  return /\/\_next\/data\/[^/]+\/.+\.json(?:$|\?)/i.test(targetUrl);
+}
+
 declare global {
   interface Window {
     __SPARQ_CLIENT_MONITOR__?: boolean;
@@ -114,9 +118,10 @@ export async function monitoredFetch(input: RequestInfo | URL, init: RequestInit
     const response = await baseFetch(input, init);
     const durationMs = Math.round(performance.now() - startedAt);
     const responseBytes = Number(response.headers.get('content-length') || 0);
+    const isStaleNextData404 = response.status === 404 && isNextDataRequest(targetUrl);
     const entry = logClientEntry({
       kind: 'api',
-      level: response.ok ? 'network' : 'error',
+      level: response.ok ? 'network' : isStaleNextData404 ? 'warn' : 'error',
       message: options.label || `${init.method || 'GET'} ${summarizeUrl(targetUrl) || targetUrl}`,
       endpoint: targetUrl,
       route: options.route || window.location.pathname,
@@ -125,9 +130,10 @@ export async function monitoredFetch(input: RequestInfo | URL, init: RequestInit
       payloadPreview,
       sessionId: getSessionId(),
       source: options.source || 'client-fetch',
-      critical: !response.ok,
+      critical: !response.ok && !isStaleNextData404,
       context: {
         responseBytes,
+        staleAfterDeploy: isStaleNextData404 || undefined,
       },
     });
     void sendEntryToServer(entry);

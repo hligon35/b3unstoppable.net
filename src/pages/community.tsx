@@ -1,5 +1,5 @@
 import Layout from '@/components/Layout';
-import TurnstileField, { isTurnstileEnabled } from '@/components/TurnstileField';
+import TurnstileField, { useTurnstileConfig } from '@/components/TurnstileField';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFormsApi } from '@/lib/useFormsApi';
@@ -37,7 +37,7 @@ export default function CommunityPage() {
   const [editorMode, setEditorMode] = useState(false);
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
   const [storyValue, setStoryValue] = useState('');
-  const turnstileRequired = isTurnstileEnabled();
+  const { isEnabled: turnstileRequired, isLoading: turnstileLoading } = useTurnstileConfig();
   const eventStructuredData = useMemo(() => createCommunityEventStructuredData({
     pageUrl: `${siteUrl}/community/`,
     imageUrl: new URL(communityEvent.imagePath, siteUrl).toString(),
@@ -190,6 +190,10 @@ export default function CommunityPage() {
       setError('Submissions are temporarily unavailable. Please try again shortly.');
       // eslint-disable-next-line no-console
       console.warn('B3U Forms: NEXT_PUBLIC_FORMS_API is not configured; blocking story submit.');
+      return;
+    }
+    if (turnstileLoading) {
+      setError('Security check is still loading. Please try again in a moment.');
       return;
     }
     if (turnstileRequired && !turnstileToken) {

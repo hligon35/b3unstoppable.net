@@ -118,7 +118,24 @@ function getClientIp(req: NextApiRequest): string {
   if (firstForwarded) {
     return String(firstForwarded).split(',')[0].trim();
   }
-  return req.socket.remoteAddress || '';
+
+  const realIp = readString(req.headers['x-real-ip']);
+  if (realIp) {
+    return realIp;
+  }
+
+  const cfConnectingIp = readString(req.headers['cf-connecting-ip']);
+  if (cfConnectingIp) {
+    return cfConnectingIp;
+  }
+
+  const socketAddress = (req.socket as { remoteAddress?: string } | undefined)?.remoteAddress;
+  if (socketAddress) {
+    return socketAddress;
+  }
+
+  const connectionAddress = ((req as NextApiRequest & { connection?: { remoteAddress?: string } }).connection)?.remoteAddress;
+  return connectionAddress || '';
 }
 
 function setRateLimitHeaders(
