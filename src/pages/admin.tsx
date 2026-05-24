@@ -120,7 +120,15 @@ export default function Admin() {
         }
 
         if (!subscribersResponse.ok || !analyticsResponse.ok) {
-          throw new Error('Failed to load dashboard data');
+          const subscribersBody = subscribersResponse.ok ? null : await subscribersResponse.json().catch(() => null);
+          const analyticsBody = analyticsResponse.ok ? null : await analyticsResponse.json().catch(() => null);
+
+          const details = [
+            !subscribersResponse.ok ? subscribersBody?.details || subscribersBody?.error || `Subscribers API returned ${subscribersResponse.status}` : null,
+            !analyticsResponse.ok ? analyticsBody?.details || analyticsBody?.error || `Analytics API returned ${analyticsResponse.status}` : null,
+          ].filter(Boolean);
+
+          throw new Error(details[0] || 'Failed to load dashboard data');
         }
 
         const subscribersData = (await subscribersResponse.json()) as Subscriber[];

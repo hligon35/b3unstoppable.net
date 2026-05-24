@@ -41,6 +41,14 @@
     "NEXT_PUBLIC_TURNSTILE_SITE_KEY": "0x4AAAAAADVi2GuNzKz2VjeZ"
   },
   // END MANAGED VARS
+
+"d1_databases": [{
+    "binding": "DB",
+    "database_name": "b3u-dashboard",
+    "database_id": "457359ff-a032-4b8c-99cc-bf83ec744659"
+ }
+],
+
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"

@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-      insertPageView({
+      await insertPageView({
         path,
         referrer: typeof referrer === 'string' ? referrer : '',
         userAgent: typeof userAgent === 'string' ? userAgent : req.headers['user-agent'],
@@ -23,8 +23,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         ip,
       });
       return res.status(200).json({ message: 'Tracked' });
-    } catch {
-      return res.status(500).json({ error: 'Failed to track' });
+    } catch (error) {
+      console.error('Failed to track analytics', error);
+      return res.status(500).json({ error: 'Failed to track', details: error instanceof Error ? error.message : 'Unknown error' });
     }
   }
 
@@ -35,11 +36,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
       const [analytics, total, topReferrers, topBrowsers, deviceTypes] = await Promise.all([
-        Promise.resolve(getAnalytics()),
-        Promise.resolve(getTotalViews()),
-        Promise.resolve(getTopReferrers()),
-        Promise.resolve(getTopBrowsers()),
-        Promise.resolve(getDeviceTypes()),
+        getAnalytics(),
+        getTotalViews(),
+        getTopReferrers(),
+        getTopBrowsers(),
+        getDeviceTypes(),
       ]);
 
       return res.status(200).json({
@@ -49,8 +50,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         topBrowsers: topBrowsers.map(({ label, count }) => ({ browser: label, count })),
         deviceTypes: deviceTypes.map(({ label, count }) => ({ device: label, count })),
       });
-    } catch {
-      return res.status(500).json({ error: 'Failed to fetch analytics' });
+    } catch (error) {
+      console.error('Failed to fetch analytics', error);
+      return res.status(500).json({ error: 'Failed to fetch analytics', details: error instanceof Error ? error.message : 'Unknown error' });
     }
   }
 

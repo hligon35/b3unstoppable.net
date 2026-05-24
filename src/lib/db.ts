@@ -1,5 +1,6 @@
 import Database from 'better-sqlite3';
 import path from 'path';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 type SubscriberRow = {
   id: number;
@@ -19,34 +20,51 @@ type SummaryRow = {
 };
 
 type BetterSqliteDatabase = Database.Database;
+type D1LikeResult<T> = {
+  results?: T[];
+};
+
+type DashboardDatabase = D1Database | BetterSqliteDatabase;
+
+const DASHBOARD_SCHEMA_SQL = `
+  CREATE TABLE IF NOT EXISTS subscribers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS analytics (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    path TEXT NOT NULL,
+    referrer TEXT,
+    user_agent TEXT,
+    language TEXT,
+    screen_size TEXT,
+    ip TEXT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+`;
 
 declare global {
   var __b3uDb: BetterSqliteDatabase | undefined;
+  var __b3uD1SchemaReady: Promise<void> | undefined;
 }
 
-function getDb() {
+function getCloudflareDb(): D1Database | null {
+  try {
+    const context = getCloudflareContext();
+    return (context?.env?.B3U_DB as D1Database | undefined) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function getLocalDb() {
   if (!global.__b3uDb) {
     const dbPath = path.join(process.cwd(), 'data', 'app.db');
     const db = new Database(dbPath);
 
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS subscribers (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        email TEXT UNIQUE NOT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-
-      CREATE TABLE IF NOT EXISTS analytics (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        path TEXT NOT NULL,
-        referrer TEXT,
-        user_agent TEXT,
-        language TEXT,
-        screen_size TEXT,
-        ip TEXT,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
+    db.exec(DASHBOARD_SCHEMA_SQL);
 
     global.__b3uDb = db;
   }
@@ -54,19 +72,66 @@ function getDb() {
   return global.__b3uDb;
 }
 
-export function insertSubscriber(email: string) {
-  return getDb()
-    .prepare('INSERT OR IGNORE INTO subscribers (email) VALUES (?)')
-    .run(email);
+async function getDb(): Promise<DashboardDatabase> {
+  const cloudflareDb = getCloudflareDb();
+
+  if (cloudflareDb) {
+    if (!global.__b3uD1SchemaReady) {
+      global.__b3uD1SchemaReady = cloudflareDb.exec(DASHBOARD_SCHEMA_SQL).then(() => undefined);
+    }
+
+    await global.__b3uD1SchemaReady;
+    return cloudflareDb;
+  }
+
+  return getLocalDb();
 }
 
-export function getSubscribers() {
-  return getDb()
-    .prepare('SELECT id, email, created_at FROM subscribers ORDER BY created_at DESC')
-    .all() as SubscriberRow[];
+function isD1Database(db: DashboardDatabase): db is D1Database {
+  return typeof (db as D1Database).batch === 'function';
 }
 
-export function insertPageView(data: {
+async function queryAll<T>(query: string, bindings: unknown[] = []) {
+  const db = await getDb();
+
+  if (isD1Database(db)) {
+    const result = await db.prepare(query).bind(...bindings).all<T>();
+    return (result as D1LikeResult<T>).results ?? [];
+  }
+
+  return db.prepare(query).all(...bindings) as T[];
+}
+
+async function queryFirst<T>(query: string, bindings: unknown[] = []) {
+  const db = await getDb();
+
+  if (isD1Database(db)) {
+    const result = await db.prepare(query).bind(...bindings).first<T>();
+    return result ?? null;
+  }
+
+  return (db.prepare(query).get(...bindings) as T | undefined) ?? null;
+}
+
+async function execute(query: string, bindings: unknown[] = []) {
+  const db = await getDb();
+
+  if (isD1Database(db)) {
+    return db.prepare(query).bind(...bindings).run();
+  }
+
+  return db.prepare(query).run(...bindings);
+}
+
+export async function insertSubscriber(email: string) {
+  return execute('INSERT OR IGNORE INTO subscribers (email) VALUES (?)', [email]);
+}
+
+export async function getSubscribers() {
+  return queryAll<SubscriberRow>('SELECT id, email, created_at FROM subscribers ORDER BY created_at DESC');
+}
+
+export async function insertPageView(data: {
   path: string;
   referrer?: string;
   userAgent?: string;
@@ -74,36 +139,31 @@ export function insertPageView(data: {
   screenSize?: string;
   ip?: string;
 }) {
-  return getDb()
-    .prepare(
-      `INSERT INTO analytics (path, referrer, user_agent, language, screen_size, ip)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-    )
-    .run(data.path, data.referrer ?? '', data.userAgent ?? '', data.language ?? '', data.screenSize ?? '', data.ip ?? '');
+  return execute(
+    `INSERT INTO analytics (path, referrer, user_agent, language, screen_size, ip)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [data.path, data.referrer ?? '', data.userAgent ?? '', data.language ?? '', data.screenSize ?? '', data.ip ?? ''],
+  );
 }
 
-export function getAnalytics() {
-  return getDb()
-    .prepare(
-      `SELECT path, COUNT(*) as views, DATE(timestamp) as date
-       FROM analytics
-       GROUP BY path, DATE(timestamp)
-       ORDER BY date DESC, views DESC`,
-    )
-    .all() as AnalyticsRow[];
+export async function getAnalytics() {
+  return queryAll<AnalyticsRow>(
+    `SELECT path, COUNT(*) as views, DATE(timestamp) as date
+     FROM analytics
+     GROUP BY path, DATE(timestamp)
+     ORDER BY date DESC, views DESC`,
+  );
 }
 
-export function getTotalViews() {
-  return getDb()
-    .prepare('SELECT COUNT(*) as total FROM analytics')
-    .get() as { total: number };
+export async function getTotalViews() {
+  return (await queryFirst<{ total: number }>('SELECT COUNT(*) as total FROM analytics')) ?? { total: 0 };
 }
 
-function getSummary(query: string) {
-  return getDb().prepare(query).all() as SummaryRow[];
+async function getSummary(query: string) {
+  return queryAll<SummaryRow>(query);
 }
 
-export function getTopReferrers() {
+export async function getTopReferrers() {
   return getSummary(
     `SELECT referrer as label, COUNT(*) as count
      FROM analytics
@@ -114,7 +174,7 @@ export function getTopReferrers() {
   );
 }
 
-export function getTopBrowsers() {
+export async function getTopBrowsers() {
   return getSummary(
     `SELECT CASE
         WHEN user_agent LIKE '%Chrome%' THEN 'Chrome'
@@ -130,7 +190,7 @@ export function getTopBrowsers() {
   );
 }
 
-export function getDeviceTypes() {
+export async function getDeviceTypes() {
   return getSummary(
     `SELECT CASE
         WHEN user_agent LIKE '%Mobile%' THEN 'Mobile'
