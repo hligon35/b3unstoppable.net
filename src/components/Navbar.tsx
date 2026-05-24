@@ -41,13 +41,6 @@ export default function Navbar() {
   
   return (
     <header className={`fixed top-0 left-0 w-full isolate z-[200] transition backdrop-blur ${bgClass}`}>
-      <Link
-        href="/event-gallery"
-        className="block border-b border-white/10 bg-navy px-4 py-3 text-center text-white transition hover:bg-navy/95 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-        aria-label="View The Big Take Back on-sale update"
-      >
-        <span className="block text-sm font-bold">The Big Take Back: What I Left Behind is ON SALE NOW</span>
-      </Link>
       <a
         href={communityEvent.url}
         target="_blank"

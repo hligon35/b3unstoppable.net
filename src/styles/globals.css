@@ -3,9 +3,13 @@
 @tailwind utilities;
 
 :root {
-  --color-brand-blue: #7BAFD4;
-  --color-brand-orange: #CC5500;
-  --color-navy: #0A1A2A;
+  --color-brand-blue: 123 175 212;
+  --color-brand-blue-dark: 75 134 171;
+  --color-brand-blue-light: 169 203 226;
+  --color-brand-orange: 204 85 0;
+  --color-brand-orange-dark: 166 68 0;
+  --color-brand-orange-light: 230 118 42;
+  --color-navy: 10 26 42;
 }
 
 html, body { @apply bg-white text-navy font-body scroll-smooth; }
@@ -24,8 +28,8 @@ h1,h2,h3,h4,h5,h6 { @apply font-display tracking-wide; }
 .card { @apply bg-white text-navy border border-black/5 rounded-xl p-6 shadow-md transition hover:shadow-xl; }
 .card-dark { @apply bg-white; }
 
-.gradient-hero { background: linear-gradient(135deg, #0A1A2A 0%, #4B86AB 60%, #7BAFD4 100%); }
-.alt-band { background: linear-gradient(135deg, #FFEDE0 0%, #E6F2FA 100%); }
+.gradient-hero { background: linear-gradient(135deg, rgb(var(--color-navy)) 0%, rgb(var(--color-brand-blue-dark)) 60%, rgb(var(--color-brand-blue)) 100%); }
+.alt-band { background: linear-gradient(135deg, rgb(var(--color-brand-orange-light) / 0.18) 0%, rgb(var(--color-brand-blue-light) / 0.35) 100%); }
 
 /* Scroll animation helpers */
 .fade-in-up { opacity: 0; transform: translateY(24px); }

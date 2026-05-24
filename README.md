@@ -8,7 +8,7 @@ Modern rebuild of the B3U podcast & community platform.
 - Tailwind CSS (custom brand palette)
 - Framer Motion (hero animations)
 - GSAP (planned: scroll-driven reveals / parallax)
-- Vercel Analytics
+- Cloudflare Web Analytics
 - SendGrid + Google Apps Script for forms delivery
 
 ## Brand Tokens
@@ -54,9 +54,13 @@ Create `.env.local`:
 ```
 STRIPE_PUBLIC_KEY=pk_test_...
 STRIPE_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_SITE_URL=https://b3unstoppable.net
 NEXT_PUBLIC_FORMS_API=/api/forms
 FORMS_BACKUP_URL=https://script.google.com/macros/s/your-script-id/exec
 FORMS_SIGNING_SECRET=<same SECRET value configured in Apps Script>
+NEXT_PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN=
+CLOUDFLARE_API_TOKEN=
+CLOUDFLARE_ZONE_ID=
 SENDGRID_API_KEY=SG...
 SENDGRID_FROM_EMAIL=info@b3unstoppable.net
 SENDGRID_FROM_NAME=B3U
@@ -64,17 +68,14 @@ SENDGRID_REPLY_TO=info@b3unstoppable.net
 SENDGRID_TO_EMAIL=info@b3unstoppable.net
 ```
 
-## Vercel Deployment
-- Deploy this repo to Vercel as a standard Next.js project.
-- Connect Vercel to the `main` branch so every push deploys automatically.
-- The site now uses the Next API route at `src/pages/api/forms/[[...path]].ts` for SendGrid-first form handling.
-- Google Apps Script remains the persistence layer and fallback mailer. Story submissions still rely on it for moderation links and the approved-story feed.
-- Vercel Analytics is enabled in `src/pages/_app.tsx` through `@vercel/analytics/react`.
-- Cloudflare Web Analytics can run alongside Vercel Analytics by setting `NEXT_PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN`.
-- Required Vercel env vars: `NEXT_PUBLIC_FORMS_API`, `NEXT_PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN`, `FORMS_BACKUP_URL`, `FORMS_SIGNING_SECRET`, `SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL`, `SENDGRID_FROM_NAME`, `SENDGRID_REPLY_TO`, `SENDGRID_TO_EMAIL`.
-- Optional weekly-report analytics merge vars: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_TAG`, `CLOUDFLARE_ANALYTICS_TOKEN`.
-- Optional Vercel env var: `SENDGRID_MARKETING_LIST_IDS` as a comma-separated list of SendGrid Marketing list IDs. Newsletter signups are upserted into SendGrid Marketing Contacts and attached to those lists when provided.
-- GitHub Pages deployment has been removed from this repo. If the site is down, check Vercel project status and domain assignment first.
+## Cloudflare Deployment
+- Deploy this repo through Cloudflare using the existing `opennext:build` and `opennext:deploy` scripts.
+- Keep `NEXT_PUBLIC_FORMS_API=/api/forms` so all forms go through the first-party backend.
+- SendGrid is the primary delivery path for contact emails, newsletter confirmations, and story acknowledgements.
+- Google Apps Script remains the backup mailer and persistence layer. Story submissions still depend on it for moderation links and approved-story feed storage.
+- Enable Cloudflare Web Analytics with `NEXT_PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN`.
+- The admin dashboard now includes live Cloudflare traffic panels through `/api/cf-analytics` when `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ZONE_ID` are set.
+- Optional SendGrid marketing sync uses `SENDGRID_MARKETING_LIST_IDS` as a comma-separated list of SendGrid Marketing list IDs.
 
 ## GitHub Actions Monitoring Secrets
 - The scheduled monitoring workflows read GitHub Actions secrets, not values from `.env.local`.
@@ -82,13 +83,14 @@ SENDGRID_TO_EMAIL=info@b3unstoppable.net
 - If those secrets are missing, the workflows now skip with a warning in the run summary instead of failing immediately.
 
 ## Forms Delivery
-- Primary mail delivery runs through SendGrid via the Vercel API route.
+- Primary mail delivery runs through SendGrid via the first-party forms API.
 - Apps Script remains the backup mailer and persistence layer.
 - Newsletter signups are also upserted into SendGrid Marketing Contacts.
 - If SendGrid fails, the API route falls back to Apps Script mail delivery.
 
 ## Code Organization
 ```
+
 src/
   components/  # UI building blocks
   pages/       # Route pages

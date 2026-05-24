@@ -73,29 +73,12 @@ let cachedCloudflareCombo: CloudflareCombo | null = null;
 export async function collectAnalyticsSources(range: WeeklyComparisonRange): Promise<ExternalWeeklyMetrics[]> {
   const sources: ExternalWeeklyMetrics[] = [];
 
-  sources.push(buildVercelAnalyticsSource());
-
   const cloudflareSource = await buildCloudflareAnalyticsSource(range);
   if (cloudflareSource) {
     sources.push(cloudflareSource);
   }
 
   return sources;
-}
-
-function buildVercelAnalyticsSource(): ExternalWeeklyMetrics {
-  return {
-    id: 'vercel',
-    label: 'Vercel Analytics',
-    accentColor: '#111827',
-    status: 'partial',
-    summary:
-      'The Vercel Web Analytics beacon is installed in the app shell, but this monitoring pipeline does not have a server-side Vercel metrics feed configured for weekly aggregation.',
-    notes: [
-      'Collection is enabled in src/pages/_app.tsx through @vercel/analytics/react.',
-      'This card confirms source status so it is not confused with the app-tracking numbers shown elsewhere in the report.',
-    ],
-  };
 }
 
 async function buildCloudflareAnalyticsSource(range: WeeklyComparisonRange): Promise<ExternalWeeklyMetrics | null> {

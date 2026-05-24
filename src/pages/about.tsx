@@ -2,9 +2,12 @@ import Layout from '@/components/Layout';
 import Image from 'next/image';
 import MelaLogo from '@/images/logos/Melalogo.png';
 import THOHLogo from '@/images/logos/THOHlogo.png';
-import aboutBree from '@/images/content/aboutBree.jpeg';
+import { resolveSiteImage, useSavedSiteImageSelections } from '@/lib/siteEditorImages';
 
 export default function AboutPage() {
+  const imageSelections = useSavedSiteImageSelections();
+  const featureImage = resolveSiteImage(imageSelections.aboutPageFeatureImage);
+
   return (
     <Layout
       title="About Dr. Bree Charles | Richmond, VA Speaker & Community Builder"
@@ -34,8 +37,8 @@ export default function AboutPage() {
             </div>
             <div className="relative order-2 md:order-1">
               <Image
-                src={aboutBree}
-                alt="Dr. Bree Charles"
+                src={featureImage.image}
+                alt={featureImage.alt}
                 className="w-full h-auto rounded-3xl shadow-2xl"
                 sizes="(max-width: 768px) 100vw, 50vw"
                 priority

@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Script from 'next/script';
 import { useEffect } from 'react';
-import BookImage from '@/images/shop/bookCover.png';
+import { resolveSiteImage, useSavedSiteImageSelections } from '@/lib/siteEditorImages';
 
 const PAYPAL_BUTTONS = [
   {
@@ -27,6 +27,10 @@ type PayPalWindow = Window & {
 };
 
 export default function ShopPage() {
+  const imageSelections = useSavedSiteImageSelections();
+  const shopBookImage = resolveSiteImage(imageSelections.shopBookImage);
+  const shopVideoPosterUrl = typeof shopBookImage.image === 'string' ? shopBookImage.image : shopBookImage.image.src;
+
   const renderPayPalButton = () => {
     if (typeof window === 'undefined') {
       return;
@@ -82,7 +86,7 @@ export default function ShopPage() {
                     playsInline
                     controls
                     preload="metadata"
-                    poster={BookImage.src}
+                    poster={shopVideoPosterUrl}
                   >
                     <source src="/videos/the-big-take-back-promo.mp4" type="video/mp4" />
                     Your browser does not support the promo video.
@@ -99,8 +103,8 @@ export default function ShopPage() {
               <div className="mt-6 flex items-start gap-4 rounded-2xl border border-brandOrange/15 bg-[#fff8f3] p-4">
                 <div className="relative h-24 w-16 shrink-0 overflow-hidden rounded-lg border border-black/10 bg-white">
                   <Image
-                    src={BookImage}
-                    alt="The Big Take Back book cover"
+                    src={shopBookImage.image}
+                    alt={shopBookImage.alt}
                     fill
                     className="object-cover"
                     sizes="64px"

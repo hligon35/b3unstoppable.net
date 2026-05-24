@@ -1,6 +1,7 @@
 type Route = 'contact' | 'newsletter' | 'submit' | 'stories' | 'moderate' | '';
 
 type Env = {
+  CUSTOM_DOMAIN?: string;
   FORMS_BACKUP_URL?: string;
   FORMS_SIGNING_SECRET?: string;
   NEXT_PUBLIC_SITE_URL?: string;
@@ -610,13 +611,13 @@ function normalizeUrl(value?: string): string {
 }
 
 function getEmailLogoUrl(): string {
-  const siteUrl = normalizeUrl('');
+  const siteUrl = normalizeUrl('https://b3unstoppable.net');
   if (siteUrl) {
     const baseUrl = siteUrl.startsWith('http') ? siteUrl : `https://${siteUrl}`;
     return `${baseUrl}/images/logos/B3U3D.png`;
   }
 
-  return 'https://b3uv3.vercel.app/images/logos/B3U3D.png';
+  return 'https://b3unstoppable.net/images/logos/B3U3D.png';
 }
 
 function parseSendGridListIds(value?: string): string[] {

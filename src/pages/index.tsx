@@ -1,13 +1,9 @@
 ﻿import Layout from '@/components/Layout';
 import Hero from '@/components/Hero';
-import Image from 'next/image';
+import Image, { type StaticImageData } from 'next/image';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import about1 from '@/images/content/about1.jpeg';
-import about2 from '@/images/content/about2.jpeg';
 import BookImage from '@/images/shop/bookCover.png';
-import about3 from '@/images/photos/J&B-(2 of 3).JPEG';
-import about4 from '@/images/photos/J&B-(3 of 3).JPEG';
 import RokuLogo from '@/images/logos/rokuLogo.png';
 import FireTvLogo from '@/images/logos/firetv.png';
 import B3ULogo from '@/images/logos/B3U3D.png';
@@ -18,9 +14,15 @@ import Test2 from '@/images/content/test2.JPEG';
 import { useFormsApi } from '@/lib/useFormsApi';
 import { submitFormToEndpoint } from '@/lib/formsSubmit';
 import { communityEvent, createCommunityEventStructuredData, siteUrl } from '@/lib/communityEvent';
+import { resolveSiteImage, useSavedSiteImageSelections } from '@/lib/siteEditorImages';
 
 const EMAIL_FIELD_MIN = 6;
 const EMAIL_FIELD_MAX = 254;
+
+type AboutImage = {
+  alt: string;
+  src: string | StaticImageData;
+};
 
 export default function HomePage() {
   const [subscribed, setSubscribed] = useState(false);
@@ -28,12 +30,32 @@ export default function HomePage() {
   const newsletterFormRef = useRef<HTMLFormElement | null>(null);
   const [t0, setT0] = useState('');
   const { formsApi, debugEnabled } = useFormsApi();
+  const imageSelections = useSavedSiteImageSelections();
   const eventStructuredData = useState(() => createCommunityEventStructuredData({
     pageUrl: `${siteUrl}/`,
     imageUrl: new URL(communityEvent.imagePath, siteUrl).toString(),
   }))[0];
 
   const [subError, setSubError] = useState<string | null>(null);
+  const aboutImages: AboutImage[] = [
+    resolveSiteImage(imageSelections.homeAboutImageOne),
+    resolveSiteImage(imageSelections.homeAboutImageTwo),
+    resolveSiteImage(imageSelections.homeAboutImageThree),
+    resolveSiteImage(imageSelections.homeAboutImageFour),
+  ].map((asset) => ({ src: asset.image, alt: asset.alt }));
+  const shopBookImage = resolveSiteImage(imageSelections.shopBookImage);
+  const aboutHeading = 'About Dr. Bree Charles';
+  const styledAboutHeadingName = aboutHeading.match(/^About\s+(.+)$/i)?.[1]?.trim();
+  const aboutParagraphOne = 'Transformational speaker, author, U.S. Army veteran, and creator of the B3U Podcast. Bree has turned her pain into purpose, proving that brokenness doesn\'t mean defeat it means rebirth.';
+  const aboutParagraphTwo = 'Through courage, faith, and relentless resilience, she helps others burn away fear, break destructive patterns, and become who they were created to be.';
+  const aboutTagline = 'Breaking Cycles. Building Legacies.';
+  const aboutCtaLabel = 'Learn More About Bree';
+  const aboutCtaHref = '/about';
+  const shopVideoUrl = '/videos/the-big-take-back-promo.mp4';
+  const shopVideoPosterUrl = typeof shopBookImage.image === 'string' ? shopBookImage.image : shopBookImage.image.src;
+  const newsletterHeading = 'Join "The Take Back Weekly"';
+  const newsletterDescription = 'Get new episodes, inspiration, and community opportunities delivered to your inbox.';
+
   async function handleNewsletterSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (subPending) return; // guard against double submissions
@@ -76,22 +98,24 @@ export default function HomePage() {
       <section id="about" className="section-padding bg-white">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">About <span className="text-brandOrange">Dr. Bree Charles</span></h2>
-            <p className="text-navy/80 leading-relaxed mb-6">
-              Transformational speaker, author, U.S. Army veteran, and creator of the B3U Podcast. Bree has turned her pain into purpose, proving that brokenness doesn't mean defeat  it means rebirth.
-            </p>
-            <p className="text-navy/80 leading-relaxed mb-6">
-              Through courage, faith, and relentless resilience, she helps others burn away fear, break destructive patterns, and become who they were created to be.
-            </p>
-            <p className="text-brandOrange font-semibold mb-6 italic">Breaking Cycles. Building Legacies.</p>
-            <Link href="/about" className="btn-outline">Learn More About Bree</Link>
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">
+              {styledAboutHeadingName ? (
+                <>
+                  About <span className="text-brandOrange">{styledAboutHeadingName}</span>
+                </>
+              ) : aboutHeading}
+            </h2>
+            <p className="text-navy/80 leading-relaxed mb-6">{aboutParagraphOne}</p>
+            <p className="text-navy/80 leading-relaxed mb-6">{aboutParagraphTwo}</p>
+            <p className="text-brandOrange font-semibold mb-6 italic">{aboutTagline}</p>
+            <Link href={aboutCtaHref} className="btn-outline">{aboutCtaLabel}</Link>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            {[about1, about4, about3, about2].map((img, i) => (
+            {aboutImages.map((img, i) => (
               <Image
                 key={i}
-                src={img}
-                alt={`Highlight image ${i + 1}`}
+                src={img.src}
+                alt={img.alt}
                 width={800}
                 height={800}
                 className={`w-full aspect-square rounded-3xl object-cover ${i === 2 ? 'object-top' : 'object-center'}`}
@@ -317,17 +341,17 @@ export default function HomePage() {
                 playsInline
                 controls
                 preload="metadata"
-                poster={BookImage.src}
+                poster={shopVideoPosterUrl}
               >
-                <source src="/videos/the-big-take-back-promo.mp4" type="video/mp4" />
+                <source src={shopVideoUrl} type="video/mp4" />
                 Your browser does not support the promo video.
               </video>
             </div>
             <div className="flex items-center gap-4 px-5 pb-5 text-white/85">
               <div className="relative h-20 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-white/10">
                 <Image
-                  src={BookImage}
-                  alt="The Big Take Back: What I Left Behind book cover"
+                  src={shopBookImage.image}
+                  alt={shopBookImage.alt}
                   fill
                   className="object-contain p-1"
                   sizes="64px"
@@ -342,8 +366,8 @@ export default function HomePage() {
       </section>
       <section id="newsletter" className="section-padding bg-[#F4F8FB]">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Join "The Take Back Weekly"</h2>
-          <p className="text-navy/70 mb-6">Get new episodes, inspiration, and community opportunities delivered to your inbox.</p>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">{newsletterHeading}</h2>
+          <p className="text-navy/70 mb-6">{newsletterDescription}</p>
           <form
             className="flex flex-col sm:flex-row gap-4 justify-center"
             onSubmit={handleNewsletterSubmit}
@@ -381,8 +405,4 @@ export default function HomePage() {
       </section>
     </Layout>
   );
-}
-
-export async function getStaticProps() {
-  return { props: {} };
 }
