@@ -2,7 +2,6 @@ import type { AppProps } from 'next/app';
 import Head from 'next/head';
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
-import { Analytics } from '@vercel/analytics/react';
 import Script from 'next/script';
 import { DebugPanel } from '../../utils/debug/dev-panel';
 import { DebugErrorBoundary } from '../../utils/debug/error-boundary';
@@ -66,7 +65,6 @@ export default function App({ Component, pageProps }: AppProps) {
       <DebugErrorBoundary>
         <Component {...pageProps} />
       </DebugErrorBoundary>
-      <Analytics />
       <DebugPanel />
     </>
   );

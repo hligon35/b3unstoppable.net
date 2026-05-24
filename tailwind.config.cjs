@@ -9,16 +9,16 @@ module.exports = {
     extend: {
       colors: {
         brandBlue: {
-          DEFAULT: '#7BAFD4',
-          dark: '#4B86AB',
-          light: '#A9CBE2'
+          DEFAULT: 'rgb(var(--color-brand-blue) / <alpha-value>)',
+          dark: 'rgb(var(--color-brand-blue-dark) / <alpha-value>)',
+          light: 'rgb(var(--color-brand-blue-light) / <alpha-value>)'
         },
         brandOrange: {
-          DEFAULT: '#CC5500',
-          dark: '#A64400',
-          light: '#E6762A'
+          DEFAULT: 'rgb(var(--color-brand-orange) / <alpha-value>)',
+          dark: 'rgb(var(--color-brand-orange-dark) / <alpha-value>)',
+          light: 'rgb(var(--color-brand-orange-light) / <alpha-value>)'
         },
-        navy: '#0A1A2A',
+        navy: 'rgb(var(--color-navy) / <alpha-value>)',
       },
       fontFamily: {
         display: ['Oswald', 'Impact', 'Arial Black', 'sans-serif'],

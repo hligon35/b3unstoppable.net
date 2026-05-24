@@ -72,7 +72,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, route: Route
       routes: ['contact', 'newsletter', 'submit', 'stories', 'moderate'],
       backupConfigured: Boolean(normalizeUrl(process.env.FORMS_BACKUP_URL)),
       sendgridConfigured: hasSendGridConfig(),
-      runtime: 'vercel',
+      runtime: 'node',
     });
     return;
   }
@@ -613,7 +613,7 @@ function normalizeUrl(value?: string): string {
 
 function getEmailLogoUrl(): string {
   const siteUrl = normalizeUrl(
-    process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL,
+    process.env.NEXT_PUBLIC_SITE_URL || process.env.CUSTOM_DOMAIN,
   );
 
   if (siteUrl && !isLocalHostname(siteUrl)) {
@@ -621,7 +621,7 @@ function getEmailLogoUrl(): string {
     return `${baseUrl}/images/logos/B3U3D.png`;
   }
 
-  return 'https://b3uv3.vercel.app/images/logos/B3U3D.png';
+  return 'https://b3unstoppable.net/images/logos/B3U3D.png';
 }
 
 function isLocalHostname(value: string): boolean {

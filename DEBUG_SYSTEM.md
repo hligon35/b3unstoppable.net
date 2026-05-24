@@ -175,8 +175,8 @@ The weekly email can now separate analytics sources visually:
   - direct browser and API telemetry collected by this project
 - Cloudflare Analytics
   - optional external traffic totals when either the Cloudflare Google Sheets Apps Script endpoint is configured or direct Cloudflare credentials are configured
-- Vercel Analytics
-  - currently shown as a collection-status source in the report so it is clearly distinguished from internal app metrics
+- External Analytics
+  - currently represented by Cloudflare sources so they are clearly distinguished from internal app metrics
 
 Cloudflare can contribute weekly visitor and pageview comparisons today through either of these paths:
 
@@ -189,7 +189,7 @@ If the Apps Script endpoint is protected, also set:
 
 - `CLOUDFLARE_ANALYTICS_SCRIPT_SECRET`
 
-Vercel Analytics is still installed on the site, but this monitoring pipeline does not currently fetch weekly Vercel metrics through an API.
+The site now relies on Cloudflare analytics sources instead of Vercel Analytics.
 
 Report email content is intended to be easy to scan first, technical second.
 
@@ -206,7 +206,7 @@ Two GitHub Actions workflows were added:
 Required GitHub Actions secrets:
 
 - `MONITORING_BASE_URL`
-  - example: `https://b3uv3.vercel.app`
+  - example: `https://b3unstoppable.net`
 - `MONITORING_CRON_TOKEN`
 - `SENDGRID_API_KEY`
 - `MONITORING_FROM_EMAIL`

@@ -2,13 +2,8 @@
 import Hero from '@/components/Hero';
 import Image, { type StaticImageData } from 'next/image';
 import Link from 'next/link';
-import type { GetStaticProps } from 'next';
 import { useEffect, useRef, useState } from 'react';
-import about1 from '@/images/content/about1.jpeg';
-import about2 from '@/images/content/about2.jpeg';
 import BookImage from '@/images/shop/bookCover.png';
-import about3 from '@/images/photos/J&B-(2 of 3).JPEG';
-import about4 from '@/images/photos/J&B-(3 of 3).JPEG';
 import RokuLogo from '@/images/logos/rokuLogo.png';
 import FireTvLogo from '@/images/logos/firetv.png';
 import B3ULogo from '@/images/logos/B3U3D.png';
@@ -19,57 +14,47 @@ import Test2 from '@/images/content/test2.JPEG';
 import { useFormsApi } from '@/lib/useFormsApi';
 import { submitFormToEndpoint } from '@/lib/formsSubmit';
 import { communityEvent, createCommunityEventStructuredData, siteUrl } from '@/lib/communityEvent';
-import { fetchHomePageContent, type HomePageContent } from '@/lib/sanity';
+import { resolveSiteImage, useSavedSiteImageSelections } from '@/lib/siteEditorImages';
 
 const EMAIL_FIELD_MIN = 6;
 const EMAIL_FIELD_MAX = 254;
-
-type HomePageProps = {
-  cmsContent: HomePageContent | null;
-};
 
 type AboutImage = {
   alt: string;
   src: string | StaticImageData;
 };
 
-export default function HomePage({ cmsContent }: HomePageProps) {
+export default function HomePage() {
   const [subscribed, setSubscribed] = useState(false);
   const [subPending, setSubPending] = useState(false);
   const newsletterFormRef = useRef<HTMLFormElement | null>(null);
   const [t0, setT0] = useState('');
   const { formsApi, debugEnabled } = useFormsApi();
+  const imageSelections = useSavedSiteImageSelections();
   const eventStructuredData = useState(() => createCommunityEventStructuredData({
     pageUrl: `${siteUrl}/`,
     imageUrl: new URL(communityEvent.imagePath, siteUrl).toString(),
   }))[0];
 
   const [subError, setSubError] = useState<string | null>(null);
-  const defaultAboutImages: AboutImage[] = [
-    { src: about1, alt: 'Dr. Bree Charles speaking portrait' },
-    { src: about4, alt: 'Dr. Bree Charles event portrait' },
-    { src: about3, alt: 'Dr. Bree Charles candid portrait' },
-    { src: about2, alt: 'Dr. Bree Charles smiling portrait' },
-  ];
-  const cmsAboutImagesRaw = (cmsContent?.aboutImages || []).filter(
-    (image): image is { url: string; alt?: string } => Boolean(image?.url),
-  );
-  const cmsAboutImages = cmsAboutImagesRaw.map((image, index) => ({
-    src: image.url,
-    alt: image.alt?.trim() || `About image ${index + 1}`,
-  }));
-  const aboutImages = defaultAboutImages.map((defaultImage, index) => cmsAboutImages[index] ?? defaultImage);
-  const aboutHeading = cmsContent?.aboutHeading?.trim() || 'About Dr. Bree Charles';
+  const aboutImages: AboutImage[] = [
+    resolveSiteImage(imageSelections.homeAboutImageOne),
+    resolveSiteImage(imageSelections.homeAboutImageTwo),
+    resolveSiteImage(imageSelections.homeAboutImageThree),
+    resolveSiteImage(imageSelections.homeAboutImageFour),
+  ].map((asset) => ({ src: asset.image, alt: asset.alt }));
+  const shopBookImage = resolveSiteImage(imageSelections.shopBookImage);
+  const aboutHeading = 'About Dr. Bree Charles';
   const styledAboutHeadingName = aboutHeading.match(/^About\s+(.+)$/i)?.[1]?.trim();
-  const aboutParagraphOne = cmsContent?.aboutParagraphOne || 'Transformational speaker, author, U.S. Army veteran, and creator of the B3U Podcast. Bree has turned her pain into purpose, proving that brokenness doesn\'t mean defeat it means rebirth.';
-  const aboutParagraphTwo = cmsContent?.aboutParagraphTwo || 'Through courage, faith, and relentless resilience, she helps others burn away fear, break destructive patterns, and become who they were created to be.';
-  const aboutTagline = cmsContent?.aboutTagline || 'Breaking Cycles. Building Legacies.';
-  const aboutCtaLabel = cmsContent?.aboutCtaLabel || 'Learn More About Bree';
-  const aboutCtaHref = cmsContent?.aboutCtaHref || '/about';
-  const shopVideoUrl = cmsContent?.featuredVideo?.url || '/videos/the-big-take-back-promo.mp4';
-  const shopVideoPosterUrl = cmsContent?.featuredVideoPoster?.url || BookImage.src;
-  const newsletterHeading = cmsContent?.newsletterHeading || 'Join "The Take Back Weekly"';
-  const newsletterDescription = cmsContent?.newsletterDescription || 'Get new episodes, inspiration, and community opportunities delivered to your inbox.';
+  const aboutParagraphOne = 'Transformational speaker, author, U.S. Army veteran, and creator of the B3U Podcast. Bree has turned her pain into purpose, proving that brokenness doesn\'t mean defeat it means rebirth.';
+  const aboutParagraphTwo = 'Through courage, faith, and relentless resilience, she helps others burn away fear, break destructive patterns, and become who they were created to be.';
+  const aboutTagline = 'Breaking Cycles. Building Legacies.';
+  const aboutCtaLabel = 'Learn More About Bree';
+  const aboutCtaHref = '/about';
+  const shopVideoUrl = '/videos/the-big-take-back-promo.mp4';
+  const shopVideoPosterUrl = typeof shopBookImage.image === 'string' ? shopBookImage.image : shopBookImage.image.src;
+  const newsletterHeading = 'Join "The Take Back Weekly"';
+  const newsletterDescription = 'Get new episodes, inspiration, and community opportunities delivered to your inbox.';
 
   async function handleNewsletterSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -365,8 +350,8 @@ export default function HomePage({ cmsContent }: HomePageProps) {
             <div className="flex items-center gap-4 px-5 pb-5 text-white/85">
               <div className="relative h-20 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-white/10">
                 <Image
-                  src={BookImage}
-                  alt="The Big Take Back: What I Left Behind book cover"
+                  src={shopBookImage.image}
+                  alt={shopBookImage.alt}
                   fill
                   className="object-contain p-1"
                   sizes="64px"
@@ -421,13 +406,3 @@ export default function HomePage({ cmsContent }: HomePageProps) {
     </Layout>
   );
 }
-
-export const getStaticProps: GetStaticProps<HomePageProps> = async ({ preview = false }) => {
-  const cmsContent = await fetchHomePageContent({ preview });
-  return {
-    props: {
-      cmsContent,
-    },
-    revalidate: 60,
-  };
-};
