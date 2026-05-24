@@ -43,3 +43,38 @@ export function buildChildEnv(fileEnv) {
 
   return childEnv;
 }
+
+export function resolveWranglerInvocation(require, wranglerArgs = []) {
+  try {
+    const wranglerEntryPath = require.resolve('wrangler');
+
+    return {
+      command: process.execPath,
+      args: [wranglerEntryPath, ...wranglerArgs],
+    };
+  } catch {
+    if (process.platform === 'win32') {
+      return {
+        command: 'cmd.exe',
+        args: ['/d', '/s', '/c', buildWindowsCommand(['npm', 'exec', '--', 'wrangler', ...wranglerArgs])],
+      };
+    }
+
+    return {
+      command: 'npm',
+      args: ['exec', '--', 'wrangler', ...wranglerArgs],
+    };
+  }
+}
+
+function buildWindowsCommand(args) {
+  return args
+    .map((arg) => {
+      if (/^[A-Za-z0-9_./:-]+$/.test(arg)) {
+        return arg;
+      }
+
+      return `"${arg.replace(/"/g, '""')}"`;
+    })
+    .join(' ');
+}

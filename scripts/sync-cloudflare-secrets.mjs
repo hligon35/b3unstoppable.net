@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 
-import { buildChildEnv, parseEnvFile } from './env-utils.mjs';
+import { buildChildEnv, parseEnvFile, resolveWranglerInvocation } from './env-utils.mjs';
 
 const require = createRequire(import.meta.url);
 
@@ -31,7 +31,6 @@ const dryRun = flags.includes('--dry-run');
 
 const fileEnv = parseEnvFile(envFileArg);
 const childEnv = buildChildEnv(fileEnv);
-const wranglerBinPath = require.resolve('wrangler/bin/wrangler.js');
 
 const selectedEntries = SECRET_KEYS
   .map((key) => [key, fileEnv[key]])
@@ -57,15 +56,17 @@ if (dryRun) {
 }
 
 for (const [key, value] of selectedEntries) {
-  await putSecret({ wranglerBinPath, childEnv, key, value });
+  await putSecret({ childEnv, key, value });
   console.log(`Synced ${key}`);
 }
 
-async function putSecret({ wranglerBinPath, childEnv, key, value }) {
+async function putSecret({ childEnv, key, value }) {
+  const wranglerInvocation = resolveWranglerInvocation(require, ['secret', 'put', key]);
+
   await new Promise((resolvePromise, rejectPromise) => {
     const child = spawn(
-      process.execPath,
-      [wranglerBinPath, 'secret', 'put', key],
+      wranglerInvocation.command,
+      wranglerInvocation.args,
       {
         env: childEnv,
         stdio: ['pipe', 'inherit', 'inherit'],
