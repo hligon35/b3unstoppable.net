@@ -9,6 +9,7 @@ node_modules
 # Next.js
 /.next/
 /out/
+/.open-next/
 
 # Production
 /build
@@ -25,12 +26,14 @@ yarn-error.log*
 # Local env files
 .env.local*
 .env*  
+.dev.vars
 env.github
 env.vercel
 .env.local.example
 
 # Vercel
 .vercel
+.wrangler/
 .sanity
 
 # TypeScript

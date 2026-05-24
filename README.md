@@ -69,7 +69,10 @@ SENDGRID_TO_EMAIL=info@b3unstoppable.net
 ```
 
 ## Cloudflare Deployment
-- Deploy this repo through Cloudflare using the existing `opennext:build` and `opennext:deploy` scripts.
+- Deploy this repo to Cloudflare Workers using OpenNext.
+- Install dependencies, then use `npm run deploy` for a local deploy or configure Cloudflare Workers Builds.
+- In Workers Builds, set the build command to `npx @opennextjs/cloudflare build` and the deploy command to `npx @opennextjs/cloudflare deploy`.
+- Keep the Worker name and custom domains aligned with `wrangler.jsonc`.
 - Keep `NEXT_PUBLIC_FORMS_API=/api/forms` so all forms go through the first-party backend.
 - SendGrid is the primary delivery path for contact emails, newsletter confirmations, and story acknowledgements.
 - Google Apps Script remains the backup mailer and persistence layer. Story submissions still depend on it for moderation links and approved-story feed storage.
