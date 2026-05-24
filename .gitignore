@@ -24,12 +24,15 @@ yarn-debug.log*
 yarn-error.log*
 
 # Local env files
-.env.local*
+.env.local.*
 .env*  
 .dev.vars
+env
+env.cloudflare
 env.github
 env.vercel
-.env.local.example
+!.env.local.example
+!env.cloudflare.example
 
 # Vercel
 .vercel
