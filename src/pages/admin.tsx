@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 
 import CloudflareAnalyticsPanel from '@/components/CloudflareAnalyticsPanel';
 import SiteEditorPanel from '@/components/SiteEditorPanel';
-import WebAnalyticsIcon from '../../webanalytics.png';
+import WebAnalyticsIcon from '../../webAnalytics.png';
 import WebEditorIcon from '../../webEditor.png';
 
 type NavItem = {
