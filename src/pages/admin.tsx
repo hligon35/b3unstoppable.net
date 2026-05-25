@@ -90,6 +90,10 @@ const helpSections: HelpSection[] = [
   },
 ];
 
+function getHelpSectionId(title: string) {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+}
+
 type Subscriber = {
   id: number;
   email: string;
@@ -655,9 +659,18 @@ export default function Admin() {
           }`}
         >
           <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-orange-200">B3U Admin</p>
-              <h2 className="mt-1 text-lg font-semibold text-white">Dashboard</h2>
+            <div className="flex items-center gap-3">
+              <Image
+                src="/images/logos/B3U3D.png"
+                alt="B3U logo"
+                width={44}
+                height={44}
+                className="h-11 w-11 rounded-xl bg-white object-contain p-1"
+              />
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-orange-200">B3U Admin</p>
+                <h2 className="mt-1 text-lg font-semibold text-white">Dashboard</h2>
+              </div>
             </div>
             <button
               type="button"
@@ -691,11 +704,25 @@ export default function Admin() {
                   <p className="text-sm text-gray-600">
                     Use this page as a quick guide to every dashboard control. Each card below explains what a button, field, tab, or status area does.
                   </p>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    {helpSections.map((section) => (
+                      <a
+                        key={section.title}
+                        href={`#${getHelpSectionId(section.title)}`}
+                        className="rounded-full border border-brandBlue/20 bg-brandBlue-light/15 px-4 py-2 text-sm font-medium text-navy transition hover:border-brandBlue hover:bg-brandBlue-light/25"
+                      >
+                        {section.title}
+                      </a>
+                    ))}
+                  </div>
+                  <p className="mt-4 text-xs text-gray-500">
+                    Use the buttons above to jump to the instructions lower on this page.
+                  </p>
                 </StatSection>
 
                 <div className="grid gap-6 xl:grid-cols-2">
                   {helpSections.map((section) => (
-                    <StatSection key={section.title} id={section.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')} title={section.title} className="h-full">
+                    <StatSection key={section.title} id={getHelpSectionId(section.title)} title={section.title} className="h-full">
                       <p className="mb-4 text-sm text-gray-500">{section.description}</p>
                       <div className="space-y-3">
                         {section.items.map((item) => (
