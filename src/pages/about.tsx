@@ -1,12 +1,21 @@
+import type { GetServerSideProps } from 'next';
 import Layout from '@/components/Layout';
 import Image from 'next/image';
 import MelaLogo from '@/images/logos/Melalogo.png';
 import THOHLogo from '@/images/logos/THOHlogo.png';
-import { resolveSiteImage, useSavedSiteImageSelections } from '@/lib/siteEditorImages';
+import { resolveSiteImage } from '@/lib/siteEditorImages';
+import { usePublishedSiteDraft } from '@/lib/siteEditorContent';
+import { getPublishedSitePageProps, type PublishedSitePageProps } from '@/lib/siteEditorContent.server';
 
-export default function AboutPage() {
-  const imageSelections = useSavedSiteImageSelections();
-  const featureImage = resolveSiteImage(imageSelections.aboutPageFeatureImage);
+type AboutPageProps = PublishedSitePageProps;
+
+export default function AboutPage({ initialSiteDraft, initialSiteUpdatedAt }: AboutPageProps) {
+  const { draft } = usePublishedSiteDraft({
+    initialDraft: initialSiteDraft,
+    initialUpdatedAt: initialSiteUpdatedAt,
+    preferLocalDraft: false,
+  });
+  const featureImage = resolveSiteImage(draft.aboutPageFeatureImage);
 
   return (
     <Layout
@@ -191,3 +200,9 @@ export default function AboutPage() {
     </Layout>
   );
 }
+
+export const getServerSideProps: GetServerSideProps<AboutPageProps> = async () => {
+  return {
+    props: await getPublishedSitePageProps(),
+  };
+};

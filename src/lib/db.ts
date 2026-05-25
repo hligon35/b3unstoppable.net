@@ -34,6 +34,12 @@ type AdminPasswordResetRow = {
   created_at: string;
 };
 
+type SiteContentRow = {
+  content_key: string;
+  content_json: string;
+  updated_at: string;
+};
+
 type D1PreparedStatement = {
   bind: (...values: unknown[]) => D1PreparedStatement;
   all<T = unknown>(): Promise<D1LikeResult<T>>;
@@ -82,6 +88,11 @@ const DASHBOARD_SCHEMA_STATEMENTS = [
     expires_at DATETIME NOT NULL,
     used_at DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE TABLE IF NOT EXISTS site_content (
+    content_key TEXT PRIMARY KEY,
+    content_json TEXT NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`,
 ];
 
@@ -295,4 +306,20 @@ export async function getAdminPasswordResetByTokenHash(tokenHash: string) {
 
 export async function markAdminPasswordResetUsed(id: number) {
   return execute('UPDATE admin_password_resets SET used_at = CURRENT_TIMESTAMP WHERE id = ? AND used_at IS NULL', [id]);
+}
+
+export async function getSiteContentRecord(contentKey: string) {
+  return queryFirst<SiteContentRow>(
+    'SELECT content_key, content_json, updated_at FROM site_content WHERE content_key = ?',
+    [contentKey],
+  );
+}
+
+export async function saveSiteContentRecord(contentKey: string, contentJson: string) {
+  return execute(
+    `INSERT INTO site_content (content_key, content_json, updated_at)
+     VALUES (?, ?, CURRENT_TIMESTAMP)
+     ON CONFLICT(content_key) DO UPDATE SET content_json = excluded.content_json, updated_at = CURRENT_TIMESTAMP`,
+    [contentKey, contentJson],
+  );
 }

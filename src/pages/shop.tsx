@@ -1,22 +1,12 @@
+import type { GetServerSideProps } from 'next';
 import Layout from '@/components/Layout';
 import Image from 'next/image';
 import Link from 'next/link';
 import Script from 'next/script';
 import { useEffect } from 'react';
-import { resolveSiteImage, useSavedSiteImageSelections } from '@/lib/siteEditorImages';
-
-const PAYPAL_BUTTONS = [
-  {
-    label: 'Paperback',
-    containerId: 'paypal-container-RDELK856FXAPN',
-    hostedButtonId: 'RDELK856FXAPN',
-  },
-  {
-    label: 'Hardcover',
-    containerId: 'paypal-container-XMM68ZBM73KMG',
-    hostedButtonId: 'XMM68ZBM73KMG',
-  },
-] as const;
+import { resolveSiteImage } from '@/lib/siteEditorImages';
+import { usePublishedSiteDraft } from '@/lib/siteEditorContent';
+import { getPublishedSitePageProps, type PublishedSitePageProps } from '@/lib/siteEditorContent.server';
 
 type PayPalWindow = Window & {
   paypal?: {
@@ -26,9 +16,15 @@ type PayPalWindow = Window & {
   };
 };
 
-export default function ShopPage() {
-  const imageSelections = useSavedSiteImageSelections();
-  const shopBookImage = resolveSiteImage(imageSelections.shopBookImage);
+type ShopPageProps = PublishedSitePageProps;
+
+export default function ShopPage({ initialSiteDraft, initialSiteUpdatedAt }: ShopPageProps) {
+  const { draft } = usePublishedSiteDraft({
+    initialDraft: initialSiteDraft,
+    initialUpdatedAt: initialSiteUpdatedAt,
+    preferLocalDraft: false,
+  });
+  const shopBookImage = resolveSiteImage(draft.shopBookImage);
   const shopVideoPosterUrl = typeof shopBookImage.image === 'string' ? shopBookImage.image : shopBookImage.image.src;
 
   const renderPayPalButton = () => {
@@ -41,10 +37,16 @@ export default function ShopPage() {
       return;
     }
 
-    PAYPAL_BUTTONS.forEach(({ containerId, hostedButtonId }) => {
+    draft.shopProducts.forEach(({ containerId, hostedButtonId }) => {
       const container = document.getElementById(containerId);
 
-      if (!container || container.childElementCount > 0) {
+      if (!container) {
+        return;
+      }
+
+      container.innerHTML = '';
+
+      if (!hostedButtonId) {
         return;
       }
 
@@ -54,7 +56,7 @@ export default function ShopPage() {
 
   useEffect(() => {
     renderPayPalButton();
-  }, []);
+  }, [draft.shopProducts]);
 
   return (
     <Layout
@@ -64,13 +66,13 @@ export default function ShopPage() {
       <section className="section-padding bg-gradient-to-br from-[#fff8f3] via-white to-brandBlue-light/40">
         <div className="mx-auto max-w-6xl">
           <div className="mb-12 text-center">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">Featured book</p>
-            <h1 className="mt-4 text-4xl font-bold text-navy md:text-5xl">The Big Take Back: What I Left Behind</h1>
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">{draft.shopEyebrow}</p>
+            <h1 className="mt-4 text-4xl font-bold text-navy md:text-5xl">{draft.shopTitle}</h1>
             <p className="mx-auto mt-5 max-w-3xl text-lg text-navy/80">
-              More than a memoir, this book is a movement and a method. Dr. Bree Charles shares the raw truth of trauma, loss, fear, and survival, then walks readers toward healing, clarity, and the decision to take their lives back.
+              {draft.shopIntroOne}
             </p>
             <p className="mx-auto mt-4 max-w-3xl text-base leading-relaxed text-navy/70 md:text-lg">
-              This is for the reader who is ready to stop living in survival mode, confront what has been carried too long, and rebuild life with clarity, confidence, and conviction.
+              {draft.shopIntroTwo}
             </p>
           </div>
 
@@ -120,13 +122,13 @@ export default function ShopPage() {
             </div>
 
             <div className="card bg-white shadow-2xl">
-              <h2 className="text-2xl font-bold text-navy">Order your copy now</h2>
+              <h2 className="text-2xl font-bold text-navy">{draft.shopOrderTitle}</h2>
               <p className="mt-3 text-navy/75">
-                The Big Take Back is on sale now. Choose the edition that fits your shelf and keep building the kind of freedom that changes what comes next.
+                {draft.shopOrderDescription}
               </p>
 
               <div className="mt-6 grid gap-5 sm:grid-cols-2">
-                {PAYPAL_BUTTONS.map(({ label, containerId }) => (
+                {draft.shopProducts.map(({ label, containerId }) => (
                   <div key={containerId} className="rounded-2xl border border-black/10 bg-[#fff8f3] p-5 text-center">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-navy/60">{label}</p>
                     <div className="mt-3 min-h-[56px]">
@@ -137,9 +139,9 @@ export default function ShopPage() {
               </div>
 
               <div className="mt-6 rounded-2xl border border-navy/10 bg-gray-50 p-5">
-                <h3 className="text-lg font-bold text-navy">Stay connected</h3>
+                <h3 className="text-lg font-bold text-navy">{draft.shopContactTitle}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-navy/75">
-                  Want updates, speaking details, or help placing a larger order? Reach out directly or join the weekly list.
+                  {draft.shopContactDescription}
                 </p>
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                   <Link href="/#newsletter" className="btn-outline flex-1 text-center">Join The Take Back Weekly</Link>
@@ -159,3 +161,9 @@ export default function ShopPage() {
     </Layout>
   );
 }
+
+export const getServerSideProps: GetServerSideProps<ShopPageProps> = async () => {
+  return {
+    props: await getPublishedSitePageProps(),
+  };
+};

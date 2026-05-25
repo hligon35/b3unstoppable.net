@@ -1,20 +1,29 @@
+import type { GetServerSideProps } from 'next';
 import Layout from '@/components/Layout';
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { communityEvent, createCommunityEventStructuredData, siteUrl } from '@/lib/communityEvent';
-import { eventGalleryContent, type EventGalleryCardContent } from '@/lib/eventGalleryContent';
-import { resolveSiteImage, useSavedSiteImageSelections } from '@/lib/siteEditorImages';
+import type { EventGalleryCardContent } from '@/lib/eventGalleryContent';
+import { resolveSiteImage } from '@/lib/siteEditorImages';
+import { usePublishedSiteDraft } from '@/lib/siteEditorContent';
+import { getPublishedSitePageProps, type PublishedSitePageProps } from '@/lib/siteEditorContent.server';
 
 function cardBadges(card: EventGalleryCardContent) {
   return [card.badgeOne, card.badgeTwo, card.badgeThree].filter(Boolean);
 }
 
-export default function EventGalleryPage() {
+type EventGalleryPageProps = PublishedSitePageProps;
+
+export default function EventGalleryPage({ initialSiteDraft, initialSiteUpdatedAt }: EventGalleryPageProps) {
   const [flyerOpen, setFlyerOpen] = useState(false);
-  const imageSelections = useSavedSiteImageSelections();
-  const visibleCards = eventGalleryContent.cards;
-  const flyerImage = resolveSiteImage(imageSelections.eventsFlyerImage);
-  const bookImage = resolveSiteImage(imageSelections.eventsBookImage);
+  const { draft } = usePublishedSiteDraft({
+    initialDraft: initialSiteDraft,
+    initialUpdatedAt: initialSiteUpdatedAt,
+    preferLocalDraft: false,
+  });
+  const visibleCards = draft.eventCards.filter((card) => !card.hidden);
+  const flyerImage = resolveSiteImage(draft.eventsFlyerImage);
+  const bookImage = resolveSiteImage(draft.eventsBookImage);
   const eventStructuredData = useMemo(() => createCommunityEventStructuredData({
     pageUrl: `${siteUrl}/event-gallery/`,
     imageUrl: new URL(communityEvent.imagePath, siteUrl).toString(),
@@ -51,18 +60,18 @@ export default function EventGalleryPage() {
       <section className="section-padding bg-white">
         <div className="mx-auto max-w-5xl">
           <div className="mb-12 text-center">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">{eventGalleryContent.eyebrow}</p>
-            <h1 className="mt-4 text-4xl font-bold text-navy md:text-5xl">{eventGalleryContent.heading}</h1>
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">Events</p>
+            <h1 className="mt-4 text-4xl font-bold text-navy md:text-5xl">{draft.eventsHeading}</h1>
             <p className="mx-auto mt-4 max-w-3xl text-lg text-navy/75">
-              {eventGalleryContent.description}
+              {draft.eventsDescription}
             </p>
           </div>
 
           <div className="mb-10 rounded-3xl border border-brandOrange/20 bg-gradient-to-r from-brandOrange to-red-600 p-6 text-white shadow-xl">
-            {eventGalleryContent.bannerEyebrow ? <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/80">{eventGalleryContent.bannerEyebrow}</p> : null}
-            {eventGalleryContent.bannerTitle ? <h2 className="mt-3 text-2xl font-bold md:text-3xl">{eventGalleryContent.bannerTitle}</h2> : null}
-            {eventGalleryContent.bannerDescription ? (
-              <p className="mt-3 max-w-3xl text-sm text-white/90 md:text-base">{eventGalleryContent.bannerDescription}</p>
+            {draft.eventsBookUpdateEyebrow ? <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/80">{draft.eventsBookUpdateEyebrow}</p> : null}
+            {draft.eventsBookUpdateTitle ? <h2 className="mt-3 text-2xl font-bold md:text-3xl">{draft.eventsBookUpdateTitle}</h2> : null}
+            {draft.eventsBookUpdateDescription ? (
+              <p className="mt-3 max-w-3xl text-sm text-white/90 md:text-base">{draft.eventsBookUpdateDescription}</p>
             ) : null}
           </div>
 
@@ -203,3 +212,9 @@ export default function EventGalleryPage() {
     </Layout>
   );
 }
+
+export const getServerSideProps: GetServerSideProps<EventGalleryPageProps> = async () => {
+  return {
+    props: await getPublishedSitePageProps(),
+  };
+};

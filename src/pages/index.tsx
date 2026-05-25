@@ -1,4 +1,5 @@
-﻿import Layout from '@/components/Layout';
+import type { GetServerSideProps } from 'next';
+import Layout from '@/components/Layout';
 import Hero from '@/components/Hero';
 import TurnstileField, { useTurnstileConfig } from '@/components/TurnstileField';
 import Image, { type StaticImageData } from 'next/image';
@@ -15,7 +16,9 @@ import Test2 from '@/images/content/test2.JPEG';
 import { useFormsApi } from '@/lib/useFormsApi';
 import { submitFormToEndpoint } from '@/lib/formsSubmit';
 import { communityEvent, createCommunityEventStructuredData, siteUrl } from '@/lib/communityEvent';
-import { resolveSiteImage, useSavedSiteImageSelections } from '@/lib/siteEditorImages';
+import { resolveSiteImage } from '@/lib/siteEditorImages';
+import { usePublishedSiteDraft } from '@/lib/siteEditorContent';
+import { getPublishedSitePageProps, type PublishedSitePageProps } from '@/lib/siteEditorContent.server';
 
 const EMAIL_FIELD_MIN = 6;
 const EMAIL_FIELD_MAX = 254;
@@ -25,7 +28,9 @@ type AboutImage = {
   src: string | StaticImageData;
 };
 
-export default function HomePage() {
+type HomePageProps = PublishedSitePageProps;
+
+export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: HomePageProps) {
   const [subscribed, setSubscribed] = useState(false);
   const [subPending, setSubPending] = useState(false);
   const newsletterFormRef = useRef<HTMLFormElement | null>(null);
@@ -33,7 +38,11 @@ export default function HomePage() {
   const [turnstileToken, setTurnstileToken] = useState('');
   const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const { formsApi, debugEnabled } = useFormsApi();
-  const imageSelections = useSavedSiteImageSelections();
+  const { draft } = usePublishedSiteDraft({
+    initialDraft: initialSiteDraft,
+    initialUpdatedAt: initialSiteUpdatedAt,
+    preferLocalDraft: false,
+  });
   const eventStructuredData = useState(() => createCommunityEventStructuredData({
     pageUrl: `${siteUrl}/`,
     imageUrl: new URL(communityEvent.imagePath, siteUrl).toString(),
@@ -42,27 +51,27 @@ export default function HomePage() {
 
   const [subError, setSubError] = useState<string | null>(null);
   const aboutImages: AboutImage[] = [
-    resolveSiteImage(imageSelections.homeAboutImageOne),
-    resolveSiteImage(imageSelections.homeAboutImageTwo),
-    resolveSiteImage(imageSelections.homeAboutImageThree),
-    resolveSiteImage(imageSelections.homeAboutImageFour),
+    resolveSiteImage(draft.homeAboutImageOne),
+    resolveSiteImage(draft.homeAboutImageTwo),
+    resolveSiteImage(draft.homeAboutImageThree),
+    resolveSiteImage(draft.homeAboutImageFour),
   ].map((asset) => ({ src: asset.image, alt: asset.alt }));
-  const shopBookImage = resolveSiteImage(imageSelections.shopBookImage);
-  const aboutHeading = 'About Dr. Bree Charles';
+  const shopBookImage = resolveSiteImage(draft.shopBookImage);
+  const aboutHeading = draft.aboutHeading;
   const styledAboutHeadingName = aboutHeading.match(/^About\s+(.+)$/i)?.[1]?.trim();
-  const aboutParagraphOne = 'Transformational speaker, author, U.S. Army veteran, and creator of the B3U Podcast. Bree has turned her pain into purpose, proving that brokenness doesn\'t mean defeat it means rebirth.';
-  const aboutParagraphTwo = 'Through courage, faith, and relentless resilience, she helps others burn away fear, break destructive patterns, and become who they were created to be.';
-  const aboutTagline = 'Breaking Cycles. Building Legacies.';
-  const aboutCtaLabel = 'Learn More About Bree';
-  const aboutCtaHref = '/about';
+  const aboutParagraphOne = draft.aboutParagraphOne;
+  const aboutParagraphTwo = draft.aboutParagraphTwo;
+  const aboutTagline = draft.aboutTagline;
+  const aboutCtaLabel = draft.aboutCtaLabel;
+  const aboutCtaHref = draft.aboutCtaHref;
   const shopVideoUrl = '/videos/the-big-take-back-promo.mp4';
   const shopVideoPosterUrl = typeof shopBookImage.image === 'string' ? shopBookImage.image : shopBookImage.image.src;
-  const newsletterHeading = 'Join "The Take Back Weekly"';
-  const newsletterDescription = 'Get new episodes, inspiration, and community opportunities delivered to your inbox.';
+  const newsletterHeading = draft.newsletterHeading;
+  const newsletterDescription = draft.newsletterDescription;
 
   async function handleNewsletterSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (subPending) return; // guard against double submissions
+    if (subPending) return;
     if (!formsApi) {
       setSubError('Subscriptions are temporarily unavailable. Please try again shortly.');
       // eslint-disable-next-line no-console
@@ -80,7 +89,6 @@ export default function HomePage() {
     setSubError(null);
     setSubPending(true);
     try {
-      // Submit to Google Apps Script
       await submitFormToEndpoint(newsletterFormRef.current!, `${formsApi}?endpoint=newsletter`);
 
       setSubscribed(true);
@@ -100,11 +108,9 @@ export default function HomePage() {
     try { setT0(String(Date.now())); } catch {}
   }, []);
 
-  // Debug postMessage via iframe removed.
-
   return (
     <Layout
-      title="B3U — Burn, Break, Become Unstoppable | Richmond, VA"
+      title="B3U - Burn, Break, Become Unstoppable | Richmond, VA"
       description="Empowerment, speaking, and community with Dr. Bree Charles. B3U (Burn, Break, Become Unstoppable) is based in Richmond, VA and serves surrounding areas across Central Virginia."
       structuredData={eventStructuredData}
     >
@@ -154,13 +160,8 @@ export default function HomePage() {
               aria-label="Watch B3U on YouTube"
               className="group relative block aspect-video overflow-hidden rounded-xl shadow-xl ring-1 ring-black/10"
             >
-              {/* background gradient (light white-blue) */}
               <div className="absolute inset-0 bg-gradient-to-br from-white via-[#EEF5FF] to-[#CFE6FF]" />
-
-              {/* subtle animated glow on hover */}
               <div className="pointer-events-none absolute -inset-8 bg-gradient-to-r from-brandOrange/25 via-transparent to-brandBlue-light/25 blur-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-
-              {/* 3D logo */}
               <div className="absolute inset-0">
                 <Image
                   src={B3ULogo}
@@ -170,19 +171,13 @@ export default function HomePage() {
                   sizes="(max-width: 768px) 100vw, 420px"
                 />
               </div>
-
-              {/* subtle gradient overlay for readability on light bg */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-black/0 to-transparent" />
-
-              {/* top-left label */}
               <div className="absolute left-3 top-3">
                 <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-navy shadow-sm">
                   <span className="h-1.5 w-1.5 rounded-full bg-brandOrange shadow-[0_0_0_3px_rgba(204,85,0,0.15)]" />
                   B3U on YouTube
                 </span>
               </div>
-
-              {/* bottom-right caption */}
               <div className="absolute bottom-3 right-3">
                 <span className="rounded-md bg-black/50 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur">
                   Watch now
@@ -291,7 +286,7 @@ export default function HomePage() {
               <div className="flex-1">
                 <p className="italic text-sm mb-4">"Bree is a woman whose strength speaks louder than any obstacle she has faced. She has walked through storms that would have broken the ordinary woman, yet she stands today not just surviving, but shining. Her resilience is not accidental; it is built from battles fought quietly, tears wiped privately, and faith held firmly even when the path made no sense.</p>
 
-                <p className="italic text-sm mb-4">What makes Bree remarkable isn’t just what she has overcome, but the grace with which she continues to rise. She has carried burdens that many will never see, but she refuses to let those burdens define her. Instead, she uses her story as fuel to grow, to inspire, and to demonstrate what true courage looks like.</p>
+                <p className="italic text-sm mb-4">What makes Bree remarkable isn't just what she has overcome, but the grace with which she continues to rise. She has carried burdens that many will never see, but she refuses to let those burdens define her. Instead, she uses her story as fuel to grow, to inspire, and to demonstrate what true courage looks like.</p>
 
                 <p className="italic text-sm mb-4">Bree is proof that you can be tried, stretched, and tested, yet still emerge stronger, wiser, and more determined. Her journey is a testament to perseverance, heart, and the unshakeable spirit of a woman who simply refuses to be defeated. Anyone who knows Bree knows they are witnessing the kind of strength that changes lives and the kind of resilience that leaves a lasting mark.</p>
 
@@ -314,7 +309,7 @@ export default function HomePage() {
                 <p className="font-semibold text-sm mt-3 text-center">Brenda Johnson</p>
               </div>
               <div className="flex-1">
-                <p className="italic text-sm mb-4">"B3U has truly been a blessing in my life. Watching the show and following each episode has inspired me in ways I didn’t expect. Every story, every message, and every moment has encouraged me to keep pushing forward, stay true to my purpose, and continue sharing my own testimony with others. The transparency and strength shown on B3U remind me that growth is possible, healing is real, and God can use our stories to uplift someone else. I’m grateful for how this show pours into its viewers, including me, and I look forward to every episode that reminds us we are becoming better, braver, and bolder—one step at a time. "</p>
+                <p className="italic text-sm mb-4">"B3U has truly been a blessing in my life. Watching the show and following each episode has inspired me in ways I didn't expect. Every story, every message, and every moment has encouraged me to keep pushing forward, stay true to my purpose, and continue sharing my own testimony with others. The transparency and strength shown on B3U remind me that growth is possible, healing is real, and God can use our stories to uplift someone else. I'm grateful for how this show pours into its viewers, including me, and I look forward to every episode that reminds us we are becoming better, braver, and bolder-one step at a time. "</p>
               </div>
             </div>
           </div>
@@ -387,7 +382,6 @@ export default function HomePage() {
             onSubmit={handleNewsletterSubmit}
             ref={newsletterFormRef}
           >
-            {/* bot protection: honeypot + timestamp */}
             <input type="text" name="hp" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
             <input type="hidden" name="t0" value={t0} />
             {debugEnabled && <input type="hidden" name="debug" value="1" />}
@@ -402,7 +396,7 @@ export default function HomePage() {
                 className="flex-1 px-5 py-3 rounded-md bg-white border border-black/10 focus:outline-none focus:ring-2 focus:ring-brandBlue"
               />
               <button className="btn-primary" type="submit" disabled={subPending}>
-                {subPending ? 'Subscribing…' : 'Subscribe'}
+                {subPending ? 'Subscribing...' : 'Subscribe'}
               </button>
             </div>
             <div className="flex justify-center">
@@ -415,7 +409,7 @@ export default function HomePage() {
             </div>
             {subscribed && (
               <div className="w-full text-sm text-green-700 bg-green-50 border border-green-200 rounded-md px-3 py-2 sm:ml-4 sm:mt-0 mt-2">
-                Thanks! You’re subscribed.
+                Thanks! You're subscribed.
               </div>
             )}
             {subError && (
@@ -424,9 +418,14 @@ export default function HomePage() {
               </div>
             )}
           </form>
-          {/* Iframe removed: switched to fetch-based submission with no-cors fallback */}
         </div>
       </section>
     </Layout>
   );
 }
+
+export const getServerSideProps: GetServerSideProps<HomePageProps> = async () => {
+  return {
+    props: await getPublishedSitePageProps(),
+  };
+};

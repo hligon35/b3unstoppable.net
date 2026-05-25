@@ -8,69 +8,31 @@ import SaveIcon from '../../save.png';
 
 import {
   createEmptyEventCard,
-  eventGalleryContent,
   type EventGalleryCardContent,
   type EventCardMediaType,
   type EventCardSecondaryActionType,
 } from '@/lib/eventGalleryContent';
 import {
-  SITE_EDITOR_STORAGE_KEY,
   defaultSiteImageSelections,
-  mergeSiteImageSelections,
   resolveSiteImage,
   siteImageFieldMeta,
   siteImageFieldsByPage,
   siteImagePages,
   type SiteImagePage,
   type SiteImageField,
-  type SiteImageSelections,
 } from '@/lib/siteEditorImages';
+import {
+  defaultSiteDraft,
+  mergeSiteDraft,
+  readSavedSiteEditorDraft,
+  saveSiteEditorDraftLocally,
+  type PayPalProductDraft,
+  type SiteDraft,
+} from '@/lib/siteEditorContent';
 
 type EditorTab = 'about' | 'newsletter' | 'events' | 'shop' | 'colors' | 'images';
 type EventsPanelTab = 'page' | 'cards';
 type ShopPanelTab = 'page' | 'products';
-
-type PayPalProductDraft = {
-  id: string;
-  label: string;
-  containerId: string;
-  hostedButtonId: string;
-};
-
-type SiteDraft = SiteImageSelections & {
-  pageTitle: string;
-  status: 'draft';
-  brandBlue: string;
-  brandBlueDark: string;
-  brandBlueLight: string;
-  brandOrange: string;
-  brandOrangeDark: string;
-  brandOrangeLight: string;
-  navy: string;
-  aboutHeading: string;
-  aboutParagraphOne: string;
-  aboutParagraphTwo: string;
-  aboutTagline: string;
-  aboutCtaLabel: string;
-  aboutCtaHref: string;
-  newsletterHeading: string;
-  newsletterDescription: string;
-  eventsHeading: string;
-  eventsDescription: string;
-  eventsBookUpdateEyebrow: string;
-  eventsBookUpdateTitle: string;
-  eventsBookUpdateDescription: string;
-  eventCards: EventGalleryCardContent[];
-  shopEyebrow: string;
-  shopTitle: string;
-  shopIntroOne: string;
-  shopIntroTwo: string;
-  shopOrderTitle: string;
-  shopOrderDescription: string;
-  shopContactTitle: string;
-  shopContactDescription: string;
-  shopProducts: PayPalProductDraft[];
-};
 
 type PayPalWindow = Window & {
   paypal?: {
@@ -88,60 +50,6 @@ const editorTabs: Array<{ id: EditorTab; label: string }> = [
   { id: 'colors', label: 'Colors' },
   { id: 'images', label: 'Images' },
 ];
-
-const defaultDraft: SiteDraft = {
-  ...defaultSiteImageSelections,
-  pageTitle: 'Homepage',
-  status: 'draft',
-  brandBlue: '#7BAFD4',
-  brandBlueDark: '#4B86AB',
-  brandBlueLight: '#A9CBE2',
-  brandOrange: '#CC5500',
-  brandOrangeDark: '#A64400',
-  brandOrangeLight: '#E6762A',
-  navy: '#0A1A2A',
-  aboutHeading: 'About Dr. Bree Charles',
-  aboutParagraphOne:
-    "Transformational speaker, author, U.S. Army veteran, and creator of the B3U Podcast. Bree has turned her pain into purpose, proving that brokenness doesn't mean defeat it means rebirth.",
-  aboutParagraphTwo:
-    'Through courage, faith, and relentless resilience, she helps others burn away fear, break destructive patterns, and become who they were created to be.',
-  aboutTagline: 'Breaking Cycles. Building Legacies.',
-  aboutCtaLabel: 'Learn More About Bree',
-  aboutCtaHref: '/about',
-  newsletterHeading: 'Join "The Take Back Weekly"',
-  newsletterDescription: 'Get new episodes, inspiration, and community opportunities delivered to your inbox.',
-  eventsHeading: eventGalleryContent.heading,
-  eventsDescription: eventGalleryContent.description,
-  eventsBookUpdateEyebrow: eventGalleryContent.bannerEyebrow,
-  eventsBookUpdateTitle: eventGalleryContent.bannerTitle,
-  eventsBookUpdateDescription: eventGalleryContent.bannerDescription,
-  eventCards: eventGalleryContent.cards.map((card) => ({ ...card })),
-  shopEyebrow: 'Featured book',
-  shopTitle: 'The Big Take Back: What I Left Behind',
-  shopIntroOne:
-    'More than a memoir, this book is a movement and a method. Dr. Bree Charles shares the raw truth of trauma, loss, fear, and survival, then walks readers toward healing, clarity, and the decision to take their lives back.',
-  shopIntroTwo:
-    'This is for the reader who is ready to stop living in survival mode, confront what has been carried too long, and rebuild life with clarity, confidence, and conviction.',
-  shopOrderTitle: 'Order your copy now',
-  shopOrderDescription:
-    'The Big Take Back is on sale now. Choose the edition that fits your shelf and keep building the kind of freedom that changes what comes next.',
-  shopContactTitle: 'Stay connected',
-  shopContactDescription: 'Want updates, speaking details, or help placing a larger order? Reach out directly or join the weekly list.',
-  shopProducts: [
-    {
-      id: 'paperback',
-      label: 'Paperback',
-      containerId: 'paypal-container-RDELK856FXAPN',
-      hostedButtonId: 'RDELK856FXAPN',
-    },
-    {
-      id: 'hardcover',
-      label: 'Hardcover',
-      containerId: 'paypal-container-XMM68ZBM73KMG',
-      hostedButtonId: 'XMM68ZBM73KMG',
-    },
-  ],
-};
 
 function formatSavedAt(savedAt: string | null) {
   if (!savedAt) {
@@ -188,23 +96,24 @@ function stackedCardZIndex(position: number, expanded: boolean) {
 
 export default function SiteEditorPanel() {
   const [activeTab, setActiveTab] = useState<EditorTab>('about');
-  const [draft, setDraft] = useState<SiteDraft>(defaultDraft);
+  const [draft, setDraft] = useState<SiteDraft>(defaultSiteDraft);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState('');
+  const [isPublishing, setIsPublishing] = useState(false);
   const [activeEventsPanelTab, setActiveEventsPanelTab] = useState<EventsPanelTab>('page');
   const [activeShopPanelTab, setActiveShopPanelTab] = useState<ShopPanelTab>('page');
   const [activeImagePage, setActiveImagePage] = useState<SiteImagePage>('home');
-  const [selectedEventCardId, setSelectedEventCardId] = useState(defaultDraft.eventCards[0]?.id ?? '');
+  const [selectedEventCardId, setSelectedEventCardId] = useState(defaultSiteDraft.eventCards[0]?.id ?? '');
   const [draggedEventCardId, setDraggedEventCardId] = useState<string | null>(null);
   const [dragOverEventCardId, setDragOverEventCardId] = useState<string | null>(null);
-  const [selectedShopProductId, setSelectedShopProductId] = useState(defaultDraft.shopProducts[0]?.id ?? '');
+  const [selectedShopProductId, setSelectedShopProductId] = useState(defaultSiteDraft.shopProducts[0]?.id ?? '');
   const [draggedShopProductId, setDraggedShopProductId] = useState<string | null>(null);
   const [dragOverShopProductId, setDragOverShopProductId] = useState<string | null>(null);
   const [expandedEventCards, setExpandedEventCards] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(defaultDraft.eventCards.map((card) => [card.id, true])),
+    Object.fromEntries(defaultSiteDraft.eventCards.map((card) => [card.id, true])),
   );
   const [expandedShopProducts, setExpandedShopProducts] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(defaultDraft.shopProducts.map((product) => [product.id, true])),
+    Object.fromEntries(defaultSiteDraft.shopProducts.map((product) => [product.id, true])),
   );
   const visibleEventCards = draft.eventCards;
   const selectedEventCard = draft.eventCards.find((card) => card.id === selectedEventCardId) ?? draft.eventCards[0] ?? null;
@@ -247,31 +156,38 @@ export default function SiteEditorPanel() {
   }
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
+    const savedDraft = readSavedSiteEditorDraft();
+
+    if (savedDraft) {
+      setDraft(savedDraft.draft);
+      setLastSavedAt(savedDraft.savedAt);
       return;
     }
 
-    const rawDraft = window.localStorage.getItem(SITE_EDITOR_STORAGE_KEY);
-    if (!rawDraft) {
-      return;
-    }
+    let cancelled = false;
 
-    try {
-      const parsed = JSON.parse(rawDraft) as { draft?: SiteDraft; savedAt?: string };
-      if (parsed.draft) {
-        const mergedImageSelections = mergeSiteImageSelections(parsed.draft);
-        setDraft({
-          ...defaultDraft,
-          ...parsed.draft,
-          ...mergedImageSelections,
-          eventCards: parsed.draft.eventCards ?? defaultDraft.eventCards,
-          shopProducts: parsed.draft.shopProducts ?? defaultDraft.shopProducts,
-        });
+    async function loadPublishedDraft() {
+      try {
+        const response = await fetch('/api/site-content');
+        if (!response.ok) {
+          return;
+        }
+
+        const data = (await response.json()) as { draft?: unknown; updatedAt?: string | null };
+        if (!cancelled && data.draft) {
+          setDraft(mergeSiteDraft(data.draft));
+          setLastSavedAt(typeof data.updatedAt === 'string' ? data.updatedAt : null);
+        }
+      } catch {
+        // Keep default source values when publish storage is unavailable.
       }
-      setLastSavedAt(parsed.savedAt ?? null);
-    } catch {
-      window.localStorage.removeItem(SITE_EDITOR_STORAGE_KEY);
     }
+
+    void loadPublishedDraft();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -587,23 +503,56 @@ export default function SiteEditorPanel() {
   }
 
   function handleSaveDraft() {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
     const savedAt = new Date().toISOString();
-    window.localStorage.setItem(SITE_EDITOR_STORAGE_KEY, JSON.stringify({ draft, savedAt }));
+    saveSiteEditorDraftLocally(draft, savedAt);
     setLastSavedAt(savedAt);
-    setSaveMessage('Draft saved locally. Publishing API is the next slice.');
+    setSaveMessage('Draft saved locally.');
+  }
+
+  async function handlePublish() {
+    setIsPublishing(true);
+    setSaveMessage('Publishing changes...');
+
+    try {
+      const response = await fetch('/api/site-content', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ draft }),
+      });
+
+      if (response.status === 401) {
+        setSaveMessage('Your session expired. Log in again to publish.');
+        return;
+      }
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const message = data?.error || data?.message || `Publish failed with status ${response.status}`;
+        setSaveMessage(message);
+        return;
+      }
+
+      const savedAt = typeof data?.updatedAt === 'string' ? data.updatedAt : new Date().toISOString();
+      saveSiteEditorDraftLocally(draft, savedAt);
+      setLastSavedAt(savedAt);
+      setSaveMessage('Published to the live site.');
+    } catch {
+      setSaveMessage('Publish failed. Please try again.');
+    } finally {
+      setIsPublishing(false);
+    }
   }
 
   function handleResetDraft() {
-    setDraft(defaultDraft);
+    setDraft(defaultSiteDraft);
     setLastSavedAt(null);
     setSaveMessage('Draft reset to current source values.');
 
     if (typeof window !== 'undefined') {
-      window.localStorage.removeItem(SITE_EDITOR_STORAGE_KEY);
+      window.localStorage.removeItem('b3u-site-editor-home-draft');
     }
   }
 
@@ -644,12 +593,13 @@ export default function SiteEditorPanel() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                disabled
-                aria-label="Publish workflow next"
-                title="Publish workflow next"
-                className="flex h-10 w-10 items-center justify-center rounded-xl border border-dashed border-gray-300 bg-white text-base text-gray-400"
+                onClick={() => void handlePublish()}
+                disabled={isPublishing}
+                aria-label="Publish changes"
+                title="Publish changes"
+                className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-300 bg-white text-base font-semibold text-gray-700 transition hover:border-gray-400 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <Image src={PublishIcon} alt="" className="h-5 w-5 object-contain opacity-50" />
+                <Image src={PublishIcon} alt="" className="h-5 w-5 object-contain" />
               </button>
               <button
                 type="button"

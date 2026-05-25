@@ -29,3 +29,9 @@ CREATE TABLE IF NOT EXISTS admin_password_resets (
   used_at DATETIME,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS site_content (
+  content_key TEXT PRIMARY KEY,
+  content_json TEXT NOT NULL,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
