@@ -25,7 +25,7 @@ export function getConfiguredAdminPassword() {
 }
 
 export function getAdminResetEmail() {
-  return process.env.ADMIN_RESET_EMAIL?.trim() || process.env.SENDGRID_TO_EMAIL?.trim() || process.env.MONITORING_TO_EMAIL?.trim() || '';
+  return process.env.ADMIN_RESET_EMAIL?.trim() || process.env.MONITORING_TO_EMAIL?.trim() || process.env.SENDGRID_TO_EMAIL?.trim() || '';
 }
 
 export function getAdminResetFromEmail() {
