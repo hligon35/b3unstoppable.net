@@ -2,10 +2,6 @@ import Image from 'next/image';
 import Script from 'next/script';
 import { useEffect, useState } from 'react';
 
-import PublishIcon from '../../publish.png';
-import ResetIcon from '../../reset.png';
-import SaveIcon from '../../save.png';
-
 import {
   createEmptyEventCard,
   type EventGalleryCardContent,
@@ -510,6 +506,12 @@ export default function SiteEditorPanel() {
   }
 
   async function handlePublish() {
+    const confirmed = window.confirm('Publish these changes to the live site now?');
+
+    if (!confirmed) {
+      return;
+    }
+
     setIsPublishing(true);
     setSaveMessage('Publishing changes...');
 
@@ -599,7 +601,7 @@ export default function SiteEditorPanel() {
                 title="Publish changes"
                 className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-300 bg-white text-base font-semibold text-gray-700 transition hover:border-gray-400 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <Image src={PublishIcon} alt="" className="h-5 w-5 object-contain" />
+                <Image src="/icons/publish.png" alt="" width={20} height={20} className="h-5 w-5 object-contain" />
               </button>
               <button
                 type="button"
@@ -608,7 +610,7 @@ export default function SiteEditorPanel() {
                 title="Reset to source copy"
                 className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-300 bg-white text-base font-semibold text-gray-700 transition hover:border-gray-400 hover:text-gray-900"
               >
-                <Image src={ResetIcon} alt="" className="h-5 w-5 object-contain" />
+                <Image src="/icons/reset.png" alt="" width={20} height={20} className="h-5 w-5 object-contain" />
               </button>
                 <button
                   type="button"
@@ -617,7 +619,7 @@ export default function SiteEditorPanel() {
                   title="Save draft"
                   className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-300 bg-white text-base font-semibold text-gray-700 transition hover:border-gray-400 hover:text-gray-900"
                 >
-                  <Image src={SaveIcon} alt="" className="h-5 w-5 object-contain" />
+                  <Image src="/icons/save.png" alt="" width={20} height={20} className="h-5 w-5 object-contain" />
                 </button>
             </div>
           </div>

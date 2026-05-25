@@ -49,16 +49,16 @@ export default function Login({ csrfToken }: LoginPageProps) {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
-      <form onSubmit={handleLogin} className="w-full max-w-sm rounded bg-white p-8 shadow-md">
-        <h1 className="mb-2 text-2xl font-bold text-gray-900">Admin Login</h1>
-        <p className="mb-6 text-sm text-gray-600">Use the configured admin credentials to access the internal dashboard.</p>
+    <div className="flex min-h-screen items-center justify-center bg-brandBlue-light/20 px-4">
+      <form onSubmit={handleLogin} className="w-full max-w-sm rounded-3xl border border-brandBlue-light/30 bg-white p-8 shadow-xl shadow-brandBlue/10">
+        <h1 className="mb-2 text-2xl font-bold text-navy">Admin Login</h1>
+        <p className="mb-6 text-sm text-navy/70">Use the configured admin credentials to access the internal dashboard.</p>
 
         <label className="mb-4 block">
-          <span className="mb-2 block text-sm font-medium text-gray-700">Username</span>
+          <span className="mb-2 block text-sm font-medium text-navy/80">Username</span>
           <input
             type="text"
-            className="w-full rounded border border-gray-300 p-2"
+            className="w-full rounded-xl border border-brandBlue-light/35 p-2.5 text-navy shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20"
             value={username}
             onChange={(event) => setUsername(event.target.value)}
             autoComplete="username"
@@ -67,11 +67,11 @@ export default function Login({ csrfToken }: LoginPageProps) {
         </label>
 
         <label className="mb-3 block">
-          <span className="mb-2 block text-sm font-medium text-gray-700">Password</span>
+          <span className="mb-2 block text-sm font-medium text-navy/80">Password</span>
           <div className="relative">
             <input
               type={showPassword ? 'text' : 'password'}
-              className="w-full rounded border border-gray-300 p-2 pr-12"
+              className="w-full rounded-xl border border-brandBlue-light/35 p-2.5 pr-12 text-navy shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               autoComplete="current-password"
@@ -79,7 +79,7 @@ export default function Login({ csrfToken }: LoginPageProps) {
             />
             <button
               type="button"
-              className="absolute inset-y-0 right-0 px-3 text-sm text-gray-500"
+              className="absolute inset-y-0 right-0 px-3 text-sm font-medium text-brandBlue transition hover:text-brandBlue-dark"
               onMouseDown={() => setShowPassword(true)}
               onMouseUp={() => setShowPassword(false)}
               onMouseLeave={() => setShowPassword(false)}
@@ -105,16 +105,16 @@ export default function Login({ csrfToken }: LoginPageProps) {
         </label>
 
         <div className="mb-4 text-right">
-          <Link href="/forgot-password" className="text-sm font-medium text-blue-600 transition hover:text-blue-700 hover:underline">
+          <Link href="/forgot-password" className="text-sm font-medium text-brandOrange transition hover:text-brandOrange-dark hover:underline">
             Forgot password?
           </Link>
         </div>
 
-        {error ? <p className="mb-4 text-sm text-red-600">{error}</p> : null}
+        {error ? <p className="mb-4 rounded-xl border border-brandOrange/25 bg-brandOrange/10 px-3 py-2 text-sm text-navy">{error}</p> : null}
 
         <button
           type="submit"
-          className="w-full rounded bg-blue-600 px-4 py-2 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+          className="w-full rounded-xl bg-brandBlue px-4 py-2.5 font-medium text-white transition hover:bg-brandBlue-dark disabled:cursor-not-allowed disabled:opacity-70"
           disabled={isSubmitting}
         >
           {isSubmitting ? 'Signing in...' : 'Login'}

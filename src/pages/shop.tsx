@@ -63,7 +63,7 @@ export default function ShopPage({ initialSiteDraft, initialSiteUpdatedAt }: Sho
       title="Shop | The Big Take Back | B3U"
       description="Discover The Big Take Back: What I Left Behind by Dr. Bree Charles, a memoir and method for breaking cycles, healing deeply, and reclaiming your life."
     >
-      <section className="section-padding bg-gradient-to-br from-[#fff8f3] via-white to-brandBlue-light/40">
+      <section className="section-padding bg-gradient-to-br from-brandOrange/10 via-white to-brandBlue-light/40">
         <div className="mx-auto max-w-6xl">
           <div className="mb-12 text-center">
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">{draft.shopEyebrow}</p>
@@ -102,7 +102,7 @@ export default function ShopPage({ initialSiteDraft, initialSiteUpdatedAt }: Sho
                 </div>
               </div>
 
-              <div className="mt-6 flex items-start gap-4 rounded-2xl border border-brandOrange/15 bg-[#fff8f3] p-4">
+              <div className="mt-6 flex items-start gap-4 rounded-2xl border border-brandOrange/15 bg-brandOrange/10 p-4">
                 <div className="relative h-24 w-16 shrink-0 overflow-hidden rounded-lg border border-black/10 bg-white">
                   <Image
                     src={shopBookImage.image}
@@ -129,7 +129,7 @@ export default function ShopPage({ initialSiteDraft, initialSiteUpdatedAt }: Sho
 
               <div className="mt-6 grid gap-5 sm:grid-cols-2">
                 {draft.shopProducts.map(({ label, containerId }) => (
-                  <div key={containerId} className="rounded-2xl border border-black/10 bg-[#fff8f3] p-5 text-center">
+                  <div key={containerId} className="rounded-2xl border border-black/10 bg-brandOrange/10 p-5 text-center">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-navy/60">{label}</p>
                     <div className="mt-3 min-h-[56px]">
                       <div id={containerId} />

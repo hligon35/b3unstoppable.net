@@ -7,8 +7,9 @@ type MerchComingSoonProps = {
 
 export default function MerchComingSoon({ compact = false }: MerchComingSoonProps) {
   return (
-    <div className={`relative overflow-hidden rounded-[2rem] border border-brandOrange/20 bg-gradient-to-br from-[#FFF6EF] via-white to-[#EAF4FB] shadow-xl ${compact ? 'min-h-[320px] p-8' : 'min-h-[520px] p-10 md:p-14'}`}>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(204,85,0,0.12),transparent_28%),radial-gradient(circle_at_bottom_left,rgba(123,175,212,0.18),transparent_35%)]" />
+    <div className={`relative overflow-hidden rounded-[2rem] border border-brandOrange/20 bg-gradient-to-br from-brandOrange/10 via-white to-brandBlue-light/25 shadow-xl ${compact ? 'min-h-[320px] p-8' : 'min-h-[520px] p-10 md:p-14'}`}>
+      <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-brandOrange/15 blur-3xl" />
+      <div className="absolute -bottom-16 -left-12 h-56 w-56 rounded-full bg-brandBlue/20 blur-3xl" />
       <div className={`relative z-10 flex h-full flex-col items-center justify-center text-center ${compact ? 'gap-5' : 'gap-7'}`}>
         <span className="inline-flex rounded-full bg-brandOrange px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-white">
           Merch Coming Soon

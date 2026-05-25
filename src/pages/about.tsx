@@ -62,7 +62,7 @@ export default function AboutPage({ initialSiteDraft, initialSiteUpdatedAt }: Ab
       </section>
 
       {/* The Big Take Back Section */}
-      <section className="section-padding bg-gradient-to-r from-brandOrange to-red-600 text-black">
+      <section className="section-padding bg-gradient-to-r from-brandOrange to-brandOrange-dark text-white">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6">
             The Big Take Back
@@ -103,7 +103,7 @@ export default function AboutPage({ initialSiteDraft, initialSiteUpdatedAt }: Ab
       </section>
 
       {/* Her Work in Action */}
-      <section className="section-padding bg-[#F4F8FB]">
+      <section className="section-padding bg-brandBlue-light/20">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold mb-6 text-center">
             Her Work in Action

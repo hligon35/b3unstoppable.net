@@ -1,4 +1,5 @@
 import Layout from '@/components/Layout';
+import { usePublishedSiteDraft } from '@/lib/siteEditorContent';
 
 type Episode = {
   id: string;
@@ -17,6 +18,7 @@ type PodcastProps = {
 };
 
 export default function PodcastPage({ episodes }: PodcastProps) {
+  const { draft } = usePublishedSiteDraft({ preferLocalDraft: false });
   // Fallback hardcoded episodes if needed (used only when no data)
   const fallbackEpisodes: Episode[] = [
     {
@@ -132,7 +134,7 @@ export default function PodcastPage({ episodes }: PodcastProps) {
   const list = episodes && episodes.length ? episodes : fallbackEpisodes;
 
   const makeEmbedUrl = (ep: Episode) => {
-    const brand = 'CC5500'; // brand orange without '#'
+    const brand = draft.brandOrange.replace('#', '').toUpperCase() || 'CC5500';
     if (ep.audioUrl && ep.audioUrl.includes('/episodes/')) {
       // Convert the mp3 URL into an embeddable page URL
       // e.g., https://www.buzzsprout.com/2467135/episodes/17967667-title.mp3

@@ -145,7 +145,7 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
           </div>
         </div>
       </section>
-      <section id="podcast" className="section-padding bg-[#F4F8FB]">
+      <section id="podcast" className="section-padding bg-brandBlue-light/20">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-10 mb-10">
           <div>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">The B3U Podcast</h2>
@@ -160,7 +160,7 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
               aria-label="Watch B3U on YouTube"
               className="group relative block aspect-video overflow-hidden rounded-xl shadow-xl ring-1 ring-black/10"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-white via-[#EEF5FF] to-[#CFE6FF]" />
+              <div className="absolute inset-0 bg-gradient-to-br from-white via-brandBlue-light/15 to-brandBlue-light/45" />
               <div className="pointer-events-none absolute -inset-8 bg-gradient-to-r from-brandOrange/25 via-transparent to-brandBlue-light/25 blur-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
               <div className="absolute inset-0">
                 <Image
@@ -174,7 +174,7 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
               <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-black/0 to-transparent" />
               <div className="absolute left-3 top-3">
                 <span className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-navy shadow-sm">
-                  <span className="h-1.5 w-1.5 rounded-full bg-brandOrange shadow-[0_0_0_3px_rgba(204,85,0,0.15)]" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-brandOrange shadow-[0_0_0_3px_rgb(var(--color-brand-orange)_/_0.15)]" />
                   B3U on YouTube
                 </span>
               </div>
@@ -315,7 +315,7 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
           </div>
         </div>
       </section>
-      <section id="shop" className="section-padding bg-[#FFF5EE]">
+      <section id="shop" className="section-padding bg-brandOrange/10">
         <div className="grid gap-10 lg:grid-cols-[1.1fr_minmax(0,1fr)] lg:items-center">
           <div className="max-w-2xl">
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">Featured release</p>
@@ -373,7 +373,7 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
           </div>
         </div>
       </section>
-      <section id="newsletter" className="section-padding bg-[#F4F8FB]">
+      <section id="newsletter" className="section-padding bg-brandBlue-light/20">
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">{newsletterHeading}</h2>
           <p className="text-navy/70 mb-6">{newsletterDescription}</p>

@@ -35,3 +35,17 @@ CREATE TABLE IF NOT EXISTS site_content (
   content_json TEXT NOT NULL,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS scheduled_newsletters (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  subject TEXT NOT NULL,
+  body_text TEXT NOT NULL,
+  recipient_emails_json TEXT NOT NULL,
+  recipient_count INTEGER NOT NULL DEFAULT 0,
+  scheduled_for DATETIME NOT NULL,
+  status TEXT NOT NULL DEFAULT 'scheduled',
+  last_error TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  sent_at DATETIME
+);

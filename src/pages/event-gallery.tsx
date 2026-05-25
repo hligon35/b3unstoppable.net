@@ -67,7 +67,7 @@ export default function EventGalleryPage({ initialSiteDraft, initialSiteUpdatedA
             </p>
           </div>
 
-          <div className="mb-10 rounded-3xl border border-brandOrange/20 bg-gradient-to-r from-brandOrange to-red-600 p-6 text-white shadow-xl">
+          <div className="mb-10 rounded-3xl border border-brandOrange/20 bg-gradient-to-r from-brandOrange to-brandOrange-dark p-6 text-white shadow-xl">
             {draft.eventsBookUpdateEyebrow ? <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/80">{draft.eventsBookUpdateEyebrow}</p> : null}
             {draft.eventsBookUpdateTitle ? <h2 className="mt-3 text-2xl font-bold md:text-3xl">{draft.eventsBookUpdateTitle}</h2> : null}
             {draft.eventsBookUpdateDescription ? (
@@ -135,7 +135,7 @@ export default function EventGalleryPage({ initialSiteDraft, initialSiteUpdatedA
                     {card.description ? <p className="mt-3 text-sm text-navy/70">{card.description}</p> : null}
 
                     {hasDetailBlock ? (
-                      <div className="mt-4 rounded-xl bg-[#F4F8FB] p-4 text-sm text-navy/80">
+                      <div className="mt-4 rounded-xl bg-brandBlue-light/20 p-4 text-sm text-navy/80">
                         {card.detailTitle ? <p className="font-semibold text-navy">{card.detailTitle}</p> : null}
                         {card.detailLineOne ? <p className={card.detailTitle ? 'mt-1' : ''}>{card.detailLineOne}</p> : null}
                         {card.detailLineTwo ? <p>{card.detailLineTwo}</p> : null}

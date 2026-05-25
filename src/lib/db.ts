@@ -40,6 +40,20 @@ type SiteContentRow = {
   updated_at: string;
 };
 
+type ScheduledNewsletterRow = {
+  id: number;
+  subject: string;
+  body_text: string;
+  recipient_emails_json: string;
+  recipient_count: number;
+  scheduled_for: string;
+  status: string;
+  last_error: string | null;
+  created_at: string;
+  updated_at: string;
+  sent_at: string | null;
+};
+
 type D1PreparedStatement = {
   bind: (...values: unknown[]) => D1PreparedStatement;
   all<T = unknown>(): Promise<D1LikeResult<T>>;
@@ -93,6 +107,19 @@ const DASHBOARD_SCHEMA_STATEMENTS = [
     content_key TEXT PRIMARY KEY,
     content_json TEXT NOT NULL,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE TABLE IF NOT EXISTS scheduled_newsletters (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    subject TEXT NOT NULL,
+    body_text TEXT NOT NULL,
+    recipient_emails_json TEXT NOT NULL,
+    recipient_count INTEGER NOT NULL DEFAULT 0,
+    scheduled_for DATETIME NOT NULL,
+    status TEXT NOT NULL DEFAULT 'scheduled',
+    last_error TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    sent_at DATETIME
   )`,
 ];
 
@@ -185,6 +212,30 @@ async function execute(query: string, bindings: unknown[] = []) {
   }
 
   return db.prepare(query).run(...bindings);
+}
+
+function getResultChanges(result: unknown) {
+  if (result && typeof result === 'object') {
+    if ('changes' in result && typeof result.changes === 'number') {
+      return result.changes;
+    }
+
+    if (
+      'meta' in result &&
+      result.meta &&
+      typeof result.meta === 'object' &&
+      'changes' in result.meta &&
+      typeof result.meta.changes === 'number'
+    ) {
+      return result.meta.changes;
+    }
+  }
+
+  return 0;
+}
+
+async function executeChanges(query: string, bindings: unknown[] = []) {
+  return getResultChanges(await execute(query, bindings));
 }
 
 export async function insertSubscriber(email: string) {
@@ -322,4 +373,142 @@ export async function saveSiteContentRecord(contentKey: string, contentJson: str
      ON CONFLICT(content_key) DO UPDATE SET content_json = excluded.content_json, updated_at = CURRENT_TIMESTAMP`,
     [contentKey, contentJson],
   );
+}
+
+export async function createScheduledNewsletterRecord(params: {
+  subject: string;
+  bodyText: string;
+  recipientEmailsJson: string;
+  recipientCount: number;
+  scheduledFor: string;
+}) {
+  await execute(
+    `INSERT INTO scheduled_newsletters (
+      subject,
+      body_text,
+      recipient_emails_json,
+      recipient_count,
+      scheduled_for,
+      status,
+      updated_at
+    ) VALUES (?, ?, ?, ?, ?, 'scheduled', CURRENT_TIMESTAMP)`,
+    [params.subject, params.bodyText, params.recipientEmailsJson, params.recipientCount, params.scheduledFor],
+  );
+
+  return queryFirst<ScheduledNewsletterRow>(
+    `SELECT id, subject, body_text, recipient_emails_json, recipient_count, scheduled_for, status, last_error, created_at, updated_at, sent_at
+     FROM scheduled_newsletters
+     ORDER BY id DESC
+     LIMIT 1`,
+  );
+}
+
+export async function getScheduledNewsletterRecords(limit = 20) {
+  return queryAll<ScheduledNewsletterRow>(
+    `SELECT id, subject, body_text, recipient_emails_json, recipient_count, scheduled_for, status, last_error, created_at, updated_at, sent_at
+     FROM scheduled_newsletters
+     ORDER BY scheduled_for ASC, id ASC
+     LIMIT ?`,
+    [limit],
+  );
+}
+
+export async function getScheduledNewsletterRecordById(id: number) {
+  return queryFirst<ScheduledNewsletterRow>(
+    `SELECT id, subject, body_text, recipient_emails_json, recipient_count, scheduled_for, status, last_error, created_at, updated_at, sent_at
+     FROM scheduled_newsletters
+     WHERE id = ?`,
+    [id],
+  );
+}
+
+export async function getDueScheduledNewsletterRecords(limit = 8) {
+  return queryAll<ScheduledNewsletterRow>(
+    `SELECT id, subject, body_text, recipient_emails_json, recipient_count, scheduled_for, status, last_error, created_at, updated_at, sent_at
+     FROM scheduled_newsletters
+     WHERE status = 'scheduled' AND scheduled_for <= CURRENT_TIMESTAMP
+     ORDER BY scheduled_for ASC, id ASC
+     LIMIT ?`,
+    [limit],
+  );
+}
+
+export async function claimScheduledNewsletterRecord(id: number) {
+  const changes = await executeChanges(
+    `UPDATE scheduled_newsletters
+     SET status = 'processing', last_error = NULL, updated_at = CURRENT_TIMESTAMP
+     WHERE id = ? AND status = 'scheduled'`,
+    [id],
+  );
+
+  return changes > 0;
+}
+
+export async function markScheduledNewsletterRecordSent(id: number) {
+  return execute(
+    `UPDATE scheduled_newsletters
+     SET status = 'sent', sent_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP, last_error = NULL
+     WHERE id = ?`,
+    [id],
+  );
+}
+
+export async function markScheduledNewsletterRecordFailed(id: number, errorMessage: string) {
+  return execute(
+    `UPDATE scheduled_newsletters
+     SET status = 'failed', last_error = ?, updated_at = CURRENT_TIMESTAMP
+     WHERE id = ?`,
+    [errorMessage, id],
+  );
+}
+
+export async function resetScheduledNewsletterRecordToScheduled(id: number, errorMessage: string) {
+  return execute(
+    `UPDATE scheduled_newsletters
+     SET status = 'scheduled', last_error = ?, updated_at = CURRENT_TIMESTAMP
+     WHERE id = ?`,
+    [errorMessage, id],
+  );
+}
+
+export async function updateScheduledNewsletterRecord(params: {
+  id: number;
+  subject: string;
+  bodyText: string;
+  recipientEmailsJson: string;
+  recipientCount: number;
+  scheduledFor: string;
+}) {
+  const changes = await executeChanges(
+    `UPDATE scheduled_newsletters
+     SET subject = ?,
+         body_text = ?,
+         recipient_emails_json = ?,
+         recipient_count = ?,
+         scheduled_for = ?,
+         status = 'scheduled',
+         last_error = NULL,
+         updated_at = CURRENT_TIMESTAMP,
+         sent_at = NULL
+     WHERE id = ? AND status IN ('scheduled', 'failed')`,
+    [
+      params.subject,
+      params.bodyText,
+      params.recipientEmailsJson,
+      params.recipientCount,
+      params.scheduledFor,
+      params.id,
+    ],
+  );
+
+  return changes > 0;
+}
+
+export async function deleteScheduledNewsletterRecord(id: number) {
+  const changes = await executeChanges(
+    'DELETE FROM scheduled_newsletters WHERE id = ?',
+    [id],
+  );
+
+  return changes > 0;
 }

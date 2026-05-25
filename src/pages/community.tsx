@@ -227,7 +227,7 @@ export default function CommunityPage() {
   <section className="section-padding bg-white">
         <h1 className="text-4xl font-bold mb-6">Community Stories</h1>
     <p className="max-w-2xl text-navy/80 mb-12">Real impact from real people. Share your journey and help others find strength in theirs.</p>
-        <div className="mb-12 rounded-3xl border border-brandOrange/30 bg-gradient-to-r from-brandOrange to-red-600 p-6 text-white shadow-xl">
+        <div className="mb-12 rounded-3xl border border-brandOrange/30 bg-gradient-to-r from-brandOrange to-brandOrange-dark p-6 text-white shadow-xl">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/80">Update</p>
@@ -268,12 +268,12 @@ export default function CommunityPage() {
 
             <div className="mt-6">
               <h2 className="text-2xl font-semibold">Share Your Story</h2>
-              <p className="text-sm text-navy/70 mt-1">Your words may encourage someone who needs it today. Fields marked with <span className="text-red-600">*</span> are required.</p>
+              <p className="text-sm text-navy/70 mt-1">Your words may encourage someone who needs it today. Fields marked with <span className="text-brandOrange">*</span> are required.</p>
             </div>
 
             <div className="grid gap-5 md:grid-cols-2">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-navy mb-1">Name <span className="text-red-600">*</span></label>
+                <label htmlFor="name" className="block text-sm font-medium text-navy mb-1">Name <span className="text-brandOrange">*</span></label>
                 <input
                   id="name"
                   name="name"
@@ -287,7 +287,7 @@ export default function CommunityPage() {
                 />
               </div>
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-navy mb-1">Email <span className="text-red-600">*</span></label>
+                <label htmlFor="email" className="block text-sm font-medium text-navy mb-1">Email <span className="text-brandOrange">*</span></label>
                 <input
                   id="email"
                   name="email"
@@ -303,7 +303,7 @@ export default function CommunityPage() {
             </div>
 
             <div className="mt-5">
-              <label htmlFor="story" className="block text-sm font-medium text-navy mb-1">Your story <span className="text-red-600">*</span></label>
+              <label htmlFor="story" className="block text-sm font-medium text-navy mb-1">Your story <span className="text-brandOrange">*</span></label>
               <div className="relative">
                 <textarea
                   id="story"
@@ -387,12 +387,12 @@ export default function CommunityPage() {
           ))}
         </div>
         {!storiesLoading && visibleStories.length === 0 && (
-          <div className="mb-16 rounded-xl border border-black/10 bg-[#F8FBFD] px-6 py-5 text-sm text-navy/70">
+          <div className="mb-16 rounded-xl border border-black/10 bg-brandBlue-light/10 px-6 py-5 text-sm text-navy/70">
             No community stories have been approved for display yet. Check back soon.
           </div>
         )}
         {storiesLoading && (
-          <div className="mb-16 rounded-xl border border-black/10 bg-[#F8FBFD] px-6 py-5 text-sm text-navy/60">
+          <div className="mb-16 rounded-xl border border-black/10 bg-brandBlue-light/10 px-6 py-5 text-sm text-navy/60">
             Loading community stories...
           </div>
         )}
