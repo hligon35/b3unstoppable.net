@@ -280,6 +280,7 @@ function StatSection({
 
 export default function Admin() {
   const router = useRouter();
+  const [selectedHelpSection, setSelectedHelpSection] = useState(helpSections[0]?.title ?? '');
   const [localTimeZone, setLocalTimeZone] = useState('');
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [analytics, setAnalytics] = useState<AnalyticsItem[]>([]);
@@ -706,22 +707,28 @@ export default function Admin() {
                   </p>
                   <div className="mt-4 flex flex-wrap gap-3">
                     {helpSections.map((section) => (
-                      <a
+                      <button
                         key={section.title}
-                        href={`#${getHelpSectionId(section.title)}`}
-                        className="rounded-full border border-brandBlue/20 bg-brandBlue-light/15 px-4 py-2 text-sm font-medium text-navy transition hover:border-brandBlue hover:bg-brandBlue-light/25"
+                        type="button"
+                        onClick={() => setSelectedHelpSection(section.title)}
+                        className={`rounded-full border px-4 py-2 text-sm font-medium transition ${
+                          selectedHelpSection === section.title
+                            ? 'border-brandBlue bg-brandBlue text-white'
+                            : 'border-brandBlue/20 bg-brandBlue-light/15 text-navy hover:border-brandBlue hover:bg-brandBlue-light/25'
+                        }`}
                       >
                         {section.title}
-                      </a>
+                      </button>
                     ))}
                   </div>
                   <p className="mt-4 text-xs text-gray-500">
-                    Use the buttons above to jump to the instructions lower on this page.
+                    Use the buttons above to switch the instructions shown below.
                   </p>
                 </StatSection>
 
-                <div className="grid gap-6 xl:grid-cols-2">
-                  {helpSections.map((section) => (
+                {helpSections
+                  .filter((section) => section.title === selectedHelpSection)
+                  .map((section) => (
                     <StatSection key={section.title} id={getHelpSectionId(section.title)} title={section.title} className="h-full">
                       <p className="mb-4 text-sm text-gray-500">{section.description}</p>
                       <div className="space-y-3">
@@ -734,7 +741,6 @@ export default function Admin() {
                       </div>
                     </StatSection>
                   ))}
-                </div>
               </div>
             ) : null}
 
