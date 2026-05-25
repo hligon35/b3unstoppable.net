@@ -187,6 +187,26 @@ export function recordPageView(route: string): void {
   const nextPageCount = Number(window.sessionStorage.getItem(SESSION_PAGE_COUNT_KEY) || 0) + 1;
   window.sessionStorage.setItem(SESSION_PAGE_COUNT_KEY, String(nextPageCount));
 
+  void monitoredFetch('/api/analytics', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      path: route,
+      referrer: document.referrer || '',
+      userAgent: navigator.userAgent || '',
+      language: navigator.language || '',
+      screenSize: `${window.screen.width}x${window.screen.height}`,
+    }),
+    credentials: 'omit',
+  }, {
+    label: 'Page analytics tracking',
+    route,
+    source: 'pageview-tracker',
+    suppressErrorLogging: true,
+  }).catch(() => undefined);
+
   const entry = logClientEntry({
     kind: 'pageview',
     level: 'info',
