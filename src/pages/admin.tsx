@@ -283,6 +283,10 @@ export default function Admin() {
   const [selectedHelpSection, setSelectedHelpSection] = useState(helpSections[0]?.title ?? '');
   const [localTimeZone, setLocalTimeZone] = useState('');
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [subscriberEmailInput, setSubscriberEmailInput] = useState('');
+  const [subscriberNotice, setSubscriberNotice] = useState('');
+  const [subscriberNoticeTone, setSubscriberNoticeTone] = useState<'success' | 'error' | 'info'>('info');
+  const [subscriberSubmitting, setSubscriberSubmitting] = useState(false);
   const [analytics, setAnalytics] = useState<AnalyticsItem[]>([]);
   const [totalViews, setTotalViews] = useState(0);
   const [topReferrers, setTopReferrers] = useState<SummaryItem[]>([]);
@@ -367,6 +371,24 @@ export default function Admin() {
     setDrawerOpen(false);
   }
 
+  async function refreshSubscribers() {
+    const response = await fetch('/api/subscribers');
+
+    if (response.status === 401) {
+      await router.replace('/login');
+      return [] as Subscriber[];
+    }
+
+    if (!response.ok) {
+      const body = await response.json().catch(() => null);
+      throw new Error(body?.details || body?.error || `Subscribers API returned ${response.status}`);
+    }
+
+    const data = (await response.json()) as Subscriber[];
+    setSubscribers(data ?? []);
+    return data ?? [];
+  }
+
   async function refreshNewsletterQueue() {
     const response = await fetch('/api/newsletters');
 
@@ -382,6 +404,61 @@ export default function Admin() {
 
     const data = (await response.json()) as NewsletterQueueItem[];
     setNewsletterQueue(data ?? []);
+  }
+
+  async function handleAddSubscriber(event: React.FormEvent<HTMLFormElement>, options?: { selectAfterAdd?: boolean }) {
+    event.preventDefault();
+
+    const email = subscriberEmailInput.trim();
+
+    if (!email) {
+      setSubscriberNotice('Enter an email address before adding a subscriber.');
+      setSubscriberNoticeTone('error');
+      return;
+    }
+
+    setSubscriberNotice('');
+    setSubscriberSubmitting(true);
+
+    try {
+      const response = await fetch('/api/subscribers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+      const body = await response.json().catch(() => null);
+
+      if (response.status === 401) {
+        await router.replace('/login');
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(body?.details || body?.error || `Subscribers API returned ${response.status}`);
+      }
+
+      const updatedSubscribers = await refreshSubscribers();
+      const matchingSubscriber = updatedSubscribers.find((subscriber) => subscriber.email.toLowerCase() === email.toLowerCase());
+
+      if (options?.selectAfterAdd && matchingSubscriber) {
+        setSelectedSubscriberEmails((current) => (
+          current.includes(matchingSubscriber.email)
+            ? current
+            : [...current, matchingSubscriber.email]
+        ));
+      }
+
+      setSubscriberEmailInput('');
+      setSubscriberNotice(options?.selectAfterAdd ? 'Subscriber added and selected for the newsletter.' : 'Subscriber added successfully.');
+      setSubscriberNoticeTone('success');
+    } catch (addSubscriberError) {
+      setSubscriberNotice(addSubscriberError instanceof Error ? addSubscriberError.message : 'Failed to add subscriber.');
+      setSubscriberNoticeTone('error');
+    } finally {
+      setSubscriberSubmitting(false);
+    }
   }
 
   function handleToggleSubscriber(email: string) {
@@ -748,6 +825,37 @@ export default function Admin() {
               <div id="web-traffic" className="space-y-6 scroll-mt-24">
                 <div className="grid gap-6 lg:grid-cols-3">
                   <StatSection id="subscribers" title={`Subscribers (${subscribers.length})`} className="h-full">
+                    <form className="mb-4 space-y-3" onSubmit={(event) => void handleAddSubscriber(event)}>
+                      <label className="block">
+                        <span className="mb-2 block text-sm font-medium text-gray-700">Add subscriber</span>
+                        <input
+                          type="email"
+                          value={subscriberEmailInput}
+                          onChange={(event) => setSubscriberEmailInput(event.target.value)}
+                          className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20"
+                          placeholder="name@example.com"
+                          autoComplete="email"
+                        />
+                      </label>
+                      <button
+                        type="submit"
+                        className="rounded-xl bg-brandBlue px-4 py-3 text-sm font-semibold text-white transition hover:bg-brandBlue-dark disabled:cursor-not-allowed disabled:opacity-70"
+                        disabled={subscriberSubmitting}
+                      >
+                        {subscriberSubmitting ? 'Adding subscriber...' : 'Add subscriber'}
+                      </button>
+                    </form>
+                    {subscriberNotice ? (
+                      <div className={`mb-4 rounded-2xl border px-4 py-3 text-sm ${
+                        subscriberNoticeTone === 'success'
+                          ? 'border-brandBlue/20 bg-brandBlue-light/20 text-navy'
+                          : subscriberNoticeTone === 'error'
+                            ? 'border-brandOrange/25 bg-brandOrange/10 text-navy'
+                            : 'border-brandBlue/20 bg-brandBlue-light/10 text-navy'
+                      }`}>
+                        {subscriberNotice}
+                      </div>
+                    ) : null}
                     <div className="max-h-96 space-y-3 overflow-y-auto">
                       {subscribers.length ? (
                         subscribers.map((subscriber) => (
@@ -929,6 +1037,37 @@ export default function Admin() {
                     <div className="mb-4 text-sm text-gray-500">
                       Queue capacity is not capped at eight entries in the database. The queue processor handles up to eight due newsletters per run so large backlogs clear safely over successive runs.
                     </div>
+                    <form className="mb-4 space-y-3" onSubmit={(event) => void handleAddSubscriber(event, { selectAfterAdd: true })}>
+                      <label className="block">
+                        <span className="mb-2 block text-sm font-medium text-gray-700">Add subscriber</span>
+                        <input
+                          type="email"
+                          value={subscriberEmailInput}
+                          onChange={(event) => setSubscriberEmailInput(event.target.value)}
+                          className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20"
+                          placeholder="name@example.com"
+                          autoComplete="email"
+                        />
+                      </label>
+                      <button
+                        type="submit"
+                        className="rounded-xl bg-brandBlue px-4 py-3 text-sm font-semibold text-white transition hover:bg-brandBlue-dark disabled:cursor-not-allowed disabled:opacity-70"
+                        disabled={subscriberSubmitting}
+                      >
+                        {subscriberSubmitting ? 'Adding subscriber...' : 'Add subscriber to list'}
+                      </button>
+                    </form>
+                    {subscriberNotice ? (
+                      <div className={`mb-4 rounded-2xl border px-4 py-3 text-sm ${
+                        subscriberNoticeTone === 'success'
+                          ? 'border-brandBlue/20 bg-brandBlue-light/20 text-navy'
+                          : subscriberNoticeTone === 'error'
+                            ? 'border-brandOrange/25 bg-brandOrange/10 text-navy'
+                            : 'border-brandBlue/20 bg-brandBlue-light/10 text-navy'
+                      }`}>
+                        {subscriberNotice}
+                      </div>
+                    ) : null}
                     <div className="max-h-[560px] space-y-3 overflow-y-auto pr-1">
                       {subscribers.length ? (
                         subscribers.map((subscriber) => {
