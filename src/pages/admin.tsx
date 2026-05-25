@@ -657,32 +657,6 @@ export default function Admin() {
           <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-orange-200">B3U Admin</p>
-
-            {!loading && activeView === 'help' ? (
-              <div id="help-admin" className="space-y-6 scroll-mt-24">
-                <StatSection id="admin-help-overview" title="Admin Help">
-                  <p className="text-sm text-gray-600">
-                    This page explains what every main dashboard control does and the safest order to use them.
-                  </p>
-                </StatSection>
-
-                <div className="grid gap-6 xl:grid-cols-2">
-                  {helpSections.map((section) => (
-                    <StatSection key={section.title} id={section.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')} title={section.title} className="h-full">
-                      <p className="mb-4 text-sm text-gray-500">{section.description}</p>
-                      <div className="space-y-3">
-                        {section.items.map((item) => (
-                          <div key={`${section.title}-${item.control}`} className="rounded-2xl border border-gray-200 bg-slate-50 px-4 py-3">
-                            <div className="text-sm font-semibold text-gray-900">{item.control}</div>
-                            <p className="mt-1 text-sm text-gray-600">{item.instruction}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </StatSection>
-                  ))}
-                </div>
-              </div>
-            ) : null}
               <h2 className="mt-1 text-lg font-semibold text-white">Dashboard</h2>
             </div>
             <button
@@ -710,6 +684,32 @@ export default function Admin() {
 
             {loading ? <div className="rounded-3xl bg-white p-6 shadow-sm">Loading dashboard...</div> : null}
             {error ? <div className="mb-6 rounded-3xl border border-brandOrange/25 bg-brandOrange/10 p-4 text-sm text-navy">{error}</div> : null}
+
+            {!loading && activeView === 'help' ? (
+              <div id="help-admin" className="space-y-6 scroll-mt-24">
+                <StatSection id="admin-help-overview" title="Admin Help">
+                  <p className="text-sm text-gray-600">
+                    Use this page as a quick guide to every dashboard control. Each card below explains what a button, field, tab, or status area does.
+                  </p>
+                </StatSection>
+
+                <div className="grid gap-6 xl:grid-cols-2">
+                  {helpSections.map((section) => (
+                    <StatSection key={section.title} id={section.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')} title={section.title} className="h-full">
+                      <p className="mb-4 text-sm text-gray-500">{section.description}</p>
+                      <div className="space-y-3">
+                        {section.items.map((item) => (
+                          <div key={`${section.title}-${item.control}`} className="rounded-2xl border border-gray-200 bg-slate-50 px-4 py-3">
+                            <div className="text-sm font-semibold text-gray-900">{item.control}</div>
+                            <p className="mt-1 text-sm text-gray-600">{item.instruction}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </StatSection>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
             {!loading && activeView === 'web-traffic' ? (
               <div id="web-traffic" className="space-y-6 scroll-mt-24">
