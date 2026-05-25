@@ -259,20 +259,33 @@ function LogoutIcon() {
   );
 }
 
+function AddIcon() {
+  return (
+    <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-brandBlue text-white shadow-sm" aria-hidden="true">
+      <span className="text-lg font-semibold leading-none">+</span>
+    </span>
+  );
+}
+
 function StatSection({
   id,
   title,
   className,
+  headerAction,
   children,
 }: {
   id: string;
   title: string;
   className?: string;
+  headerAction?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <section id={id} className={`scroll-mt-24 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm ${className ?? ''}`}>
-      <h2 className="mb-4 text-xl font-semibold text-gray-900">{title}</h2>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
+        {headerAction}
+      </div>
       {children}
     </section>
   );
@@ -287,6 +300,7 @@ export default function Admin() {
   const [subscriberNotice, setSubscriberNotice] = useState('');
   const [subscriberNoticeTone, setSubscriberNoticeTone] = useState<'success' | 'error' | 'info'>('info');
   const [subscriberSubmitting, setSubscriberSubmitting] = useState(false);
+  const [subscriberFormContext, setSubscriberFormContext] = useState<'dashboard' | 'newsletter' | null>(null);
   const [analytics, setAnalytics] = useState<AnalyticsItem[]>([]);
   const [totalViews, setTotalViews] = useState(0);
   const [topReferrers, setTopReferrers] = useState<SummaryItem[]>([]);
@@ -371,6 +385,17 @@ export default function Admin() {
     setDrawerOpen(false);
   }
 
+  function openSubscriberForm(context: 'dashboard' | 'newsletter') {
+    setSubscriberFormContext(context);
+    setSubscriberNotice('');
+  }
+
+  function closeSubscriberForm() {
+    setSubscriberFormContext(null);
+    setSubscriberEmailInput('');
+    setSubscriberNotice('');
+  }
+
   async function refreshSubscribers() {
     const response = await fetch('/api/subscribers');
 
@@ -451,6 +476,7 @@ export default function Admin() {
       }
 
       setSubscriberEmailInput('');
+      setSubscriberFormContext(null);
       setSubscriberNotice(options?.selectAfterAdd ? 'Subscriber added and selected for the newsletter.' : 'Subscriber added successfully.');
       setSubscriberNoticeTone('success');
     } catch (addSubscriberError) {
@@ -824,27 +850,54 @@ export default function Admin() {
             {!loading && activeView === 'web-traffic' ? (
               <div id="web-traffic" className="space-y-6 scroll-mt-24">
                 <div className="grid gap-6 lg:grid-cols-3">
-                  <StatSection id="subscribers" title={`Subscribers (${subscribers.length})`} className="h-full">
-                    <form className="mb-4 space-y-3" onSubmit={(event) => void handleAddSubscriber(event)}>
-                      <label className="block">
-                        <span className="mb-2 block text-sm font-medium text-gray-700">Add subscriber</span>
-                        <input
-                          type="email"
-                          value={subscriberEmailInput}
-                          onChange={(event) => setSubscriberEmailInput(event.target.value)}
-                          className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20"
-                          placeholder="name@example.com"
-                          autoComplete="email"
-                        />
-                      </label>
+                  <StatSection
+                    id="subscribers"
+                    title={`Subscribers (${subscribers.length})`}
+                    className="h-full"
+                    headerAction={(
                       <button
-                        type="submit"
-                        className="rounded-xl bg-brandBlue px-4 py-3 text-sm font-semibold text-white transition hover:bg-brandBlue-dark disabled:cursor-not-allowed disabled:opacity-70"
-                        disabled={subscriberSubmitting}
+                        type="button"
+                        onClick={() => openSubscriberForm('dashboard')}
+                        className="rounded-full transition hover:scale-105"
+                        aria-label="Add subscriber"
+                        title="Add subscriber"
                       >
-                        {subscriberSubmitting ? 'Adding subscriber...' : 'Add subscriber'}
+                        <AddIcon />
                       </button>
-                    </form>
+                    )}
+                  >
+                    {subscriberFormContext === 'dashboard' ? (
+                      <form className="mb-4 space-y-3" onSubmit={(event) => void handleAddSubscriber(event)}>
+                        <label className="block">
+                          <span className="mb-2 block text-sm font-medium text-gray-700">Add subscriber</span>
+                          <input
+                            type="email"
+                            value={subscriberEmailInput}
+                            onChange={(event) => setSubscriberEmailInput(event.target.value)}
+                            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20"
+                            placeholder="name@example.com"
+                            autoComplete="email"
+                          />
+                        </label>
+                        <div className="flex flex-wrap gap-3">
+                          <button
+                            type="submit"
+                            className="rounded-xl bg-brandBlue px-4 py-3 text-sm font-semibold text-white transition hover:bg-brandBlue-dark disabled:cursor-not-allowed disabled:opacity-70"
+                            disabled={subscriberSubmitting}
+                          >
+                            {subscriberSubmitting ? 'Adding subscriber...' : 'Add subscriber'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={closeSubscriberForm}
+                            className="rounded-xl border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-brandBlue hover:text-brandBlue"
+                            disabled={subscriberSubmitting}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    ) : null}
                     {subscriberNotice ? (
                       <div className={`mb-4 rounded-2xl border px-4 py-3 text-sm ${
                         subscriberNoticeTone === 'success'
@@ -1033,30 +1086,57 @@ export default function Admin() {
                     </form>
                   </StatSection>
 
-                  <StatSection id="newsletter-subscribers" title={`Subscribers (${subscribers.length})`} className="h-full">
+                  <StatSection
+                    id="newsletter-subscribers"
+                    title={`Subscribers (${subscribers.length})`}
+                    className="h-full"
+                    headerAction={(
+                      <button
+                        type="button"
+                        onClick={() => openSubscriberForm('newsletter')}
+                        className="rounded-full transition hover:scale-105"
+                        aria-label="Add subscriber"
+                        title="Add subscriber"
+                      >
+                        <AddIcon />
+                      </button>
+                    )}
+                  >
                     <div className="mb-4 text-sm text-gray-500">
                       Queue capacity is not capped at eight entries in the database. The queue processor handles up to eight due newsletters per run so large backlogs clear safely over successive runs.
                     </div>
-                    <form className="mb-4 space-y-3" onSubmit={(event) => void handleAddSubscriber(event, { selectAfterAdd: true })}>
-                      <label className="block">
-                        <span className="mb-2 block text-sm font-medium text-gray-700">Add subscriber</span>
-                        <input
-                          type="email"
-                          value={subscriberEmailInput}
-                          onChange={(event) => setSubscriberEmailInput(event.target.value)}
-                          className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20"
-                          placeholder="name@example.com"
-                          autoComplete="email"
-                        />
-                      </label>
-                      <button
-                        type="submit"
-                        className="rounded-xl bg-brandBlue px-4 py-3 text-sm font-semibold text-white transition hover:bg-brandBlue-dark disabled:cursor-not-allowed disabled:opacity-70"
-                        disabled={subscriberSubmitting}
-                      >
-                        {subscriberSubmitting ? 'Adding subscriber...' : 'Add subscriber to list'}
-                      </button>
-                    </form>
+                    {subscriberFormContext === 'newsletter' ? (
+                      <form className="mb-4 space-y-3" onSubmit={(event) => void handleAddSubscriber(event, { selectAfterAdd: true })}>
+                        <label className="block">
+                          <span className="mb-2 block text-sm font-medium text-gray-700">Add subscriber</span>
+                          <input
+                            type="email"
+                            value={subscriberEmailInput}
+                            onChange={(event) => setSubscriberEmailInput(event.target.value)}
+                            className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20"
+                            placeholder="name@example.com"
+                            autoComplete="email"
+                          />
+                        </label>
+                        <div className="flex flex-wrap gap-3">
+                          <button
+                            type="submit"
+                            className="rounded-xl bg-brandBlue px-4 py-3 text-sm font-semibold text-white transition hover:bg-brandBlue-dark disabled:cursor-not-allowed disabled:opacity-70"
+                            disabled={subscriberSubmitting}
+                          >
+                            {subscriberSubmitting ? 'Adding subscriber...' : 'Add subscriber to list'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={closeSubscriberForm}
+                            className="rounded-xl border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-brandBlue hover:text-brandBlue"
+                            disabled={subscriberSubmitting}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    ) : null}
                     {subscriberNotice ? (
                       <div className={`mb-4 rounded-2xl border px-4 py-3 text-sm ${
                         subscriberNoticeTone === 'success'
