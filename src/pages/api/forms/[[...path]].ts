@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { monitoredServerFetch, registerServerProcessMonitoring, withApiMonitoring } from '../../../../utils/debug/server';
 import { applyFormsRateLimit, verifyTurnstileToken } from '../../../../utils/security/formsProtection';
+import { insertSubscriber } from '../../../lib/db';
 
 type Route = 'contact' | 'newsletter' | 'submit' | 'stories' | 'moderate' | '';
 
@@ -146,13 +147,28 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, route: Rout
     return;
   }
 
+  let localPersisted = false;
+  if (route === 'newsletter') {
+    try {
+      await insertSubscriber(payload.email);
+      localPersisted = true;
+    } catch (error) {
+      res.status(500).json({
+        ok: false,
+        error: 'newsletter-persist-failed',
+        detail: payload.debug ? String(error) : undefined,
+      });
+      return;
+    }
+  }
+
   if (!sendGridReady && backupUrl) {
     const relay = await relayToAppsScript(route, payload, { sendEmails: true, persist: true });
     if (!relay.ok) {
       res.status(502).json({ ok: false, error: 'backup-submit-failed' });
       return;
     }
-    res.status(200).json({ ok: true, engine: 'google-app-script' });
+    res.status(200).json({ ok: true, engine: 'google-app-script', persisted: localPersisted });
     return;
   }
 
@@ -168,7 +184,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, route: Rout
 
   try {
     await sendViaSendGrid(route, payload);
-    res.status(200).json({ ok: true, engine: 'sendgrid', persisted });
+    res.status(200).json({ ok: true, engine: 'sendgrid', persisted: persisted || localPersisted });
   } catch (error) {
     if (backupUrl) {
       const fallbackRelay = await relayToAppsScript(route, payload, { sendEmails: true, persist: !persisted });
