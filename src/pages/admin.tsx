@@ -179,54 +179,79 @@ function toUtcIsoStringFromDateTimeInput(value: string) {
 }
 
 function NavIcon({ icon, active }: { icon: NavItem['icon']; active: boolean }) {
+  const iconClassName = `h-5 w-5 object-contain ${active ? '' : 'opacity-85'}`;
+
   if (icon === 'traffic') {
     return (
-      <Image
-        src="/icons/webAnalytics.png"
-        alt=""
-        aria-hidden="true"
-        width={20}
-        height={20}
-        className={`h-5 w-5 object-contain ${active ? '' : 'opacity-85'}`}
-      />
+      <span className="inline-flex rounded-lg bg-white p-1 shadow-sm">
+        <Image
+          src="/icons/webAnalytics.png"
+          alt=""
+          aria-hidden="true"
+          width={20}
+          height={20}
+          className={iconClassName}
+        />
+      </span>
     );
   }
 
   if (icon === 'newsletter') {
     return (
-      <Image
-        src="/icons/newsletter.png"
-        alt=""
-        aria-hidden="true"
-        width={20}
-        height={20}
-        className={`h-5 w-5 object-contain ${active ? '' : 'opacity-85'}`}
-      />
+      <span className="inline-flex rounded-lg bg-white p-1 shadow-sm">
+        <Image
+          src="/icons/newsletter.png"
+          alt=""
+          aria-hidden="true"
+          width={20}
+          height={20}
+          className={iconClassName}
+        />
+      </span>
     );
   }
 
   if (icon === 'help') {
     return (
-      <Image
-        src="/icons/help.png"
-        alt=""
-        aria-hidden="true"
-        width={20}
-        height={20}
-        className={`h-5 w-5 object-contain ${active ? '' : 'opacity-85'}`}
-      />
+      <span className="inline-flex rounded-lg bg-white p-1 shadow-sm">
+        <Image
+          src="/icons/help.png"
+          alt=""
+          aria-hidden="true"
+          width={20}
+          height={20}
+          className={iconClassName}
+        />
+      </span>
     );
   }
 
   return (
-    <Image
-      src="/icons/webEditor.png"
-      alt=""
-      aria-hidden="true"
-      width={20}
-      height={20}
-      className={`h-5 w-5 object-contain ${active ? '' : 'opacity-85'}`}
-    />
+    <span className="inline-flex rounded-lg bg-white p-1 shadow-sm">
+      <Image
+        src="/icons/webEditor.png"
+        alt=""
+        aria-hidden="true"
+        width={20}
+        height={20}
+        className={iconClassName}
+      />
+    </span>
+  );
+}
+
+function LogoutIcon() {
+  return (
+    <span className="inline-flex rounded-lg bg-white p-1 shadow-sm">
+      <Image
+        src="/icons/logout.png"
+        alt=""
+        aria-hidden="true"
+        width={20}
+        height={20}
+        className="h-5 w-5 object-contain"
+      />
+    </span>
   );
 }
 
@@ -571,10 +596,15 @@ export default function Admin() {
                   <NavIcon icon={item.icon} active={isActive} />
                 </div>
               ) : (
-                <>
-                  <div className="text-sm font-semibold">{item.label}</div>
-                  <div className={`mt-1 text-xs ${isActive ? 'text-slate-600' : 'text-slate-400'}`}>{item.description}</div>
-                </>
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 flex-shrink-0">
+                    <NavIcon icon={item.icon} active={isActive} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold">{item.label}</div>
+                    <div className={`mt-1 text-xs ${isActive ? 'text-slate-600' : 'text-slate-400'}`}>{item.description}</div>
+                  </div>
+                </div>
               )}
             </button>
           );
@@ -589,7 +619,16 @@ export default function Admin() {
             drawerCollapsed ? 'px-2' : ''
           }`}
         >
-          {drawerCollapsed ? 'Out' : 'Log out'}
+          {drawerCollapsed ? (
+            <span className="flex items-center justify-center">
+              <LogoutIcon />
+            </span>
+          ) : (
+            <span className="flex items-center justify-center gap-3">
+              <LogoutIcon />
+              <span>Log out</span>
+            </span>
+          )}
         </button>
       </div>
     </div>
