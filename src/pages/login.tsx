@@ -1,4 +1,5 @@
 import type { GetServerSideProps } from 'next';
+import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 
@@ -65,7 +66,7 @@ export default function Login({ csrfToken }: LoginPageProps) {
           />
         </label>
 
-        <label className="mb-4 block">
+        <label className="mb-3 block">
           <span className="mb-2 block text-sm font-medium text-gray-700">Password</span>
           <div className="relative">
             <input
@@ -79,12 +80,35 @@ export default function Login({ csrfToken }: LoginPageProps) {
             <button
               type="button"
               className="absolute inset-y-0 right-0 px-3 text-sm text-gray-500"
-              onClick={() => setShowPassword((current) => !current)}
+              onMouseDown={() => setShowPassword(true)}
+              onMouseUp={() => setShowPassword(false)}
+              onMouseLeave={() => setShowPassword(false)}
+              onTouchStart={() => setShowPassword(true)}
+              onTouchEnd={() => setShowPassword(false)}
+              onTouchCancel={() => setShowPassword(false)}
+              onKeyDown={(event) => {
+                if (event.key === ' ' || event.key === 'Enter') {
+                  event.preventDefault();
+                  setShowPassword(true);
+                }
+              }}
+              onKeyUp={(event) => {
+                if (event.key === ' ' || event.key === 'Enter') {
+                  setShowPassword(false);
+                }
+              }}
+              aria-label="Peek password"
             >
-              {showPassword ? 'Hide' : 'Show'}
+              Peek
             </button>
           </div>
         </label>
+
+        <div className="mb-4 text-right">
+          <Link href="/forgot-password" className="text-sm font-medium text-blue-600 transition hover:text-blue-700 hover:underline">
+            Forgot password?
+          </Link>
+        </div>
 
         {error ? <p className="mb-4 text-sm text-red-600">{error}</p> : null}
 

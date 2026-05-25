@@ -1,10 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 import { clearAdminSessionCookie, createAdminSessionCookie } from '../../lib/adminAuth';
+import { getConfiguredAdminPassword, getConfiguredAdminUsername, verifyAdminCredentials } from '../../lib/adminPassword';
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  const adminUsername = process.env.ADMIN_USERNAME;
-  const adminPassword = process.env.ADMIN_PASSWORD;
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const adminUsername = getConfiguredAdminUsername();
+  const adminPassword = getConfiguredAdminPassword();
   const csrfToken = process.env.CSRF_TOKEN;
 
   if (req.method === 'POST') {
@@ -33,7 +34,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(400).json({ message: 'Username and password are required' });
     }
 
-    if (username !== adminUsername || password !== adminPassword) {
+    if (!(await verifyAdminCredentials(username, password))) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 

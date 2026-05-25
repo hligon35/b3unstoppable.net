@@ -19,6 +19,21 @@ type SummaryRow = {
   label: string;
 };
 
+type AdminCredentialRow = {
+  username: string;
+  password_hash: string;
+  updated_at: string;
+};
+
+type AdminPasswordResetRow = {
+  id: number;
+  username: string;
+  token_hash: string;
+  expires_at: string;
+  used_at: string | null;
+  created_at: string;
+};
+
 type D1PreparedStatement = {
   bind: (...values: unknown[]) => D1PreparedStatement;
   all<T = unknown>(): Promise<D1LikeResult<T>>;
@@ -54,6 +69,19 @@ const DASHBOARD_SCHEMA_STATEMENTS = [
     screen_size TEXT,
     ip TEXT,
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE TABLE IF NOT EXISTS admin_credentials (
+    username TEXT PRIMARY KEY,
+    password_hash TEXT NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE TABLE IF NOT EXISTS admin_password_resets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    token_hash TEXT UNIQUE NOT NULL,
+    expires_at DATETIME NOT NULL,
+    used_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`,
 ];
 
@@ -227,4 +255,44 @@ export async function getDeviceTypes() {
      GROUP BY label
      ORDER BY count DESC`,
   );
+}
+
+export async function getAdminCredential(username: string) {
+  return queryFirst<AdminCredentialRow>(
+    'SELECT username, password_hash, updated_at FROM admin_credentials WHERE username = ?',
+    [username],
+  );
+}
+
+export async function saveAdminCredential(username: string, passwordHash: string) {
+  return execute(
+    `INSERT INTO admin_credentials (username, password_hash, updated_at)
+     VALUES (?, ?, CURRENT_TIMESTAMP)
+     ON CONFLICT(username) DO UPDATE SET password_hash = excluded.password_hash, updated_at = CURRENT_TIMESTAMP`,
+    [username, passwordHash],
+  );
+}
+
+export async function invalidateAdminPasswordResets(username: string) {
+  return execute('UPDATE admin_password_resets SET used_at = CURRENT_TIMESTAMP WHERE username = ? AND used_at IS NULL', [username]);
+}
+
+export async function createAdminPasswordReset(username: string, tokenHash: string, expiresAt: string) {
+  return execute(
+    'INSERT INTO admin_password_resets (username, token_hash, expires_at) VALUES (?, ?, ?)',
+    [username, tokenHash, expiresAt],
+  );
+}
+
+export async function getAdminPasswordResetByTokenHash(tokenHash: string) {
+  return queryFirst<AdminPasswordResetRow>(
+    `SELECT id, username, token_hash, expires_at, used_at, created_at
+     FROM admin_password_resets
+     WHERE token_hash = ?`,
+    [tokenHash],
+  );
+}
+
+export async function markAdminPasswordResetUsed(id: number) {
+  return execute('UPDATE admin_password_resets SET used_at = CURRENT_TIMESTAMP WHERE id = ? AND used_at IS NULL', [id]);
 }
