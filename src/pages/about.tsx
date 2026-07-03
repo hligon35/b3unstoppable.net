@@ -1,8 +1,11 @@
 import type { GetServerSideProps } from 'next';
 import Layout from '@/components/Layout';
 import Image from 'next/image';
+import Link from 'next/link';
+import { useMemo } from 'react';
 import MelaLogo from '@/images/logos/Melalogo.png';
 import THOHLogo from '@/images/logos/THOHlogo.png';
+import { createWebPageStructuredData, siteUrl } from '@/lib/siteMetadata';
 import { resolveSiteImage } from '@/lib/siteEditorImages';
 import { usePublishedSiteDraft } from '@/lib/siteEditorContent';
 import { getPublishedSitePageProps, type PublishedSitePageProps } from '@/lib/siteEditorContent.server';
@@ -16,11 +19,18 @@ export default function AboutPage({ initialSiteDraft, initialSiteUpdatedAt }: Ab
     preferLocalDraft: false,
   });
   const featureImage = resolveSiteImage(draft.aboutPageFeatureImage);
+  const aboutStructuredData = useMemo(() => createWebPageStructuredData({
+    pageUrl: `${siteUrl}/about/`,
+    title: 'About Dr. Bree Charles | Richmond, VA Speaker & Community Builder',
+    description: 'Meet Dr. Bree Charles, the voice behind B3U, The Big Take Back, and a growing movement focused on healing, resilience, purpose, and legacy.',
+    keywords: ['About Dr. Bree Charles', 'Richmond VA speaker', 'B3U founder', 'The Big Take Back', 'transformational speaker'],
+  }), []);
 
   return (
     <Layout
       title="About Dr. Bree Charles | Richmond, VA Speaker & Community Builder"
       description="Meet Dr. Bree Charles — transformational speaker, author, and creator of B3U. Based in Richmond, VA and serving surrounding Central Virginia communities."
+      structuredData={aboutStructuredData}
     >
       {/* Meet Dr. Bree Charles Section */}
       <section className="section-padding bg-white">
@@ -182,18 +192,12 @@ export default function AboutPage({ initialSiteDraft, initialSiteUpdatedAt }: Ab
           </div>
           
           <div className="max-w-md mx-auto">
-            <h3 className="text-lg font-semibold mb-4">Join "The Take Back Weekly" Newsletter</h3>
-            <form className="flex flex-col sm:flex-row gap-3">
-              <input 
-                type="email" 
-                required 
-                minLength={6}
-                maxLength={254}
-                placeholder="Email address" 
-                className="flex-1 px-4 py-2 rounded-md bg-white border border-navy/20 focus:outline-none focus:ring-2 focus:ring-brandOrange" 
-              />
-              <button className="btn-primary" type="submit">Subscribe</button>
-            </form>
+            <h3 className="text-lg font-semibold mb-4">Join "The Take Back Monthly" Newsletter</h3>
+            <p className="text-sm text-navy/70 mb-4">Get Bree&apos;s latest podcast drops, event announcements, and book updates through the live signup on the homepage.</p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link href="/#newsletter" className="btn-primary">Subscribe on the Homepage</Link>
+              <Link href="/shop" className="btn-outline">Explore the Book</Link>
+            </div>
           </div>
         </div>
       </section>

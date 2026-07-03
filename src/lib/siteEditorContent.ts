@@ -86,7 +86,7 @@ export const defaultSiteDraft: SiteDraft = {
   aboutTagline: 'Breaking Cycles. Building Legacies.',
   aboutCtaLabel: 'Learn More About Bree',
   aboutCtaHref: '/about',
-  newsletterHeading: 'Join "The Take Back Weekly"',
+  newsletterHeading: 'Join "The Take Back Monthly"',
   newsletterDescription: 'Get new episodes, inspiration, and community opportunities delivered to your inbox.',
   eventsHeading: eventGalleryContent.heading,
   eventsDescription: eventGalleryContent.description,
@@ -104,7 +104,7 @@ export const defaultSiteDraft: SiteDraft = {
   shopOrderDescription:
     'The Big Take Back is on sale now. Choose the edition that fits your shelf and keep building the kind of freedom that changes what comes next.',
   shopContactTitle: 'Stay connected',
-  shopContactDescription: 'Want updates, speaking details, or help placing a larger order? Reach out directly or join the weekly list.',
+  shopContactDescription: 'Want updates, speaking details, or help placing a larger order? Reach out directly or join the monthly list.',
   shopProducts: [
     {
       id: 'paperback',

@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFormsApi } from '@/lib/useFormsApi';
 import { submitFormToEndpoint } from '@/lib/formsSubmit';
-import { communityEvent, createCommunityEventStructuredData, siteUrl } from '@/lib/communityEvent';
+import { createWebPageStructuredData, siteUrl } from '@/lib/siteMetadata';
 import { monitoredFetch } from '../../utils/debug/client';
 
 type Story = {
@@ -38,9 +38,11 @@ export default function CommunityPage() {
   const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
   const [storyValue, setStoryValue] = useState('');
   const { isEnabled: turnstileRequired, isLoading: turnstileLoading } = useTurnstileConfig();
-  const eventStructuredData = useMemo(() => createCommunityEventStructuredData({
+  const pageStructuredData = useMemo(() => createWebPageStructuredData({
     pageUrl: `${siteUrl}/community/`,
-    imageUrl: new URL(communityEvent.imagePath, siteUrl).toString(),
+    title: 'Community Stories | B3U',
+    description: 'Read community stories, share your own testimony, and subscribe for new B3U updates, events, and encouragement from Dr. Bree Charles.',
+    keywords: ['B3U community stories', 'Dr. Bree Charles community', 'Richmond VA encouragement', 'B3U newsletter'],
   }), []);
 
   // Fetch approved stories as JSON with a fallback path; returns a cleanup function
@@ -220,9 +222,9 @@ export default function CommunityPage() {
   // Iframe postMessage debug removed.
   return (
       <Layout
-        title="Community Stories + Prosper on Purpose Brunch | Richmond, VA | B3U"
-        description={`${communityEvent.name} is happening ${communityEvent.scheduleLabel} at ${communityEvent.venueName}, ${communityEvent.streetAddress}, ${communityEvent.cityStateZip}. Join the B3U community in Richmond and register on Eventbrite.`}
-        structuredData={eventStructuredData}
+        title="Community Stories | Richmond, VA | B3U"
+        description="Read community stories, share your own testimony, and subscribe for new B3U updates, events, and encouragement from Dr. Bree Charles."
+        structuredData={pageStructuredData}
       >
   <section className="section-padding bg-white">
         <h1 className="text-4xl font-bold mb-6">Community Stories</h1>

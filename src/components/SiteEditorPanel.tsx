@@ -1308,7 +1308,7 @@ export default function SiteEditorPanel() {
                       {draft.shopOrderTitle ? <h4 className="text-lg font-bold text-navy">{draft.shopOrderTitle}</h4> : null}
                       {draft.shopOrderDescription ? <p className="mt-2 text-sm leading-relaxed text-navy/75">{draft.shopOrderDescription}</p> : null}
                       <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                        <div className="btn-outline pointer-events-none flex-1 text-center">Join The Take Back Weekly</div>
+                        <div className="btn-outline pointer-events-none flex-1 text-center">Join The Take Back Monthly</div>
                         <div className="btn-primary pointer-events-none flex-1 text-center">Contact B3U about the book</div>
                       </div>
                     </div>

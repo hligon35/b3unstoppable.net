@@ -9,7 +9,14 @@ export type PublishedSitePageProps = {
 };
 
 export async function getPublishedSiteDraft() {
-  const record = await getSiteContentRecord(SITE_CONTENT_KEY);
+  let record = null;
+
+  try {
+    record = await getSiteContentRecord(SITE_CONTENT_KEY);
+  } catch (error) {
+    console.error('Failed to load published site draft', error);
+    return { draft: defaultSiteDraft, updatedAt: null as string | null };
+  }
 
   if (!record) {
     return { draft: defaultSiteDraft, updatedAt: null as string | null };

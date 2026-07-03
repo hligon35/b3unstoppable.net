@@ -112,7 +112,7 @@ export default function Footer() {
           </ul>
         </div>
         <div>
-          <h4 className="font-semibold mb-3 text-brandOrange">The Take Back Weekly</h4>
+          <h4 className="font-semibold mb-3 text-brandOrange">The Take Back Monthly</h4>
           <p className="text-sm text-white/70 mb-3">Get new episodes, inspiration, and community opportunities delivered to your inbox.</p>
           <form
             className="space-y-3"

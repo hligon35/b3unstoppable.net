@@ -3,7 +3,8 @@ import Layout from '@/components/Layout';
 import Image from 'next/image';
 import Link from 'next/link';
 import Script from 'next/script';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
+import { createBookStructuredData, siteUrl } from '@/lib/siteMetadata';
 import { resolveSiteImage } from '@/lib/siteEditorImages';
 import { usePublishedSiteDraft } from '@/lib/siteEditorContent';
 import { getPublishedSitePageProps, type PublishedSitePageProps } from '@/lib/siteEditorContent.server';
@@ -26,6 +27,10 @@ export default function ShopPage({ initialSiteDraft, initialSiteUpdatedAt }: Sho
   });
   const shopBookImage = resolveSiteImage(draft.shopBookImage);
   const shopVideoPosterUrl = typeof shopBookImage.image === 'string' ? shopBookImage.image : shopBookImage.image.src;
+  const bookStructuredData = useMemo(() => createBookStructuredData({
+    pageUrl: `${siteUrl}/shop/`,
+    imageUrl: new URL(shopVideoPosterUrl, siteUrl).toString(),
+  }), [shopVideoPosterUrl]);
 
   const renderPayPalButton = () => {
     if (typeof window === 'undefined') {
@@ -62,6 +67,7 @@ export default function ShopPage({ initialSiteDraft, initialSiteUpdatedAt }: Sho
     <Layout
       title="Shop | The Big Take Back | B3U"
       description="Discover The Big Take Back: What I Left Behind by Dr. Bree Charles, a memoir and method for breaking cycles, healing deeply, and reclaiming your life."
+      structuredData={bookStructuredData}
     >
       <section className="section-padding bg-gradient-to-br from-brandOrange/10 via-white to-brandBlue-light/40">
         <div className="mx-auto max-w-6xl">
@@ -144,7 +150,7 @@ export default function ShopPage({ initialSiteDraft, initialSiteUpdatedAt }: Sho
                   {draft.shopContactDescription}
                 </p>
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                  <Link href="/#newsletter" className="btn-outline flex-1 text-center">Join The Take Back Weekly</Link>
+                  <Link href="/#newsletter" className="btn-outline flex-1 text-center">Join The Take Back Monthly</Link>
                   <Link href="/contact" className="btn-primary flex-1 text-center">Contact B3U about the book</Link>
                 </div>
               </div>

@@ -1,4 +1,4 @@
-import { communityEvent } from '@/lib/communityEvent';
+import { siteUrl } from '@/lib/siteMetadata';
 
 export type EventCardMediaType = 'book' | 'flyer';
 export type EventCardSecondaryActionType = 'none' | 'link' | 'flyer';
@@ -65,24 +65,25 @@ export const eventGalleryContent: EventGalleryContent = {
       secondaryActionUrl: '',
     },
     {
-      id: 'upcoming-event',
+      id: 'stay-tuned',
       hidden: false,
-      mediaType: 'flyer',
-      mediaBadge: 'Conference',
-      badgeOne: 'Live Event',
-      badgeTwo: communityEvent.dateLabel,
-      badgeThree: communityEvent.timeLabel,
-      title: communityEvent.name,
-      description: communityEvent.description,
-      detailTitle: communityEvent.scheduleLabel,
-      detailLineOne: communityEvent.venueName,
-      detailLineTwo: communityEvent.streetAddress,
-      detailLineThree: communityEvent.cityStateZip,
-      primaryActionLabel: 'Register on Eventbrite',
-      primaryActionUrl: communityEvent.url,
-      secondaryActionLabel: 'View Flyer',
-      secondaryActionType: 'flyer',
-      secondaryActionUrl: '',
+      mediaType: 'book',
+      mediaBadge: 'STAY TUNED',
+      badgeOne: 'Community',
+      badgeTwo: 'Newsletter',
+      badgeThree: 'Live updates',
+      title: 'More B3U moments are on the way',
+      description:
+        'Fresh gatherings, speaking dates, and community experiences are being planned now. Stay close to Bree, the podcast, and the movement so you hear about the next release first.',
+      detailTitle: 'Be first to know',
+      detailLineOne: 'Join The Take Back Monthly for announcements and reminders.',
+      detailLineTwo: 'Watch the book and podcast channels for new momentum-building content.',
+      detailLineThree: 'Check back soon for the next B3U live experience.',
+      primaryActionLabel: 'Subscribe for Updates',
+      primaryActionUrl: `${siteUrl}/#newsletter`,
+      secondaryActionLabel: 'Explore the Book',
+      secondaryActionType: 'link',
+      secondaryActionUrl: `${siteUrl}/shop/`,
     },
   ],
 };

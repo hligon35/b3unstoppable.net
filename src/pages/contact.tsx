@@ -1,6 +1,8 @@
 import Layout from '@/components/Layout';
 import TurnstileField, { useTurnstileConfig } from '@/components/TurnstileField';
-import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createWebPageStructuredData, siteUrl } from '@/lib/siteMetadata';
 import { useFormsApi } from '@/lib/useFormsApi';
 import { submitFormToEndpoint } from '@/lib/formsSubmit';
 
@@ -23,6 +25,12 @@ export default function ContactPage() {
   const [overrideInput, setOverrideInput] = useState('');
   const [messageValue, setMessageValue] = useState('');
   const { isEnabled: turnstileRequired, isLoading: turnstileLoading } = useTurnstileConfig();
+  const contactStructuredData = useMemo(() => createWebPageStructuredData({
+    pageUrl: `${siteUrl}/contact/`,
+    title: 'Contact | Richmond, VA & Surrounding Areas | B3U',
+    description: 'Contact Dr. Bree Charles and B3U for speaking, podcast interviews, collaborations, media requests, and community opportunities in Richmond and beyond.',
+    keywords: ['Contact Dr. Bree Charles', 'B3U contact', 'Richmond VA speaking inquiry', 'book Bree Charles', 'B3U collaboration'],
+  }), []);
 
   const onSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
@@ -71,6 +79,7 @@ export default function ContactPage() {
     <Layout
       title="Contact | Richmond, VA & Surrounding Areas | B3U"
       description="Contact B3U and Dr. Bree Charles for speaking, collaboration, and community opportunities in Richmond, VA and surrounding Central Virginia areas."
+      structuredData={contactStructuredData}
     >
       <section className="section-padding bg-gradient-to-br from-brandBlue-light to-white">
         <div className="max-w-4xl mx-auto">
@@ -178,6 +187,10 @@ export default function ContactPage() {
                 <h3 className="text-xl font-bold mb-4 text-navy">Ready to Connect?</h3>
                 <p className="text-navy/80 mb-4">Whether you're looking to share your story, book a speaking engagement, or explore collaboration opportunities, every message matters. We read each one personally and typically respond within 24-48 hours.</p>
                 <p className="text-sm text-brandOrange font-semibold">Breaking Cycles. Building Legacies.</p>
+                <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                  <Link href="/#newsletter" className="btn-outline text-center">Join The Take Back Monthly</Link>
+                  <Link href="/shop" className="btn-primary text-center">Explore the Book</Link>
+                </div>
               </div>
 
               <div className="card bg-white border-2 border-navy/10">

@@ -2,11 +2,12 @@ import type { GetServerSideProps } from 'next';
 import Layout from '@/components/Layout';
 import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
-import { communityEvent, createCommunityEventStructuredData, siteUrl } from '@/lib/communityEvent';
+import { createCollectionPageStructuredData, siteUrl } from '@/lib/siteMetadata';
 import type { EventGalleryCardContent } from '@/lib/eventGalleryContent';
 import { resolveSiteImage } from '@/lib/siteEditorImages';
 import { usePublishedSiteDraft } from '@/lib/siteEditorContent';
 import { getPublishedSitePageProps, type PublishedSitePageProps } from '@/lib/siteEditorContent.server';
+import B3ULogo from '@/images/logos/B3U3D.png';
 
 function cardBadges(card: EventGalleryCardContent) {
   return [card.badgeOne, card.badgeTwo, card.badgeThree].filter(Boolean);
@@ -24,12 +25,18 @@ export default function EventGalleryPage({ initialSiteDraft, initialSiteUpdatedA
   const visibleCards = draft.eventCards.filter((card) => !card.hidden);
   const flyerImage = resolveSiteImage(draft.eventsFlyerImage);
   const bookImage = resolveSiteImage(draft.eventsBookImage);
-  const eventStructuredData = useMemo(() => createCommunityEventStructuredData({
+  const pageStructuredData = useMemo(() => createCollectionPageStructuredData({
     pageUrl: `${siteUrl}/event-gallery/`,
-    imageUrl: new URL(communityEvent.imagePath, siteUrl).toString(),
+    title: 'Events and Updates | B3U',
+    description: 'Explore B3U book updates, promotional highlights, and stay tuned messaging for upcoming Dr. Bree Charles events and announcements.',
+    keywords: ['B3U events', 'Dr. Bree Charles updates', 'The Big Take Back', 'Richmond VA speaker'],
   }), []);
 
   function cardMedia(card: EventGalleryCardContent) {
+    if (card.id === 'stay-tuned') {
+      return { src: B3ULogo, alt: 'B3U logo' };
+    }
+
     return card.mediaType === 'book'
       ? { src: bookImage.image, alt: bookImage.alt }
       : { src: flyerImage.image, alt: flyerImage.alt };
@@ -54,8 +61,8 @@ export default function EventGalleryPage({ initialSiteDraft, initialSiteUpdatedA
   return (
     <Layout
       title="Events | B3U"
-      description="Explore Dr. Bree Charles event highlights, book updates, and the latest Prosper on Purpose Brunch event details."
-      structuredData={eventStructuredData}
+      description="Explore B3U book updates, promotional highlights, and stay tuned messaging for upcoming Dr. Bree Charles events and announcements."
+      structuredData={pageStructuredData}
     >
       <section className="section-padding bg-white">
         <div className="mx-auto max-w-5xl">

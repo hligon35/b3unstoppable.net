@@ -3,7 +3,6 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import B3ULogo from '@/images/logos/B3U3D.png';
-import { communityEvent } from '@/lib/communityEvent';
 
 const navItems = [
   { href: '/', label: 'Home' },
@@ -41,15 +40,13 @@ export default function Navbar() {
   
   return (
     <header className={`fixed top-0 left-0 w-full isolate z-[200] transition backdrop-blur ${bgClass}`}>
-      <a
-        href={communityEvent.url}
-        target="_blank"
-        rel="noopener noreferrer"
+      <Link
+        href="/#newsletter"
         className="block border-b border-white/10 bg-brandOrange px-4 py-2 text-center text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-brandOrange-dark"
-        aria-label={`Register for ${communityEvent.name} on Eventbrite`}
+        aria-label="Join The Take Back Monthly for updates"
       >
-        <span>{communityEvent.shortName} • {communityEvent.scheduleLabel} • {communityEvent.venueName}, {communityEvent.cityStateZip} • Register on Eventbrite</span>
-      </a>
+        <span>The Big Take Back is on sale now • Join The Take Back Monthly for new events, podcast drops, and Bree updates</span>
+      </Link>
       <nav className={`max-w-7xl mx-auto px-6 py-2 md:px-10 md:py-3 ${textClass}`}>
         <div className="flex items-center justify-between gap-4 md:gap-5 lg:gap-8">
           <Link href="/" className={`flex items-center font-display text-2xl tracking-wide ${textClass}`}>
@@ -82,15 +79,13 @@ export default function Navbar() {
           </ul>
 
           <div className="max-md:hidden md:flex items-center">
-            <a
-              href={communityEvent.url}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/shop"
               className="btn-primary px-4 py-2 text-sm lg:px-5 lg:py-2.5"
-              aria-label={`Register for ${communityEvent.name} on Eventbrite`}
+              aria-label="Explore The Big Take Back book"
             >
-              Reserve Your Seat
-            </a>
+              Get the Book
+            </Link>
           </div>
 
           <div className="flex items-center gap-3 md:hidden">
@@ -119,16 +114,14 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <div className="bg-white shadow-lg border-t md:hidden">
           <nav className="container mx-auto px-4 py-4">
-            <a
-              href={communityEvent.url}
-              target="_blank"
-              rel="noopener noreferrer"
+            <Link
+              href="/#newsletter"
               className="btn-primary w-full mb-4"
               onClick={() => setMobileMenuOpen(false)}
-              aria-label={`Register for ${communityEvent.name} on Eventbrite`}
+              aria-label="Subscribe for B3U updates"
             >
-              Reserve Your Seat
-            </a>
+              Subscribe for Updates
+            </Link>
             <ul className="flex flex-col space-y-4">
               {navItems.map((item) => (
                 <li key={item.href}>

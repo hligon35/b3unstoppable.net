@@ -15,7 +15,7 @@ import Test1 from '@/images/content/test1.JPG';
 import Test2 from '@/images/content/test2.JPEG';
 import { useFormsApi } from '@/lib/useFormsApi';
 import { submitFormToEndpoint } from '@/lib/formsSubmit';
-import { communityEvent, createCommunityEventStructuredData, siteUrl } from '@/lib/communityEvent';
+import { createWebPageStructuredData, siteUrl } from '@/lib/siteMetadata';
 import { resolveSiteImage } from '@/lib/siteEditorImages';
 import { usePublishedSiteDraft } from '@/lib/siteEditorContent';
 import { getPublishedSitePageProps, type PublishedSitePageProps } from '@/lib/siteEditorContent.server';
@@ -43,9 +43,11 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
     initialUpdatedAt: initialSiteUpdatedAt,
     preferLocalDraft: false,
   });
-  const eventStructuredData = useState(() => createCommunityEventStructuredData({
+  const pageStructuredData = useState(() => createWebPageStructuredData({
     pageUrl: `${siteUrl}/`,
-    imageUrl: new URL(communityEvent.imagePath, siteUrl).toString(),
+    title: 'B3U - Burn, Break, Become Unstoppable | Richmond, VA',
+    description: 'Empowerment, speaking, and community with Dr. Bree Charles. B3U serves Richmond, Virginia with resilient storytelling, podcast content, live programming, and transformational resources.',
+    keywords: ['Dr. Bree Charles', 'B3U', 'Richmond VA speaker', 'The Big Take Back', 'B3U podcast'],
   }))[0];
   const { isEnabled: turnstileRequired, isLoading: turnstileLoading } = useTurnstileConfig();
 
@@ -112,7 +114,7 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
     <Layout
       title="B3U - Burn, Break, Become Unstoppable | Richmond, VA"
       description="Empowerment, speaking, and community with Dr. Bree Charles. B3U (Burn, Break, Become Unstoppable) is based in Richmond, VA and serves surrounding areas across Central Virginia."
-      structuredData={eventStructuredData}
+      structuredData={pageStructuredData}
     >
       <Hero />
       <section id="about" className="section-padding bg-white">
@@ -251,21 +253,16 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
         <div className="card max-w-4xl mx-auto mb-10 border-brandOrange/20 bg-white/95">
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brandOrange">Upcoming event</p>
-              <h3 className="mt-2 text-2xl font-bold">{communityEvent.name}</h3>
-              <p className="mt-2 text-navy/70">Join Bree and other purpose-driven leaders for a community networking brunch built for real connection, collaboration, and momentum.</p>
-              <p className="mt-3 text-sm font-semibold text-navy">{communityEvent.scheduleLabel}</p>
-              <p className="text-sm text-navy/70">{communityEvent.venueName}, {communityEvent.streetAddress}, {communityEvent.cityStateZip}</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brandOrange">Stay tuned</p>
+              <h3 className="mt-2 text-2xl font-bold">The next B3U experience is being prepared now.</h3>
+              <p className="mt-2 text-navy/70">Stay in Bree&apos;s orbit for new speaking dates, live gatherings, podcast releases, and community updates that keep the movement growing.</p>
+              <p className="mt-3 text-sm font-semibold text-navy">Join The Take Back Monthly for first notice.</p>
+              <p className="text-sm text-navy/70">You&apos;ll hear about new drops, appearances, and community moments before they pass you by.</p>
             </div>
-            <a
-              href={communityEvent.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary whitespace-nowrap"
-              aria-label={`Register for ${communityEvent.name} on Eventbrite`}
-            >
-              Register on Eventbrite
-            </a>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Link href="/#newsletter" className="btn-primary whitespace-nowrap">Subscribe for Updates</Link>
+              <Link href="/event-gallery" className="btn-outline whitespace-nowrap">See What&apos;s New</Link>
+            </div>
           </div>
         </div>
         <div className="flex flex-col gap-10 items-center">
