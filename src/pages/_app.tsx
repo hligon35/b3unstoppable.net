@@ -6,6 +6,7 @@ import Script from 'next/script';
 import { DebugPanel } from '../../utils/debug/dev-panel';
 import { DebugErrorBoundary } from '../../utils/debug/error-boundary';
 import { installClientMonitoring, recordPageView, recordRoutePerformance } from '../../utils/debug/client';
+import AdminNewsletterEnhancer from '@/components/AdminNewsletterEnhancer';
 import { usePublishedSiteDraft, type SiteDraft } from '@/lib/siteEditorContent';
 import '../styles/globals.css';
 
@@ -25,7 +26,7 @@ function hexToRgbChannels(hex: string) {
   const green = Number.parseInt(normalizedHex.slice(2, 4), 16);
   const blue = Number.parseInt(normalizedHex.slice(4, 6), 16);
 
-  if ([red, green, blue].some(Number.isNaN)) {
+  if ([red, blue, green].some(Number.isNaN)) {
     return null;
   }
 
@@ -119,6 +120,7 @@ export default function App({ Component, pageProps }: AppProps) {
       <DebugErrorBoundary>
         <Component {...pageProps} />
       </DebugErrorBoundary>
+      <AdminNewsletterEnhancer />
       <DebugPanel />
     </>
   );
