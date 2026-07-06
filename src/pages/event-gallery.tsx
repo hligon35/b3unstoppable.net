@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { createCollectionPageStructuredData, siteUrl } from '@/lib/siteMetadata';
 import type { EventGalleryCardContent } from '@/lib/eventGalleryContent';
+import { eventGalleryContent } from '@/lib/eventGalleryContent';
 import { resolveSiteImage } from '@/lib/siteEditorImages';
 import { usePublishedSiteDraft } from '@/lib/siteEditorContent';
 import { getPublishedSitePageProps, type PublishedSitePageProps } from '@/lib/siteEditorContent.server';
@@ -22,7 +23,20 @@ export default function EventGalleryPage({ initialSiteDraft, initialSiteUpdatedA
     initialUpdatedAt: initialSiteUpdatedAt,
     preferLocalDraft: false,
   });
-  const visibleCards = draft.eventCards.filter((card) => !card.hidden);
+  // If the persisted published draft hasn't been updated, force-replace
+  // the 'stay-tuned' card with the content from `eventGalleryContent`.
+  const patchedDraft = useMemo(() => {
+    try {
+      const stay = eventGalleryContent.cards.find((c) => c.id === 'stay-tuned');
+      if (!stay) return draft;
+      const cards = draft.eventCards.map((c) => (c.id === 'stay-tuned' ? { ...c, ...stay } : c));
+      return { ...draft, eventCards: cards };
+    } catch {
+      return draft;
+    }
+  }, [draft]);
+
+  const visibleCards = patchedDraft.eventCards.filter((card) => !card.hidden);
   const flyerImage = resolveSiteImage(draft.eventsFlyerImage);
   const bookImage = resolveSiteImage(draft.eventsBookImage);
   const pageStructuredData = useMemo(() => createCollectionPageStructuredData({
