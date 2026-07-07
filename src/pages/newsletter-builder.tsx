@@ -40,7 +40,7 @@ type WeeklyNewsletterDraft = {
   bookSpotlightBody: string;
   comingThisWeekTitle: string;
   comingThisWeekBody?: string;
-  comingThisWeekItems: ComingWeekItem[];
+  comingThisWeekItems?: ComingWeekItem[];
   affirmationTitle: string;
   affirmationText: string;
   bottomEncouragement: string;
@@ -172,15 +172,19 @@ function normalizeComingWeekItems(items: unknown, legacyBody = ''): ComingWeekIt
   return [];
 }
 
-function formatComingWeekItems(items: ComingWeekItem[]) {
-  return items
+function getComingWeekItems(weekly: WeeklyNewsletterDraft) {
+  return normalizeComingWeekItems(weekly.comingThisWeekItems, weekly.comingThisWeekBody || '');
+}
+
+function formatComingWeekItems(items?: ComingWeekItem[]) {
+  return normalizeComingWeekItems(items)
     .map((item) => `${item.day}: ${item.text.trim()}`.trim())
     .filter(Boolean)
     .join('\n');
 }
 
 function buildNewsletterBody(template: NewsletterTemplateDraft, weekly: WeeklyNewsletterDraft) {
-  const comingWeekBody = formatComingWeekItems(weekly.comingThisWeekItems);
+  const comingWeekBody = formatComingWeekItems(getComingWeekItems(weekly));
   const sections = [
     template.headline,
     `${template.byline} | ${template.weekLabel}`,
@@ -213,7 +217,7 @@ function GoldRule() {
   return <div className="my-8 h-px w-full bg-[#d1aa45]" />;
 }
 
-function renderComingWeekList(items: ComingWeekItem[], isBlank = false) {
+function renderComingWeekList(items: ComingWeekItem[] = [], isBlank = false) {
   const visibleItems = isBlank || !items.length
     ? [
         { day: 'Monday' as Weekday, text: 'Weekly item' },
@@ -234,6 +238,8 @@ function renderComingWeekList(items: ComingWeekItem[], isBlank = false) {
 }
 
 function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft: WeeklyNewsletterDraft, isBlank = false) {
+  const comingWeekItems = getComingWeekItems(weeklyDraft);
+
   return (
     <div className="mx-auto max-w-[760px] overflow-hidden bg-white shadow-2xl ring-1 ring-black/5">
       <header className="border-b-[4px] border-[#d0ad4b] bg-[#17182b] px-6 py-5 text-white sm:px-10">
@@ -306,7 +312,7 @@ function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft
 
         <SectionHeading>{weeklyDraft.comingThisWeekTitle || 'What’s Coming Next Week'}</SectionHeading>
         <div className="mt-5 space-y-5 text-[13px] leading-[1.45] tracking-[0.01em]">
-          {renderComingWeekList(weeklyDraft.comingThisWeekItems, isBlank)}
+          {renderComingWeekList(comingWeekItems, isBlank)}
         </div>
 
         <GoldRule />
@@ -461,10 +467,11 @@ export default function NewsletterBuilder() {
 
   function handleComingWeekDayToggle(day: Weekday) {
     setWeeklyDraft((current) => {
-      const exists = current.comingThisWeekItems.some((item) => item.day === day);
+      const currentItems = getComingWeekItems(current);
+      const exists = currentItems.some((item) => item.day === day);
       const comingThisWeekItems = exists
-        ? current.comingThisWeekItems.filter((item) => item.day !== day)
-        : [...current.comingThisWeekItems, { day, text: '' }].sort((first, second) => WEEKDAY_OPTIONS.indexOf(first.day) - WEEKDAY_OPTIONS.indexOf(second.day));
+        ? currentItems.filter((item) => item.day !== day)
+        : [...currentItems, { day, text: '' }].sort((first, second) => WEEKDAY_OPTIONS.indexOf(first.day) - WEEKDAY_OPTIONS.indexOf(second.day));
 
       return { ...current, comingThisWeekItems };
     });
@@ -473,7 +480,7 @@ export default function NewsletterBuilder() {
   function updateComingWeekDayText(day: Weekday, text: string) {
     setWeeklyDraft((current) => ({
       ...current,
-      comingThisWeekItems: current.comingThisWeekItems.map((item) => (item.day === day ? { ...item, text } : item)),
+      comingThisWeekItems: getComingWeekItems(current).map((item) => (item.day === day ? { ...item, text } : item)),
     }));
   }
 
@@ -687,7 +694,8 @@ export default function NewsletterBuilder() {
                   <span className="mb-3 block text-sm font-medium text-gray-700">Select days to include</span>
                   <div className="flex flex-wrap gap-2">
                     {WEEKDAY_OPTIONS.map((day) => {
-                      const selected = weeklyDraft.comingThisWeekItems.some((item) => item.day === day);
+                      const comingWeekItems = getComingWeekItems(weeklyDraft);
+                      const selected = comingWeekItems.some((item) => item.day === day);
 
                       return (
                         <button
@@ -702,8 +710,8 @@ export default function NewsletterBuilder() {
                     })}
                   </div>
                   <div className="mt-4 space-y-3">
-                    {weeklyDraft.comingThisWeekItems.length ? (
-                      weeklyDraft.comingThisWeekItems.map((item) => (
+                    {getComingWeekItems(weeklyDraft).length ? (
+                      getComingWeekItems(weeklyDraft).map((item) => (
                         <label key={item.day} className="block rounded-2xl border border-gray-200 bg-white p-4">
                           <span className="mb-2 block text-sm font-bold text-gray-900">{item.day}</span>
                           <textarea
