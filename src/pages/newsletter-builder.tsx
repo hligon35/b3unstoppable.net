@@ -14,52 +14,63 @@ type NewsletterTemplateDraft = {
   templateName: string;
   eyebrow: string;
   headline: string;
+  byline: string;
+  weekLabel: string;
   tagline: string;
-  footerNote: string;
+  footerAddress: string;
+  footerTagline: string;
   backgroundDataUrl: string;
   backgroundFileName: string;
 };
 
-type MonthlyNewsletterDraft = {
+type WeeklyNewsletterDraft = {
   subject: string;
-  issueLabel: string;
-  openingMessage: string;
-  featureTitle: string;
-  featureBody: string;
-  updatesTitle: string;
-  updatesBody: string;
-  quote: string;
-  ctaText: string;
-  ctaUrl: string;
-  closingNote: string;
+  mainTitle: string;
+  openingLetter: string;
+  closingLetter: string;
+  featuredStoryTitle: string;
+  featuredStoryBody: string;
+  bookSpotlightTitle: string;
+  bookSpotlightBody: string;
+  comingThisWeekTitle: string;
+  comingThisWeekBody: string;
+  affirmationTitle: string;
+  affirmationText: string;
+  bottomEncouragement: string;
   scheduledFor: string;
 };
 
 const TEMPLATE_STORAGE_KEY = 'b3u-newsletter-template-draft';
-const MONTHLY_STORAGE_KEY = 'b3u-monthly-newsletter-draft';
+const WEEKLY_STORAGE_KEY = 'b3u-weekly-newsletter-draft';
+const LEGACY_MONTHLY_STORAGE_KEY = 'b3u-monthly-newsletter-draft';
 
 const defaultTemplate: NewsletterTemplateDraft = {
   templateName: 'The Take Back Weekly',
-  eyebrow: 'The Take Back Weekly',
-  headline: 'Burn, Break, Become Unstoppable',
+  eyebrow: 'THE TAKE BACK WEEKLY',
+  headline: 'THE TAKE BACK WEEKLY',
+  byline: 'By Dr. Bree Charles',
+  weekLabel: 'Week of July 6, 2026',
   tagline: 'Breaking Cycles. Building Legacies.',
-  footerNote: 'B3U exists to help people burn away fear, break destructive cycles, and become unstoppable.',
+  footerAddress: '9221 Forest Hill Ave Suite 1 PMB 1021, Richmond, VA 23235',
+  footerTagline: 'www.b3unstoppable.net | B3U — Burn. Break. Become Unstoppable.',
   backgroundDataUrl: '',
   backgroundFileName: '',
 };
 
-const defaultMonthly: MonthlyNewsletterDraft = {
+const defaultWeekly: WeeklyNewsletterDraft = {
   subject: 'The Take Back Weekly:',
-  issueLabel: '',
-  openingMessage: '',
-  featureTitle: '',
-  featureBody: '',
-  updatesTitle: 'This Week at B3U',
-  updatesBody: '',
-  quote: '',
-  ctaText: 'Read more',
-  ctaUrl: '',
-  closingNote: '',
+  mainTitle: 'B3U Returns Tonight, The Big Take Back: What We’re Leaving Behind',
+  openingLetter: '',
+  closingLetter: '',
+  featuredStoryTitle: 'Featured Story',
+  featuredStoryBody: '',
+  bookSpotlightTitle: 'Book Spotlight',
+  bookSpotlightBody: '',
+  comingThisWeekTitle: 'What’s Coming This Week',
+  comingThisWeekBody: '',
+  affirmationTitle: 'THIS WEEK’S AFFIRMATION',
+  affirmationText: '',
+  bottomEncouragement: 'Continue healing. Continue growing. Continue becoming.',
   scheduledFor: formatDateTimeInput(),
 };
 
@@ -101,115 +112,160 @@ function saveStoredDraft<T>(key: string, value: T) {
   window.localStorage.setItem(key, JSON.stringify(value));
 }
 
-function buildNewsletterBody(template: NewsletterTemplateDraft, monthly: MonthlyNewsletterDraft) {
+function paragraphize(value: string, className = '') {
+  const paragraphs = value
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+
+  if (!paragraphs.length) {
+    return null;
+  }
+
+  return paragraphs.map((paragraph, index) => (
+    <p key={`${paragraph.slice(0, 24)}-${index}`} className={className || undefined}>
+      {paragraph.split('\n').map((line, lineIndex) => (
+        <span key={`${line}-${lineIndex}`}>
+          {line}
+          {lineIndex < paragraph.split('\n').length - 1 ? <br /> : null}
+        </span>
+      ))}
+    </p>
+  ));
+}
+
+function buildNewsletterBody(template: NewsletterTemplateDraft, weekly: WeeklyNewsletterDraft) {
   const sections = [
-    template.eyebrow,
-    monthly.issueLabel,
     template.headline,
+    `${template.byline} | ${template.weekLabel}`,
     template.tagline,
-    monthly.openingMessage,
-    monthly.featureTitle ? `${monthly.featureTitle}\n${monthly.featureBody}` : monthly.featureBody,
-    monthly.updatesTitle ? `${monthly.updatesTitle}\n${monthly.updatesBody}` : monthly.updatesBody,
-    monthly.quote ? `Unstoppable Note\n${monthly.quote}` : '',
-    monthly.ctaUrl ? `${monthly.ctaText || 'Read more'}\n${monthly.ctaUrl}` : monthly.ctaText,
-    monthly.closingNote,
-    template.footerNote,
+    weekly.mainTitle,
+    weekly.openingLetter,
+    weekly.closingLetter,
+    weekly.featuredStoryTitle ? `${weekly.featuredStoryTitle}\n${weekly.featuredStoryBody}` : weekly.featuredStoryBody,
+    weekly.bookSpotlightTitle ? `${weekly.bookSpotlightTitle}\n${weekly.bookSpotlightBody}` : weekly.bookSpotlightBody,
+    weekly.comingThisWeekTitle ? `${weekly.comingThisWeekTitle}\n${weekly.comingThisWeekBody}` : weekly.comingThisWeekBody,
+    weekly.affirmationTitle ? `${weekly.affirmationTitle}\n${weekly.affirmationText}` : weekly.affirmationText,
+    weekly.bottomEncouragement,
+    template.footerAddress,
+    template.footerTagline,
   ];
 
   return sections.map((section) => section.trim()).filter(Boolean).join('\n\n');
 }
 
-function renderLetterPreview(templateDraft: NewsletterTemplateDraft, monthlyDraft: MonthlyNewsletterDraft, isBlank = false) {
+function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bg-[#eef4f8] p-4 sm:p-7">
-      <div className="mx-auto max-w-[760px] overflow-hidden rounded-[1.75rem] border border-[#d8e6ef] bg-white shadow-2xl">
-        <div className="grid grid-cols-[88px_1fr] gap-4 border-b border-[#e4edf4] bg-white px-6 py-6 sm:grid-cols-[112px_1fr] sm:px-9">
-          <div className="flex items-start justify-center border-r border-[#e4edf4] pr-4 sm:pr-6">
-            <div className="rounded-2xl bg-white p-2 shadow-sm ring-1 ring-[#d8e6ef]">
-              <Image
-                src="/images/logos/B3U3D.png"
-                alt="B3U logo"
-                width={82}
-                height={82}
-                className="h-16 w-16 object-contain sm:h-20 sm:w-20"
-              />
-            </div>
-          </div>
+    <div>
+      <h3 className="text-[19px] font-extrabold leading-tight text-[#17182b] sm:text-[20px]">{children}</h3>
+      <div className="mt-2 h-px w-40 bg-[#c89b2d]" />
+    </div>
+  );
+}
 
+function GoldRule() {
+  return <div className="my-8 h-px w-full bg-[#d1aa45]" />;
+}
+
+function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft: WeeklyNewsletterDraft, isBlank = false) {
+  return (
+    <div className="mx-auto max-w-[760px] overflow-hidden bg-white shadow-2xl ring-1 ring-black/5">
+      <header className="border-b-[4px] border-[#d0ad4b] bg-[#17182b] px-6 py-5 text-white sm:px-10">
+        <div className="grid grid-cols-[88px_1fr] items-start gap-5">
+          <div className="pt-1">
+            <Image
+              src="/images/logos/B3U3D.png"
+              alt="B3U logo"
+              width={76}
+              height={76}
+              className="h-[54px] w-[76px] object-contain"
+            />
+          </div>
           <div className="text-right">
-            <div className="text-xs font-bold uppercase tracking-[0.24em] text-brandOrange">{templateDraft.eyebrow}</div>
-            <h3 className="mt-3 text-4xl font-black leading-[0.95] tracking-tight text-[#0A1A2A] sm:text-5xl">
-              {isBlank ? templateDraft.headline : monthlyDraft.issueLabel || templateDraft.headline}
-            </h3>
-            <p className="ml-auto mt-3 max-w-md text-sm font-semibold uppercase tracking-[0.18em] text-[#5a7389]">{templateDraft.tagline}</p>
+            <h2 className="text-[28px] font-medium uppercase leading-none tracking-[0.04em] sm:text-[31px]">{templateDraft.headline}</h2>
+            <p className="mt-3 text-[12px] font-semibold text-[#d4a536]">
+              {templateDraft.byline} <span className="text-white/70">|</span> {templateDraft.weekLabel}
+            </p>
           </div>
         </div>
+      </header>
 
-        <div className="px-6 py-7 sm:px-10 sm:py-9">
-          <div className="mx-auto max-w-[560px] space-y-7 text-[15px] leading-8 text-[#1b3348]">
+      <main className="bg-white px-10 py-5 text-[#3d3d45] sm:px-[52px]">
+        <p className="mb-8 text-center text-[16px] leading-6 text-[#d4a536]">{templateDraft.tagline}</p>
+
+        <SectionHeading>{isBlank ? 'Main Letter Title' : weeklyDraft.mainTitle}</SectionHeading>
+
+        <div className="mt-6 space-y-5 text-[13px] leading-[1.45] tracking-[0.01em]">
+          {isBlank ? (
+            <>
+              <p>Happy Monday, B3U Family!</p>
+              <p>This space is reserved for the weekly opening letter.</p>
+              <p>Use short paragraphs so the newsletter reads like a personal note from Dr. Bree Charles.</p>
+              <p>Close the opening letter with a clear invitation, reflection, or encouragement.</p>
+            </>
+          ) : (
+            paragraphize(weeklyDraft.openingLetter)
+          )}
+        </div>
+
+        {weeklyDraft.closingLetter || isBlank ? (
+          <div className="mt-5 space-y-5 text-[13px] leading-[1.45] tracking-[0.01em]">
             {isBlank ? (
               <>
-                <div className="h-4 w-32 rounded-full bg-brandOrange/30" />
-                <div className="space-y-3">
-                  <div className="h-4 w-full rounded-full bg-slate-100" />
-                  <div className="h-4 w-11/12 rounded-full bg-slate-100" />
-                  <div className="h-4 w-10/12 rounded-full bg-slate-100" />
-                </div>
-                <div className="border-l-4 border-brandOrange pl-5">
-                  <div className="h-5 w-2/3 rounded-full bg-slate-200" />
-                  <div className="mt-4 space-y-3">
-                    <div className="h-4 w-full rounded-full bg-slate-100" />
-                    <div className="h-4 w-5/6 rounded-full bg-slate-100" />
-                  </div>
-                </div>
-                <div className="rounded-3xl bg-[#f4f8fb] p-6">
-                  <div className="h-4 w-1/2 rounded-full bg-brandBlue/20" />
-                  <div className="mt-4 h-3 w-full rounded-full bg-brandBlue/10" />
-                  <div className="mt-3 h-3 w-4/5 rounded-full bg-brandBlue/10" />
-                </div>
+                <p>With gratitude,</p>
+                <p><strong>Dr. Bree Charles</strong></p>
+                <p>Transformational Speaker | U.S. Army Veteran | Author | Host of B3U</p>
               </>
             ) : (
-              <>
-                {monthlyDraft.openingMessage ? <p>{monthlyDraft.openingMessage}</p> : <p className="text-slate-400">Your opening message will appear here.</p>}
-
-                {monthlyDraft.featureTitle || monthlyDraft.featureBody ? (
-                  <section className="border-l-4 border-brandOrange pl-5">
-                    {monthlyDraft.featureTitle ? <h4 className="text-2xl font-black leading-tight text-[#0A1A2A]">{monthlyDraft.featureTitle}</h4> : null}
-                    {monthlyDraft.featureBody ? <p className="mt-3 whitespace-pre-line">{monthlyDraft.featureBody}</p> : null}
-                  </section>
-                ) : null}
-
-                {monthlyDraft.updatesTitle || monthlyDraft.updatesBody ? (
-                  <section>
-                    {monthlyDraft.updatesTitle ? <h4 className="text-xl font-black uppercase tracking-[0.12em] text-brandOrange">{monthlyDraft.updatesTitle}</h4> : null}
-                    {monthlyDraft.updatesBody ? <p className="mt-3 whitespace-pre-line">{monthlyDraft.updatesBody}</p> : null}
-                  </section>
-                ) : null}
-
-                {monthlyDraft.quote ? (
-                  <blockquote className="rounded-3xl bg-[#f4f8fb] px-6 py-5 text-lg font-semibold leading-8 text-navy">
-                    "{monthlyDraft.quote}"
-                  </blockquote>
-                ) : null}
-
-                {monthlyDraft.ctaText ? (
-                  <div>
-                    <span className="inline-flex rounded-full bg-brandOrange px-6 py-3 text-sm font-black uppercase tracking-[0.12em] text-white shadow-sm">
-                      {monthlyDraft.ctaText}
-                    </span>
-                  </div>
-                ) : null}
-
-                {monthlyDraft.closingNote ? <p>{monthlyDraft.closingNote}</p> : null}
-              </>
+              paragraphize(weeklyDraft.closingLetter)
             )}
           </div>
+        ) : null}
+
+        <GoldRule />
+
+        <SectionHeading>{weeklyDraft.featuredStoryTitle || 'Featured Story'}</SectionHeading>
+        <div className="mt-5 space-y-5 text-[13px] leading-[1.45] tracking-[0.01em]">
+          {isBlank ? <p>The featured story section highlights the week’s main announcement, episode, event, or reflection.</p> : paragraphize(weeklyDraft.featuredStoryBody)}
         </div>
 
-        <div className="border-t border-[#e4edf4] bg-[#fbfdff] px-6 py-6 text-center text-xs leading-6 text-[#5a7389] sm:px-10">
-          {templateDraft.footerNote}
+        <GoldRule />
+
+        <SectionHeading>{weeklyDraft.bookSpotlightTitle || 'Book Spotlight'}</SectionHeading>
+        <div className="mt-5 space-y-5 text-[13px] leading-[1.45] tracking-[0.01em]">
+          {isBlank ? <p>Use this section to spotlight The Big Take Back, a product, resource, or featured message.</p> : paragraphize(weeklyDraft.bookSpotlightBody)}
         </div>
-      </div>
+
+        <GoldRule />
+
+        <SectionHeading>{weeklyDraft.comingThisWeekTitle || 'What’s Coming This Week'}</SectionHeading>
+        <div className="mt-5 space-y-5 text-[13px] leading-[1.45] tracking-[0.01em]">
+          {isBlank ? (
+            <p><strong>Monday:</strong> Weekly item<br /><strong>Tuesday:</strong> Weekly item<br /><strong>Thursday:</strong> Weekly item</p>
+          ) : (
+            paragraphize(weeklyDraft.comingThisWeekBody)
+          )}
+        </div>
+
+        <GoldRule />
+
+        <SectionHeading>{weeklyDraft.affirmationTitle || 'THIS WEEK’S AFFIRMATION'}</SectionHeading>
+        <div className="mt-5 text-center text-[13px] italic leading-7 text-[#c49124]">
+          {isBlank ? (
+            <p>“Today I choose to stop living from what happened to me and start living from who I was created to become.”</p>
+          ) : (
+            paragraphize(weeklyDraft.affirmationText)
+          )}
+        </div>
+
+        <GoldRule />
+        <p className="text-center text-[13px] leading-6 text-[#4a4a52]">{weeklyDraft.bottomEncouragement}</p>
+      </main>
+
+      <footer className="bg-[#17182b] px-6 py-4 text-center text-[11px] font-semibold leading-5 text-white sm:px-10">
+        <p>{templateDraft.footerAddress}</p>
+        <p>{templateDraft.footerTagline}</p>
+      </footer>
     </div>
   );
 }
@@ -218,7 +274,7 @@ export default function NewsletterBuilder() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<BuilderTab>('template');
   const [templateDraft, setTemplateDraft] = useState<NewsletterTemplateDraft>(defaultTemplate);
-  const [monthlyDraft, setMonthlyDraft] = useState<MonthlyNewsletterDraft>(defaultMonthly);
+  const [weeklyDraft, setWeeklyDraft] = useState<WeeklyNewsletterDraft>(defaultWeekly);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [selectedSubscriberEmails, setSelectedSubscriberEmails] = useState<string[]>([]);
   const [notice, setNotice] = useState('');
@@ -228,7 +284,34 @@ export default function NewsletterBuilder() {
 
   useEffect(() => {
     setTemplateDraft(readStoredDraft(TEMPLATE_STORAGE_KEY, defaultTemplate));
-    setMonthlyDraft(readStoredDraft(MONTHLY_STORAGE_KEY, defaultMonthly));
+    const savedWeeklyDraft = readStoredDraft(WEEKLY_STORAGE_KEY, defaultWeekly);
+
+    if (typeof window !== 'undefined' && !window.localStorage.getItem(WEEKLY_STORAGE_KEY)) {
+      const legacyDraft = window.localStorage.getItem(LEGACY_MONTHLY_STORAGE_KEY);
+      if (legacyDraft) {
+        try {
+          const parsedLegacyDraft = JSON.parse(legacyDraft) as Partial<Record<string, string>>;
+          setWeeklyDraft({
+            ...savedWeeklyDraft,
+            subject: parsedLegacyDraft.subject || savedWeeklyDraft.subject,
+            mainTitle: parsedLegacyDraft.issueLabel || savedWeeklyDraft.mainTitle,
+            openingLetter: parsedLegacyDraft.openingMessage || savedWeeklyDraft.openingLetter,
+            featuredStoryTitle: parsedLegacyDraft.featureTitle || savedWeeklyDraft.featuredStoryTitle,
+            featuredStoryBody: parsedLegacyDraft.featureBody || savedWeeklyDraft.featuredStoryBody,
+            comingThisWeekTitle: parsedLegacyDraft.updatesTitle || savedWeeklyDraft.comingThisWeekTitle,
+            comingThisWeekBody: parsedLegacyDraft.updatesBody || savedWeeklyDraft.comingThisWeekBody,
+            affirmationText: parsedLegacyDraft.quote || savedWeeklyDraft.affirmationText,
+            closingLetter: parsedLegacyDraft.closingNote || savedWeeklyDraft.closingLetter,
+            scheduledFor: parsedLegacyDraft.scheduledFor || savedWeeklyDraft.scheduledFor,
+          });
+          return;
+        } catch {
+          // Ignore legacy data that cannot be parsed.
+        }
+      }
+    }
+
+    setWeeklyDraft(savedWeeklyDraft);
   }, []);
 
   useEffect(() => {
@@ -236,8 +319,8 @@ export default function NewsletterBuilder() {
   }, [templateDraft]);
 
   useEffect(() => {
-    saveStoredDraft(MONTHLY_STORAGE_KEY, monthlyDraft);
-  }, [monthlyDraft]);
+    saveStoredDraft(WEEKLY_STORAGE_KEY, weeklyDraft);
+  }, [weeklyDraft]);
 
   useEffect(() => {
     async function loadSubscribers() {
@@ -266,14 +349,14 @@ export default function NewsletterBuilder() {
     void loadSubscribers();
   }, [router]);
 
-  const bodyPreview = useMemo(() => buildNewsletterBody(templateDraft, monthlyDraft), [templateDraft, monthlyDraft]);
+  const bodyPreview = useMemo(() => buildNewsletterBody(templateDraft, weeklyDraft), [templateDraft, weeklyDraft]);
 
   function updateTemplate<K extends keyof NewsletterTemplateDraft>(key: K, value: NewsletterTemplateDraft[K]) {
     setTemplateDraft((current) => ({ ...current, [key]: value }));
   }
 
-  function updateMonthly<K extends keyof MonthlyNewsletterDraft>(key: K, value: MonthlyNewsletterDraft[K]) {
-    setMonthlyDraft((current) => ({ ...current, [key]: value }));
+  function updateWeekly<K extends keyof WeeklyNewsletterDraft>(key: K, value: WeeklyNewsletterDraft[K]) {
+    setWeeklyDraft((current) => ({ ...current, [key]: value }));
   }
 
   function handleTemplateUpload(event: React.ChangeEvent<HTMLInputElement>) {
@@ -316,7 +399,7 @@ export default function NewsletterBuilder() {
   async function handleScheduleNewsletter(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const scheduledFor = toUtcIsoStringFromDateTimeInput(monthlyDraft.scheduledFor);
+    const scheduledFor = toUtcIsoStringFromDateTimeInput(weeklyDraft.scheduledFor);
 
     if (!scheduledFor) {
       setNotice('Choose a valid send date and time.');
@@ -338,7 +421,7 @@ export default function NewsletterBuilder() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          subject: monthlyDraft.subject.trim(),
+          subject: weeklyDraft.subject.trim(),
           bodyText: bodyPreview,
           scheduledFor,
           recipientEmails: selectedSubscriberEmails,
@@ -357,7 +440,7 @@ export default function NewsletterBuilder() {
 
       setNotice('Weekly newsletter queued successfully from the template builder.');
       setNoticeTone('success');
-      setMonthlyDraft({ ...defaultMonthly, scheduledFor: formatDateTimeInput() });
+      setWeeklyDraft({ ...defaultWeekly, scheduledFor: formatDateTimeInput() });
       setSelectedSubscriberEmails([]);
       setActiveTab('monthly');
     } catch (error) {
@@ -377,7 +460,7 @@ export default function NewsletterBuilder() {
             <div>
               <h1 className="text-3xl font-bold">Weekly Newsletter Template Builder</h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-                Keep the reusable branded letter layout separate from the weekly writing so the client can publish a fresh issue every week.
+                Build the weekly issue using the same header, section titles, gold rules, body spacing, and footer format as the Take Back Weekly letter.
               </p>
             </div>
             <button
@@ -418,7 +501,7 @@ export default function NewsletterBuilder() {
             <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
               <h2 className="text-xl font-semibold text-gray-900">Blank Template Setup</h2>
               <p className="mt-2 text-sm leading-6 text-gray-500">
-                Upload a blank Canva export or use the recreated blank B3U letter template. The uploaded image is saved locally in this browser for preview and weekly layout planning.
+                Set the reusable top header and footer details. The preview recreates the weekly letter with empty placeholders.
               </p>
 
               <div className="mt-6 space-y-4">
@@ -427,23 +510,33 @@ export default function NewsletterBuilder() {
                   <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.templateName} onChange={(event) => updateTemplate('templateName', event.target.value)} />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Right header label</span>
-                  <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.eyebrow} onChange={(event) => updateTemplate('eyebrow', event.target.value)} />
-                </label>
-                <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Main headline</span>
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Header title</span>
                   <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.headline} onChange={(event) => updateTemplate('headline', event.target.value)} />
                 </label>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Byline</span>
+                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.byline} onChange={(event) => updateTemplate('byline', event.target.value)} />
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Week label</span>
+                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.weekLabel} onChange={(event) => updateTemplate('weekLabel', event.target.value)} />
+                  </label>
+                </div>
                 <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Tagline</span>
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Gold tagline</span>
                   <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.tagline} onChange={(event) => updateTemplate('tagline', event.target.value)} />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Footer note</span>
-                  <textarea className="min-h-[110px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.footerNote} onChange={(event) => updateTemplate('footerNote', event.target.value)} />
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Footer address</span>
+                  <textarea className="min-h-[80px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.footerAddress} onChange={(event) => updateTemplate('footerAddress', event.target.value)} />
+                </label>
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Footer tagline / website line</span>
+                  <textarea className="min-h-[80px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.footerTagline} onChange={(event) => updateTemplate('footerTagline', event.target.value)} />
                 </label>
                 <label className="block rounded-2xl border border-dashed border-gray-300 bg-slate-50 p-4">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Upload blank Canva template image</span>
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Optional: upload blank Canva template image</span>
                   <input type="file" accept="image/*" onChange={handleTemplateUpload} className="block w-full text-sm text-gray-600 file:mr-4 file:rounded-full file:border-0 file:bg-brandOrange file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" />
                   {templateDraft.backgroundFileName ? <span className="mt-2 block text-xs text-gray-500">Saved: {templateDraft.backgroundFileName}</span> : null}
                 </label>
@@ -452,12 +545,12 @@ export default function NewsletterBuilder() {
 
             <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
               <h2 className="text-xl font-semibold text-gray-900">Blank Letter Preview</h2>
-              <div className="mt-5 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+              <div className="mt-5 overflow-hidden rounded-[2rem] border border-slate-200 bg-slate-100 p-4 shadow-sm">
                 {templateDraft.backgroundDataUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={templateDraft.backgroundDataUrl} alt="Uploaded blank weekly newsletter template" className="max-h-[680px] w-full object-contain bg-slate-100" />
                 ) : (
-                  renderLetterPreview(templateDraft, monthlyDraft, true)
+                  renderLetterPreview(templateDraft, weeklyDraft, true)
                 )}
               </div>
             </section>
@@ -468,60 +561,68 @@ export default function NewsletterBuilder() {
           <form className="grid gap-6 xl:grid-cols-[1fr_0.9fr]" onSubmit={handleScheduleNewsletter}>
             <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
               <h2 className="text-xl font-semibold text-gray-900">Write This Week's Newsletter</h2>
-              <p className="mt-2 text-sm leading-6 text-gray-500">Fill in the reusable sections. The system turns this into the scheduled email body and sends it to selected subscribers.</p>
+              <p className="mt-2 text-sm leading-6 text-gray-500">Use the same structure as the reference: opening letter, featured story, book spotlight, weekly schedule, affirmation, and footer.</p>
 
               <div className="mt-6 space-y-4">
                 <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Subject</span>
-                  <input required maxLength={160} className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={monthlyDraft.subject} onChange={(event) => updateMonthly('subject', event.target.value)} />
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Email subject</span>
+                  <input required maxLength={160} className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.subject} onChange={(event) => updateWeekly('subject', event.target.value)} />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Weekly issue title</span>
-                  <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" placeholder="July 2026 Weekly Letter" value={monthlyDraft.issueLabel} onChange={(event) => updateMonthly('issueLabel', event.target.value)} />
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Opening letter title</span>
+                  <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.mainTitle} onChange={(event) => updateWeekly('mainTitle', event.target.value)} />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Opening message</span>
-                  <textarea required className="min-h-[130px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={monthlyDraft.openingMessage} onChange={(event) => updateMonthly('openingMessage', event.target.value)} />
-                </label>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-gray-700">Main letter title</span>
-                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={monthlyDraft.featureTitle} onChange={(event) => updateMonthly('featureTitle', event.target.value)} />
-                  </label>
-                  <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-gray-700">Weekly updates title</span>
-                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={monthlyDraft.updatesTitle} onChange={(event) => updateMonthly('updatesTitle', event.target.value)} />
-                  </label>
-                </div>
-                <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Main letter body</span>
-                  <textarea className="min-h-[150px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={monthlyDraft.featureBody} onChange={(event) => updateMonthly('featureBody', event.target.value)} />
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Opening letter body</span>
+                  <textarea required className="min-h-[240px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.openingLetter} onChange={(event) => updateWeekly('openingLetter', event.target.value)} placeholder="Paste the full opening letter here. Use blank lines between paragraphs." />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Weekly updates / announcements</span>
-                  <textarea className="min-h-[130px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={monthlyDraft.updatesBody} onChange={(event) => updateMonthly('updatesBody', event.target.value)} />
-                </label>
-                <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Unstoppable note / quote</span>
-                  <textarea className="min-h-[90px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={monthlyDraft.quote} onChange={(event) => updateMonthly('quote', event.target.value)} />
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Closing / signature block</span>
+                  <textarea className="min-h-[130px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.closingLetter} onChange={(event) => updateWeekly('closingLetter', event.target.value)} placeholder="With gratitude,\n\nDr. Bree Charles\n\nTransformational Speaker | U.S. Army Veteran | Author | Host of B3U" />
                 </label>
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-gray-700">CTA text</span>
-                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={monthlyDraft.ctaText} onChange={(event) => updateMonthly('ctaText', event.target.value)} />
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Featured story heading</span>
+                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.featuredStoryTitle} onChange={(event) => updateWeekly('featuredStoryTitle', event.target.value)} />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-gray-700">CTA link</span>
-                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={monthlyDraft.ctaUrl} onChange={(event) => updateMonthly('ctaUrl', event.target.value)} />
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Book spotlight heading</span>
+                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.bookSpotlightTitle} onChange={(event) => updateWeekly('bookSpotlightTitle', event.target.value)} />
                   </label>
                 </div>
                 <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Closing note</span>
-                  <textarea className="min-h-[90px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={monthlyDraft.closingNote} onChange={(event) => updateMonthly('closingNote', event.target.value)} />
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Featured story body</span>
+                  <textarea className="min-h-[170px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.featuredStoryBody} onChange={(event) => updateWeekly('featuredStoryBody', event.target.value)} />
+                </label>
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Book spotlight body</span>
+                  <textarea className="min-h-[150px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.bookSpotlightBody} onChange={(event) => updateWeekly('bookSpotlightBody', event.target.value)} />
+                </label>
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Coming this week heading</span>
+                  <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.comingThisWeekTitle} onChange={(event) => updateWeekly('comingThisWeekTitle', event.target.value)} />
+                </label>
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Coming this week body</span>
+                  <textarea className="min-h-[150px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.comingThisWeekBody} onChange={(event) => updateWeekly('comingThisWeekBody', event.target.value)} placeholder="Monday: ...\nTuesday: ...\nThursday: ..." />
+                </label>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Affirmation heading</span>
+                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.affirmationTitle} onChange={(event) => updateWeekly('affirmationTitle', event.target.value)} />
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Bottom encouragement</span>
+                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.bottomEncouragement} onChange={(event) => updateWeekly('bottomEncouragement', event.target.value)} />
+                  </label>
+                </div>
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Affirmation text</span>
+                  <textarea className="min-h-[120px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.affirmationText} onChange={(event) => updateWeekly('affirmationText', event.target.value)} />
                 </label>
                 <label className="block max-w-sm">
                   <span className="mb-2 block text-sm font-medium text-gray-700">Send date and time</span>
-                  <input required type="datetime-local" className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={monthlyDraft.scheduledFor} onChange={(event) => updateMonthly('scheduledFor', event.target.value)} />
+                  <input required type="datetime-local" className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.scheduledFor} onChange={(event) => updateWeekly('scheduledFor', event.target.value)} />
                 </label>
               </div>
             </section>
@@ -529,8 +630,8 @@ export default function NewsletterBuilder() {
             <section className="space-y-6">
               <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
                 <h2 className="text-xl font-semibold text-gray-900">Letter Preview</h2>
-                <div className="mt-5 overflow-hidden rounded-[2rem] border border-[#d7e5f0] bg-white shadow-sm">
-                  {renderLetterPreview(templateDraft, monthlyDraft)}
+                <div className="mt-5 overflow-hidden rounded-[2rem] border border-[#d7e5f0] bg-slate-100 p-4 shadow-sm">
+                  {renderLetterPreview(templateDraft, weeklyDraft)}
                 </div>
               </div>
 
