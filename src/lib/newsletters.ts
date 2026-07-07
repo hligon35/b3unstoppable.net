@@ -308,41 +308,114 @@ async function sendNewsletterEmail(params: {
 }
 
 function buildNewsletterHtml(bodyText: string) {
+  const trimmedBody = bodyText.trim();
+
+  if (/^<!doctype html>/i.test(trimmedBody) || /^<html[\s>]/i.test(trimmedBody)) {
+    return trimmedBody;
+  }
+
+  return buildTakeBackWeeklyLetterHtml(trimmedBody);
+}
+
+function buildTakeBackWeeklyLetterHtml(bodyText: string) {
+  const sections = bodyText
+    .split(/\n{2,}/)
+    .map((section) => section.trim())
+    .filter(Boolean);
+
+  const headerTitle = sections[0] || 'The Take Back Weekly';
+  const metaLine = sections[1] || 'By Dr. Bree Charles';
+  const tagline = sections[2] || 'Breaking Cycles. Building Legacies.';
+  const mainTitle = sections[3] || 'The Take Back Weekly';
+  const footerLine = sections.at(-1)?.includes('b3unstoppable') ? sections.at(-1) as string : 'www.b3unstoppable.net | B3U — Burn. Break. Become Unstoppable.';
+  const contentSections = sections.slice(4, sections.at(-1) === footerLine ? -1 : undefined);
+
   return `<!doctype html>
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-      @media only screen and (max-width: 640px) {
-        .email-shell { padding: 18px 10px !important; }
-        .email-card { border-radius: 18px !important; }
-        .email-header,
-        .email-content,
-        .email-footer { padding-left: 20px !important; padding-right: 20px !important; }
-        .email-title { font-size: 24px !important; line-height: 1.2 !important; }
+      @media only screen and (max-width: 700px) {
+        .letter-shell { padding: 18px 10px !important; }
+        .letter-card { max-width: 100% !important; }
+        .letter-header { padding: 24px 22px !important; }
+        .letter-main { padding: 28px 24px !important; }
+        .letter-title { font-size: 28px !important; line-height: 1.05 !important; }
+        .letter-logo-cell { width: 72px !important; }
+        .letter-logo { width: 64px !important; height: auto !important; }
       }
     </style>
   </head>
-  <body style="margin:0;padding:0;background:#f4f8fb;color:#102437;font-family:Arial,Helvetica,sans-serif;">
-    <div class="email-shell" style="padding:32px 16px;">
-      <div class="email-card" style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #d7e5f0;border-radius:24px;overflow:hidden;box-shadow:0 18px 48px rgba(10,26,42,0.12);">
-        <div class="email-header" style="background:linear-gradient(135deg,#0A1A2A 0%,#173a58 100%);padding:28px 32px 24px;color:#ffffff;">
-          <div style="font-size:12px;letter-spacing:1.8px;text-transform:uppercase;color:#d7e5f0;font-weight:700;margin-bottom:10px;">The Take Back Monthly</div>
-          <div class="email-title" style="font-size:30px;line-height:1.1;font-weight:700;margin:0 0 8px;">Burn, Break, Become Unstoppable</div>
-          <div style="font-size:14px;line-height:1.6;color:#d7e5f0;">Breaking Cycles. Building Legacies.</div>
+  <body style="margin:0;padding:0;background:#f1f5f9;color:#3d3d45;font-family:Arial,Helvetica,sans-serif;">
+    <div class="letter-shell" style="padding:32px 16px;background:#f1f5f9;">
+      <div class="letter-card" style="max-width:760px;margin:0 auto;background:#ffffff;overflow:hidden;box-shadow:0 18px 48px rgba(10,26,42,0.18);">
+        <div class="letter-header" style="border-bottom:4px solid #d0ad4b;background:#17182b;padding:28px 40px;color:#ffffff;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+            <tr>
+              <td class="letter-logo-cell" style="width:88px;vertical-align:top;padding-top:4px;">
+                <img class="letter-logo" src="https://www.b3unstoppable.net/images/logos/B3U3D.png" alt="B3U" width="76" style="display:block;width:76px;height:auto;border:0;outline:none;text-decoration:none;">
+              </td>
+              <td style="vertical-align:top;text-align:right;">
+                <h1 class="letter-title" style="margin:0;font-size:31px;line-height:1;font-weight:500;text-transform:uppercase;letter-spacing:0.04em;color:#ffffff;">${escapeHtml(headerTitle)}</h1>
+                <p style="margin:12px 0 0;font-size:12px;line-height:1.5;font-weight:700;color:#d4a536;">${escapeHtml(metaLine)}</p>
+              </td>
+            </tr>
+          </table>
         </div>
-        <div class="email-content" style="padding:32px;">
-          <div style="font-size:12px;letter-spacing:1.8px;text-transform:uppercase;color:#CC5500;font-weight:700;margin-bottom:10px;">Newsletter</div>
-          <div style="font-size:15px;line-height:1.8;color:#102437;">${formatNewsletterBody(bodyText)}</div>
+
+        <div class="letter-main" style="background:#ffffff;padding:28px 52px;color:#3d3d45;">
+          <p style="margin:0 0 32px;text-align:center;font-size:16px;line-height:1.5;color:#d4a536;">${escapeHtml(tagline)}</p>
+          <h2 style="margin:0;font-size:20px;line-height:1.2;font-weight:800;color:#17182b;">${escapeHtml(mainTitle)}</h2>
+          <div style="margin-top:8px;width:160px;height:1px;background:#c89b2d;"></div>
+          <div style="margin-top:24px;font-size:13px;line-height:1.5;letter-spacing:0.01em;color:#3d3d45;">
+            ${formatTakeBackWeeklySections(contentSections)}
+          </div>
         </div>
-        <div class="email-footer" style="padding:20px 32px 28px;border-top:1px solid #e4edf4;background:#fbfdff;color:#5a7389;font-size:13px;line-height:1.7;">
-          You are receiving this email because you subscribed to B3U updates.<br>
-          B3U exists to help people burn away fear, break destructive cycles, and become unstoppable.
+
+        <div style="background:#17182b;padding:18px 32px;text-align:center;color:#ffffff;font-size:11px;line-height:1.6;font-weight:700;">
+          ${escapeHtml(footerLine)}
         </div>
       </div>
     </div>
   </body>
 </html>`;
+}
+
+function formatTakeBackWeeklySections(sections: string[]) {
+  return sections
+    .map((section) => {
+      const lines = section.split('\n').map((line) => line.trim()).filter(Boolean);
+      if (!lines.length) {
+        return '';
+      }
+
+      if (lines.length > 1 && isLikelySectionHeading(lines[0])) {
+        const [heading, ...bodyLines] = lines;
+        return `${goldRule()}${sectionHeading(heading)}${formatNewsletterBody(bodyLines.join('\n'))}`;
+      }
+
+      return formatNewsletterBody(section);
+    })
+    .join('');
+}
+
+function isLikelySectionHeading(value: string) {
+  const normalized = value.trim();
+  return normalized.length <= 60 && (
+    /^featured/i.test(normalized) ||
+    /^book/i.test(normalized) ||
+    /^what/i.test(normalized) ||
+    /affirmation/i.test(normalized) ||
+    normalized === normalized.toUpperCase()
+  );
+}
+
+function goldRule() {
+  return '<div style="margin:32px 0;height:1px;width:100%;background:#d1aa45;"></div>';
+}
+
+function sectionHeading(value: string) {
+  return `<h3 style="margin:0;font-size:20px;line-height:1.2;font-weight:800;color:#17182b;">${escapeHtml(value)}</h3><div style="margin-top:8px;margin-bottom:20px;width:160px;height:1px;background:#c89b2d;"></div>`;
 }
 
 function formatNewsletterBody(bodyText: string) {
