@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 
@@ -38,8 +39,8 @@ const TEMPLATE_STORAGE_KEY = 'b3u-newsletter-template-draft';
 const MONTHLY_STORAGE_KEY = 'b3u-monthly-newsletter-draft';
 
 const defaultTemplate: NewsletterTemplateDraft = {
-  templateName: 'The Take Back Monthly',
-  eyebrow: 'The Take Back Monthly',
+  templateName: 'The Take Back Weekly',
+  eyebrow: 'The Take Back Weekly',
   headline: 'Burn, Break, Become Unstoppable',
   tagline: 'Breaking Cycles. Building Legacies.',
   footerNote: 'B3U exists to help people burn away fear, break destructive cycles, and become unstoppable.',
@@ -48,12 +49,12 @@ const defaultTemplate: NewsletterTemplateDraft = {
 };
 
 const defaultMonthly: MonthlyNewsletterDraft = {
-  subject: 'The Take Back Monthly:',
+  subject: 'The Take Back Weekly:',
   issueLabel: '',
   openingMessage: '',
   featureTitle: '',
   featureBody: '',
-  updatesTitle: 'This Month at B3U',
+  updatesTitle: 'This Week at B3U',
   updatesBody: '',
   quote: '',
   ctaText: 'Read more',
@@ -104,16 +105,113 @@ function buildNewsletterBody(template: NewsletterTemplateDraft, monthly: Monthly
   const sections = [
     template.eyebrow,
     monthly.issueLabel,
+    template.headline,
+    template.tagline,
     monthly.openingMessage,
     monthly.featureTitle ? `${monthly.featureTitle}\n${monthly.featureBody}` : monthly.featureBody,
     monthly.updatesTitle ? `${monthly.updatesTitle}\n${monthly.updatesBody}` : monthly.updatesBody,
-    monthly.quote ? `Quote\n${monthly.quote}` : '',
+    monthly.quote ? `Unstoppable Note\n${monthly.quote}` : '',
     monthly.ctaUrl ? `${monthly.ctaText || 'Read more'}\n${monthly.ctaUrl}` : monthly.ctaText,
     monthly.closingNote,
     template.footerNote,
   ];
 
   return sections.map((section) => section.trim()).filter(Boolean).join('\n\n');
+}
+
+function renderLetterPreview(templateDraft: NewsletterTemplateDraft, monthlyDraft: MonthlyNewsletterDraft, isBlank = false) {
+  return (
+    <div className="bg-[#eef4f8] p-4 sm:p-7">
+      <div className="mx-auto max-w-[760px] overflow-hidden rounded-[1.75rem] border border-[#d8e6ef] bg-white shadow-2xl">
+        <div className="grid grid-cols-[88px_1fr] gap-4 border-b border-[#e4edf4] bg-white px-6 py-6 sm:grid-cols-[112px_1fr] sm:px-9">
+          <div className="flex items-start justify-center border-r border-[#e4edf4] pr-4 sm:pr-6">
+            <div className="rounded-2xl bg-white p-2 shadow-sm ring-1 ring-[#d8e6ef]">
+              <Image
+                src="/images/logos/B3U3D.png"
+                alt="B3U logo"
+                width={82}
+                height={82}
+                className="h-16 w-16 object-contain sm:h-20 sm:w-20"
+              />
+            </div>
+          </div>
+
+          <div className="text-right">
+            <div className="text-xs font-bold uppercase tracking-[0.24em] text-brandOrange">{templateDraft.eyebrow}</div>
+            <h3 className="mt-3 text-4xl font-black leading-[0.95] tracking-tight text-[#0A1A2A] sm:text-5xl">
+              {isBlank ? templateDraft.headline : monthlyDraft.issueLabel || templateDraft.headline}
+            </h3>
+            <p className="ml-auto mt-3 max-w-md text-sm font-semibold uppercase tracking-[0.18em] text-[#5a7389]">{templateDraft.tagline}</p>
+          </div>
+        </div>
+
+        <div className="px-6 py-7 sm:px-10 sm:py-9">
+          <div className="mx-auto max-w-[560px] space-y-7 text-[15px] leading-8 text-[#1b3348]">
+            {isBlank ? (
+              <>
+                <div className="h-4 w-32 rounded-full bg-brandOrange/30" />
+                <div className="space-y-3">
+                  <div className="h-4 w-full rounded-full bg-slate-100" />
+                  <div className="h-4 w-11/12 rounded-full bg-slate-100" />
+                  <div className="h-4 w-10/12 rounded-full bg-slate-100" />
+                </div>
+                <div className="border-l-4 border-brandOrange pl-5">
+                  <div className="h-5 w-2/3 rounded-full bg-slate-200" />
+                  <div className="mt-4 space-y-3">
+                    <div className="h-4 w-full rounded-full bg-slate-100" />
+                    <div className="h-4 w-5/6 rounded-full bg-slate-100" />
+                  </div>
+                </div>
+                <div className="rounded-3xl bg-[#f4f8fb] p-6">
+                  <div className="h-4 w-1/2 rounded-full bg-brandBlue/20" />
+                  <div className="mt-4 h-3 w-full rounded-full bg-brandBlue/10" />
+                  <div className="mt-3 h-3 w-4/5 rounded-full bg-brandBlue/10" />
+                </div>
+              </>
+            ) : (
+              <>
+                {monthlyDraft.openingMessage ? <p>{monthlyDraft.openingMessage}</p> : <p className="text-slate-400">Your opening message will appear here.</p>}
+
+                {monthlyDraft.featureTitle || monthlyDraft.featureBody ? (
+                  <section className="border-l-4 border-brandOrange pl-5">
+                    {monthlyDraft.featureTitle ? <h4 className="text-2xl font-black leading-tight text-[#0A1A2A]">{monthlyDraft.featureTitle}</h4> : null}
+                    {monthlyDraft.featureBody ? <p className="mt-3 whitespace-pre-line">{monthlyDraft.featureBody}</p> : null}
+                  </section>
+                ) : null}
+
+                {monthlyDraft.updatesTitle || monthlyDraft.updatesBody ? (
+                  <section>
+                    {monthlyDraft.updatesTitle ? <h4 className="text-xl font-black uppercase tracking-[0.12em] text-brandOrange">{monthlyDraft.updatesTitle}</h4> : null}
+                    {monthlyDraft.updatesBody ? <p className="mt-3 whitespace-pre-line">{monthlyDraft.updatesBody}</p> : null}
+                  </section>
+                ) : null}
+
+                {monthlyDraft.quote ? (
+                  <blockquote className="rounded-3xl bg-[#f4f8fb] px-6 py-5 text-lg font-semibold leading-8 text-navy">
+                    "{monthlyDraft.quote}"
+                  </blockquote>
+                ) : null}
+
+                {monthlyDraft.ctaText ? (
+                  <div>
+                    <span className="inline-flex rounded-full bg-brandOrange px-6 py-3 text-sm font-black uppercase tracking-[0.12em] text-white shadow-sm">
+                      {monthlyDraft.ctaText}
+                    </span>
+                  </div>
+                ) : null}
+
+                {monthlyDraft.closingNote ? <p>{monthlyDraft.closingNote}</p> : null}
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="border-t border-[#e4edf4] bg-[#fbfdff] px-6 py-6 text-center text-xs leading-6 text-[#5a7389] sm:px-10">
+          {templateDraft.footerNote}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function NewsletterBuilder() {
@@ -186,7 +284,7 @@ export default function NewsletterBuilder() {
     }
 
     if (!file.type.startsWith('image/')) {
-      setNotice('Upload a PNG, JPG, or other image file for the blank newsletter template.');
+      setNotice('Upload a PNG, JPG, or other image file for the blank weekly newsletter template.');
       setNoticeTone('error');
       return;
     }
@@ -195,7 +293,7 @@ export default function NewsletterBuilder() {
     reader.onload = () => {
       updateTemplate('backgroundDataUrl', String(reader.result || ''));
       updateTemplate('backgroundFileName', file.name);
-      setNotice('Blank newsletter template saved for this browser.');
+      setNotice('Blank weekly newsletter template saved for this browser.');
       setNoticeTone('success');
     };
     reader.onerror = () => {
@@ -257,7 +355,7 @@ export default function NewsletterBuilder() {
         throw new Error(body?.error || `Newsletter API returned ${response.status}`);
       }
 
-      setNotice('Newsletter queued successfully from the template builder.');
+      setNotice('Weekly newsletter queued successfully from the template builder.');
       setNoticeTone('success');
       setMonthlyDraft({ ...defaultMonthly, scheduledFor: formatDateTimeInput() });
       setSelectedSubscriberEmails([]);
@@ -277,9 +375,9 @@ export default function NewsletterBuilder() {
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-orange-200">B3U Admin</p>
           <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold">Newsletter Template Builder</h1>
+              <h1 className="text-3xl font-bold">Weekly Newsletter Template Builder</h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-                Keep the blank Canva-style template separate from the monthly writing so the client can reuse the same look every month.
+                Keep the reusable branded letter layout separate from the weekly writing so the client can publish a fresh issue every week.
               </p>
             </div>
             <button
@@ -305,7 +403,7 @@ export default function NewsletterBuilder() {
             onClick={() => setActiveTab('monthly')}
             className={`rounded-2xl px-5 py-3 text-sm font-semibold transition ${activeTab === 'monthly' ? 'bg-brandBlue text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-brandBlue-light/20'}`}
           >
-            Monthly Newsletter
+            Weekly Newsletter
           </button>
         </div>
 
@@ -320,7 +418,7 @@ export default function NewsletterBuilder() {
             <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
               <h2 className="text-xl font-semibold text-gray-900">Blank Template Setup</h2>
               <p className="mt-2 text-sm leading-6 text-gray-500">
-                Upload a blank Canva export or use the recreated blank B3U template. The uploaded image is saved locally in this browser for preview and monthly layout planning.
+                Upload a blank Canva export or use the recreated blank B3U letter template. The uploaded image is saved locally in this browser for preview and weekly layout planning.
               </p>
 
               <div className="mt-6 space-y-4">
@@ -329,7 +427,7 @@ export default function NewsletterBuilder() {
                   <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.templateName} onChange={(event) => updateTemplate('templateName', event.target.value)} />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Top label</span>
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Right header label</span>
                   <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.eyebrow} onChange={(event) => updateTemplate('eyebrow', event.target.value)} />
                 </label>
                 <label className="block">
@@ -353,34 +451,13 @@ export default function NewsletterBuilder() {
             </section>
 
             <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-semibold text-gray-900">Blank Template Preview</h2>
+              <h2 className="text-xl font-semibold text-gray-900">Blank Letter Preview</h2>
               <div className="mt-5 overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
                 {templateDraft.backgroundDataUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={templateDraft.backgroundDataUrl} alt="Uploaded blank newsletter template" className="max-h-[680px] w-full object-contain bg-slate-100" />
+                  <img src={templateDraft.backgroundDataUrl} alt="Uploaded blank weekly newsletter template" className="max-h-[680px] w-full object-contain bg-slate-100" />
                 ) : (
-                  <div className="bg-[#f4f8fb] p-6 sm:p-10">
-                    <div className="overflow-hidden rounded-[2rem] border border-[#d7e5f0] bg-white shadow-xl">
-                      <div className="bg-gradient-to-br from-[#0A1A2A] to-[#173a58] px-8 py-9 text-white">
-                        <div className="text-xs font-bold uppercase tracking-[0.22em] text-[#d7e5f0]">{templateDraft.eyebrow}</div>
-                        <h3 className="mt-4 text-3xl font-bold leading-tight">{templateDraft.headline}</h3>
-                        <p className="mt-3 text-sm leading-6 text-[#d7e5f0]">{templateDraft.tagline}</p>
-                      </div>
-                      <div className="space-y-5 px-8 py-8">
-                        <div className="text-xs font-bold uppercase tracking-[0.22em] text-brandOrange">Newsletter</div>
-                        <div className="h-5 w-2/3 rounded-full bg-slate-200" />
-                        <div className="h-4 w-full rounded-full bg-slate-100" />
-                        <div className="h-4 w-11/12 rounded-full bg-slate-100" />
-                        <div className="h-4 w-10/12 rounded-full bg-slate-100" />
-                        <div className="rounded-2xl bg-brandBlue-light/20 p-5">
-                          <div className="h-4 w-1/2 rounded-full bg-brandBlue/20" />
-                          <div className="mt-3 h-3 w-full rounded-full bg-brandBlue/10" />
-                          <div className="mt-2 h-3 w-4/5 rounded-full bg-brandBlue/10" />
-                        </div>
-                      </div>
-                      <div className="border-t border-[#e4edf4] bg-[#fbfdff] px-8 py-6 text-sm leading-6 text-[#5a7389]">{templateDraft.footerNote}</div>
-                    </div>
-                  </div>
+                  renderLetterPreview(templateDraft, monthlyDraft, true)
                 )}
               </div>
             </section>
@@ -390,7 +467,7 @@ export default function NewsletterBuilder() {
         {activeTab === 'monthly' ? (
           <form className="grid gap-6 xl:grid-cols-[1fr_0.9fr]" onSubmit={handleScheduleNewsletter}>
             <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-              <h2 className="text-xl font-semibold text-gray-900">Write This Month's Newsletter</h2>
+              <h2 className="text-xl font-semibold text-gray-900">Write This Week's Newsletter</h2>
               <p className="mt-2 text-sm leading-6 text-gray-500">Fill in the reusable sections. The system turns this into the scheduled email body and sends it to selected subscribers.</p>
 
               <div className="mt-6 space-y-4">
@@ -399,8 +476,8 @@ export default function NewsletterBuilder() {
                   <input required maxLength={160} className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={monthlyDraft.subject} onChange={(event) => updateMonthly('subject', event.target.value)} />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Issue label</span>
-                  <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" placeholder="July 2026 Issue" value={monthlyDraft.issueLabel} onChange={(event) => updateMonthly('issueLabel', event.target.value)} />
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Weekly issue title</span>
+                  <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" placeholder="July 2026 Weekly Letter" value={monthlyDraft.issueLabel} onChange={(event) => updateMonthly('issueLabel', event.target.value)} />
                 </label>
                 <label className="block">
                   <span className="mb-2 block text-sm font-medium text-gray-700">Opening message</span>
@@ -408,24 +485,24 @@ export default function NewsletterBuilder() {
                 </label>
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-gray-700">Feature title</span>
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Main letter title</span>
                     <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={monthlyDraft.featureTitle} onChange={(event) => updateMonthly('featureTitle', event.target.value)} />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-gray-700">Updates title</span>
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Weekly updates title</span>
                     <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={monthlyDraft.updatesTitle} onChange={(event) => updateMonthly('updatesTitle', event.target.value)} />
                   </label>
                 </div>
                 <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Feature body</span>
-                  <textarea className="min-h-[130px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={monthlyDraft.featureBody} onChange={(event) => updateMonthly('featureBody', event.target.value)} />
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Main letter body</span>
+                  <textarea className="min-h-[150px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={monthlyDraft.featureBody} onChange={(event) => updateMonthly('featureBody', event.target.value)} />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Updates / announcements</span>
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Weekly updates / announcements</span>
                   <textarea className="min-h-[130px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={monthlyDraft.updatesBody} onChange={(event) => updateMonthly('updatesBody', event.target.value)} />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Quote or highlight</span>
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Unstoppable note / quote</span>
                   <textarea className="min-h-[90px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={monthlyDraft.quote} onChange={(event) => updateMonthly('quote', event.target.value)} />
                 </label>
                 <div className="grid gap-4 md:grid-cols-2">
@@ -451,22 +528,9 @@ export default function NewsletterBuilder() {
 
             <section className="space-y-6">
               <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-                <h2 className="text-xl font-semibold text-gray-900">Preview</h2>
+                <h2 className="text-xl font-semibold text-gray-900">Letter Preview</h2>
                 <div className="mt-5 overflow-hidden rounded-[2rem] border border-[#d7e5f0] bg-white shadow-sm">
-                  <div className="bg-gradient-to-br from-[#0A1A2A] to-[#173a58] px-7 py-7 text-white">
-                    <div className="text-xs font-bold uppercase tracking-[0.22em] text-[#d7e5f0]">{templateDraft.eyebrow}</div>
-                    <h3 className="mt-3 text-2xl font-bold leading-tight">{monthlyDraft.issueLabel || templateDraft.headline}</h3>
-                    <p className="mt-2 text-sm leading-6 text-[#d7e5f0]">{templateDraft.tagline}</p>
-                  </div>
-                  <div className="space-y-5 px-7 py-7 text-sm leading-7 text-slate-700">
-                    {monthlyDraft.openingMessage ? <p>{monthlyDraft.openingMessage}</p> : <p className="text-slate-400">Your opening message will appear here.</p>}
-                    {monthlyDraft.featureTitle || monthlyDraft.featureBody ? <div><h4 className="text-base font-bold text-slate-950">{monthlyDraft.featureTitle}</h4><p className="mt-2 whitespace-pre-line">{monthlyDraft.featureBody}</p></div> : null}
-                    {monthlyDraft.updatesTitle || monthlyDraft.updatesBody ? <div><h4 className="text-base font-bold text-slate-950">{monthlyDraft.updatesTitle}</h4><p className="mt-2 whitespace-pre-line">{monthlyDraft.updatesBody}</p></div> : null}
-                    {monthlyDraft.quote ? <blockquote className="rounded-2xl bg-brandBlue-light/20 p-5 font-medium text-navy">“{monthlyDraft.quote}”</blockquote> : null}
-                    {monthlyDraft.ctaText ? <div className="inline-flex rounded-full bg-brandOrange px-5 py-3 text-sm font-bold text-white">{monthlyDraft.ctaText}</div> : null}
-                    {monthlyDraft.closingNote ? <p>{monthlyDraft.closingNote}</p> : null}
-                  </div>
-                  <div className="border-t border-[#e4edf4] bg-[#fbfdff] px-7 py-5 text-xs leading-6 text-[#5a7389]">{templateDraft.footerNote}</div>
+                  {renderLetterPreview(templateDraft, monthlyDraft)}
                 </div>
               </div>
 
@@ -490,7 +554,7 @@ export default function NewsletterBuilder() {
                   ))}
                 </div>
                 <button type="submit" disabled={submitting || !selectedSubscriberEmails.length} className="mt-5 w-full rounded-xl bg-brandBlue px-5 py-3 text-sm font-semibold text-white transition hover:bg-brandBlue-dark disabled:cursor-not-allowed disabled:opacity-70">
-                  {submitting ? 'Scheduling newsletter...' : 'Schedule monthly newsletter'}
+                  {submitting ? 'Scheduling newsletter...' : 'Schedule weekly newsletter'}
                 </button>
               </div>
             </section>
