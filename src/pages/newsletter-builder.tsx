@@ -18,7 +18,7 @@ type NewsletterTemplateDraft = {
   byline: string;
   weekLabel: string;
   tagline: string;
-  footerAddress: string;
+  footerAddress?: string;
   footerTagline: string;
   backgroundDataUrl: string;
   backgroundFileName: string;
@@ -33,13 +33,14 @@ type WeeklyNewsletterDraft = {
   subject: string;
   mainTitle: string;
   openingLetter: string;
-  closingLetter: string;
+  closingLine: string;
+  closingLetter?: string;
   featuredStoryTitle: string;
   featuredStoryBody: string;
   bookSpotlightTitle: string;
   bookSpotlightBody: string;
   comingThisWeekTitle: string;
-  comingThisWeekBody?: string;
+  comingThisWeekBody: string;
   comingThisWeekItems?: ComingWeekItem[];
   affirmationTitle: string;
   affirmationText: string;
@@ -59,7 +60,6 @@ const defaultTemplate: NewsletterTemplateDraft = {
   byline: 'By Dr. Bree Charles',
   weekLabel: 'Week of July 6, 2026',
   tagline: 'Breaking Cycles. Building Legacies.',
-  footerAddress: '9221 Forest Hill Ave Suite 1 PMB 1021, Richmond, VA 23235',
   footerTagline: 'www.b3unstoppable.net | B3U — Burn. Break. Become Unstoppable.',
   backgroundDataUrl: '',
   backgroundFileName: '',
@@ -69,7 +69,7 @@ const defaultWeekly: WeeklyNewsletterDraft = {
   subject: 'The Take Back Weekly:',
   mainTitle: 'B3U Returns Tonight, The Big Take Back: What We’re Leaving Behind',
   openingLetter: '',
-  closingLetter: '',
+  closingLine: 'With gratitude,',
   featuredStoryTitle: 'Featured Story',
   featuredStoryBody: '',
   bookSpotlightTitle: 'Book Spotlight',
@@ -121,7 +121,7 @@ function saveStoredDraft<T>(key: string, value: T) {
   window.localStorage.setItem(key, JSON.stringify(value));
 }
 
-function paragraphize(value: string, className = '') {
+function paragraphize(value = '', className = '') {
   const paragraphs = value
     .split(/\n{2,}/)
     .map((paragraph) => paragraph.trim())
@@ -173,7 +173,7 @@ function normalizeComingWeekItems(items: unknown, legacyBody = ''): ComingWeekIt
 }
 
 function getComingWeekItems(weekly: WeeklyNewsletterDraft) {
-  return normalizeComingWeekItems(weekly.comingThisWeekItems, weekly.comingThisWeekBody || '');
+  return normalizeComingWeekItems(weekly.comingThisWeekItems);
 }
 
 function formatComingWeekItems(items?: ComingWeekItem[]) {
@@ -181,6 +181,16 @@ function formatComingWeekItems(items?: ComingWeekItem[]) {
     .map((item) => `${item.day}: ${item.text.trim()}`.trim())
     .filter(Boolean)
     .join('\n');
+}
+
+function formatClosingBlock(closingLine: string) {
+  return [
+    closingLine || defaultWeekly.closingLine,
+    'Dr. Bree Charles',
+    'Transformational Speaker | U.S. Army Veteran | Author | Host of B3U',
+    'Burn. Break. Become Unstoppable.',
+    'Breaking Cycles. Building Legacies.',
+  ].join('\n\n');
 }
 
 function buildNewsletterBody(template: NewsletterTemplateDraft, weekly: WeeklyNewsletterDraft) {
@@ -191,13 +201,12 @@ function buildNewsletterBody(template: NewsletterTemplateDraft, weekly: WeeklyNe
     template.tagline,
     weekly.mainTitle,
     weekly.openingLetter,
-    weekly.closingLetter,
+    formatClosingBlock(weekly.closingLine),
     weekly.featuredStoryTitle ? `${weekly.featuredStoryTitle}\n${weekly.featuredStoryBody}` : weekly.featuredStoryBody,
     weekly.bookSpotlightTitle ? `${weekly.bookSpotlightTitle}\n${weekly.bookSpotlightBody}` : weekly.bookSpotlightBody,
-    weekly.comingThisWeekTitle ? `${weekly.comingThisWeekTitle}\n${comingWeekBody}` : comingWeekBody,
+    weekly.comingThisWeekTitle ? `${weekly.comingThisWeekTitle}\n${comingWeekBody}\n\n${weekly.comingThisWeekBody}` : `${comingWeekBody}\n\n${weekly.comingThisWeekBody}`,
     weekly.affirmationTitle ? `${weekly.affirmationTitle}\n${weekly.affirmationText}` : weekly.affirmationText,
     weekly.bottomEncouragement,
-    template.footerAddress,
     template.footerTagline,
   ];
 
@@ -233,6 +242,18 @@ function renderComingWeekList(items: ComingWeekItem[] = [], isBlank = false) {
           <strong>{item.day}:</strong> {item.text || 'Add details for this day.'}
         </p>
       ))}
+    </div>
+  );
+}
+
+function renderClosingBlock(closingLine: string) {
+  return (
+    <div className="mt-5 space-y-5 text-[13px] leading-[1.45] tracking-[0.01em]">
+      <p>{closingLine || defaultWeekly.closingLine}</p>
+      <p><strong>Dr. Bree Charles</strong></p>
+      <p>Transformational Speaker | U.S. Army Veteran | Author | Host of B3U</p>
+      <p>Burn. Break. Become Unstoppable.</p>
+      <p>Breaking Cycles. Building Legacies.</p>
     </div>
   );
 }
@@ -280,19 +301,7 @@ function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft
           )}
         </div>
 
-        {weeklyDraft.closingLetter || isBlank ? (
-          <div className="mt-5 space-y-5 text-[13px] leading-[1.45] tracking-[0.01em]">
-            {isBlank ? (
-              <>
-                <p>With gratitude,</p>
-                <p><strong>Dr. Bree Charles</strong></p>
-                <p>Transformational Speaker | U.S. Army Veteran | Author | Host of B3U</p>
-              </>
-            ) : (
-              paragraphize(weeklyDraft.closingLetter)
-            )}
-          </div>
-        ) : null}
+        {renderClosingBlock(isBlank ? 'With gratitude,' : weeklyDraft.closingLine)}
 
         <GoldRule />
 
@@ -313,6 +322,11 @@ function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft
         <SectionHeading>{weeklyDraft.comingThisWeekTitle || 'What’s Coming Next Week'}</SectionHeading>
         <div className="mt-5 space-y-5 text-[13px] leading-[1.45] tracking-[0.01em]">
           {renderComingWeekList(comingWeekItems, isBlank)}
+          {isBlank ? (
+            <p>Use this body section to add a short reflection or transition after the day-by-day schedule.</p>
+          ) : (
+            paragraphize(weeklyDraft.comingThisWeekBody)
+          )}
         </div>
 
         <GoldRule />
@@ -331,7 +345,6 @@ function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft
       </main>
 
       <footer className="bg-[#17182b] px-6 py-4 text-center text-[11px] font-semibold leading-5 text-white sm:px-10">
-        <p>{templateDraft.footerAddress}</p>
         <p>{templateDraft.footerTagline}</p>
       </footer>
     </div>
@@ -351,9 +364,12 @@ export default function NewsletterBuilder() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    setTemplateDraft(readStoredDraft(TEMPLATE_STORAGE_KEY, defaultTemplate));
+    const savedTemplateDraft = readStoredDraft(TEMPLATE_STORAGE_KEY, defaultTemplate);
+    setTemplateDraft({ ...savedTemplateDraft, footerAddress: '' });
+
     const savedWeeklyDraft = readStoredDraft(WEEKLY_STORAGE_KEY, defaultWeekly);
     savedWeeklyDraft.comingThisWeekItems = normalizeComingWeekItems(savedWeeklyDraft.comingThisWeekItems, savedWeeklyDraft.comingThisWeekBody || '');
+    savedWeeklyDraft.closingLine = savedWeeklyDraft.closingLine || savedWeeklyDraft.closingLetter?.split('\n').find((line) => line.trim()) || defaultWeekly.closingLine;
 
     if (typeof window !== 'undefined' && !window.localStorage.getItem(WEEKLY_STORAGE_KEY)) {
       const legacyDraft = window.localStorage.getItem(LEGACY_MONTHLY_STORAGE_KEY);
@@ -368,9 +384,10 @@ export default function NewsletterBuilder() {
             featuredStoryTitle: parsedLegacyDraft.featureTitle || savedWeeklyDraft.featuredStoryTitle,
             featuredStoryBody: parsedLegacyDraft.featureBody || savedWeeklyDraft.featuredStoryBody,
             comingThisWeekTitle: parsedLegacyDraft.updatesTitle || savedWeeklyDraft.comingThisWeekTitle,
-            comingThisWeekItems: normalizeComingWeekItems(null, parsedLegacyDraft.updatesBody || savedWeeklyDraft.comingThisWeekBody || ''),
+            comingThisWeekItems: normalizeComingWeekItems(null, parsedLegacyDraft.updatesBody || ''),
+            comingThisWeekBody: savedWeeklyDraft.comingThisWeekBody || '',
             affirmationText: parsedLegacyDraft.quote || savedWeeklyDraft.affirmationText,
-            closingLetter: parsedLegacyDraft.closingNote || savedWeeklyDraft.closingLetter,
+            closingLine: parsedLegacyDraft.closingNote?.split('\n').find((line) => line.trim()) || savedWeeklyDraft.closingLine,
             scheduledFor: parsedLegacyDraft.scheduledFor || savedWeeklyDraft.scheduledFor,
           });
           return;
@@ -384,7 +401,7 @@ export default function NewsletterBuilder() {
   }, []);
 
   useEffect(() => {
-    saveStoredDraft(TEMPLATE_STORAGE_KEY, templateDraft);
+    saveStoredDraft(TEMPLATE_STORAGE_KEY, { ...templateDraft, footerAddress: '' });
   }, [templateDraft]);
 
   useEffect(() => {
@@ -616,11 +633,7 @@ export default function NewsletterBuilder() {
                   <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.tagline} onChange={(event) => updateTemplate('tagline', event.target.value)} />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Footer address</span>
-                  <textarea className="min-h-[80px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.footerAddress} onChange={(event) => updateTemplate('footerAddress', event.target.value)} />
-                </label>
-                <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Footer tagline / website line</span>
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Footer website/tagline line</span>
                   <textarea className="min-h-[80px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.footerTagline} onChange={(event) => updateTemplate('footerTagline', event.target.value)} />
                 </label>
                 <label className="block rounded-2xl border border-dashed border-gray-300 bg-slate-50 p-4">
@@ -649,7 +662,7 @@ export default function NewsletterBuilder() {
           <form className="grid gap-6 xl:grid-cols-[1fr_0.9fr]" onSubmit={handleScheduleNewsletter}>
             <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
               <h2 className="text-xl font-semibold text-gray-900">Write This Week's Newsletter</h2>
-              <p className="mt-2 text-sm leading-6 text-gray-500">Use the same structure as the reference: opening letter, featured story, book spotlight, weekday list, affirmation, and footer.</p>
+              <p className="mt-2 text-sm leading-6 text-gray-500">Use the same structure as the reference: opening letter, built-in closing block, featured story, book spotlight, weekday list, body section, affirmation, and footer.</p>
 
               <div className="mt-6 space-y-4">
                 <label className="block">
@@ -664,10 +677,19 @@ export default function NewsletterBuilder() {
                   <span className="mb-2 block text-sm font-medium text-gray-700">Opening letter body</span>
                   <textarea required className="min-h-[240px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.openingLetter} onChange={(event) => updateWeekly('openingLetter', event.target.value)} placeholder="Paste the full opening letter here. Use blank lines between paragraphs." />
                 </label>
-                <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Closing / signature block</span>
-                  <textarea className="min-h-[130px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.closingLetter} onChange={(event) => updateWeekly('closingLetter', event.target.value)} placeholder="With gratitude,\n\nDr. Bree Charles\n\nTransformational Speaker | U.S. Army Veteran | Author | Host of B3U" />
-                </label>
+                <div className="rounded-2xl border border-gray-200 bg-slate-50 p-4">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Closing line</span>
+                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.closingLine} onChange={(event) => updateWeekly('closingLine', event.target.value)} />
+                  </label>
+                  <div className="mt-4 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm leading-7 text-gray-700">
+                    <p><strong>Built-in signature block:</strong></p>
+                    <p>Dr. Bree Charles</p>
+                    <p>Transformational Speaker | U.S. Army Veteran | Author | Host of B3U</p>
+                    <p>Burn. Break. Become Unstoppable.</p>
+                    <p>Breaking Cycles. Building Legacies.</p>
+                  </div>
+                </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="block">
                     <span className="mb-2 block text-sm font-medium text-gray-700">Featured story heading</span>
@@ -727,6 +749,10 @@ export default function NewsletterBuilder() {
                     )}
                   </div>
                 </div>
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Coming next week body</span>
+                  <textarea className="min-h-[140px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.comingThisWeekBody} onChange={(event) => updateWeekly('comingThisWeekBody', event.target.value)} placeholder="Add the paragraph section that follows the day-by-day list." />
+                </label>
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="block">
                     <span className="mb-2 block text-sm font-medium text-gray-700">Affirmation heading</span>
