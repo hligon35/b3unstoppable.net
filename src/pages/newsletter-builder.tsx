@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 
 type BuilderTab = 'template' | 'monthly';
+type Weekday = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
 
 type Subscriber = {
   id: number;
@@ -23,6 +24,11 @@ type NewsletterTemplateDraft = {
   backgroundFileName: string;
 };
 
+type ComingWeekItem = {
+  day: Weekday;
+  text: string;
+};
+
 type WeeklyNewsletterDraft = {
   subject: string;
   mainTitle: string;
@@ -33,7 +39,8 @@ type WeeklyNewsletterDraft = {
   bookSpotlightTitle: string;
   bookSpotlightBody: string;
   comingThisWeekTitle: string;
-  comingThisWeekBody: string;
+  comingThisWeekBody?: string;
+  comingThisWeekItems: ComingWeekItem[];
   affirmationTitle: string;
   affirmationText: string;
   bottomEncouragement: string;
@@ -43,6 +50,7 @@ type WeeklyNewsletterDraft = {
 const TEMPLATE_STORAGE_KEY = 'b3u-newsletter-template-draft';
 const WEEKLY_STORAGE_KEY = 'b3u-weekly-newsletter-draft';
 const LEGACY_MONTHLY_STORAGE_KEY = 'b3u-monthly-newsletter-draft';
+const WEEKDAY_OPTIONS: Weekday[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 const defaultTemplate: NewsletterTemplateDraft = {
   templateName: 'The Take Back Weekly',
@@ -66,8 +74,9 @@ const defaultWeekly: WeeklyNewsletterDraft = {
   featuredStoryBody: '',
   bookSpotlightTitle: 'Book Spotlight',
   bookSpotlightBody: '',
-  comingThisWeekTitle: 'What’s Coming This Week',
+  comingThisWeekTitle: 'What’s Coming Next Week',
   comingThisWeekBody: '',
+  comingThisWeekItems: [],
   affirmationTitle: 'THIS WEEK’S AFFIRMATION',
   affirmationText: '',
   bottomEncouragement: 'Continue healing. Continue growing. Continue becoming.',
@@ -122,19 +131,56 @@ function paragraphize(value: string, className = '') {
     return null;
   }
 
-  return paragraphs.map((paragraph, index) => (
-    <p key={`${paragraph.slice(0, 24)}-${index}`} className={className || undefined}>
-      {paragraph.split('\n').map((line, lineIndex) => (
-        <span key={`${line}-${lineIndex}`}>
-          {line}
-          {lineIndex < paragraph.split('\n').length - 1 ? <br /> : null}
-        </span>
-      ))}
-    </p>
-  ));
+  return paragraphs.map((paragraph, index) => {
+    const lines = paragraph.split('\n');
+
+    return (
+      <p key={`${paragraph.slice(0, 24)}-${index}`} className={className || undefined}>
+        {lines.map((line, lineIndex) => (
+          <span key={`${line}-${lineIndex}`}>
+            {line}
+            {lineIndex < lines.length - 1 ? <br /> : null}
+          </span>
+        ))}
+      </p>
+    );
+  });
+}
+
+function normalizeComingWeekItems(items: unknown, legacyBody = ''): ComingWeekItem[] {
+  if (Array.isArray(items)) {
+    return items
+      .map((item) => {
+        if (!item || typeof item !== 'object') {
+          return null;
+        }
+
+        const candidate = item as Partial<ComingWeekItem>;
+        if (!candidate.day || !WEEKDAY_OPTIONS.includes(candidate.day)) {
+          return null;
+        }
+
+        return { day: candidate.day, text: typeof candidate.text === 'string' ? candidate.text : '' };
+      })
+      .filter((item): item is ComingWeekItem => Boolean(item));
+  }
+
+  if (legacyBody.trim()) {
+    return [{ day: 'Monday', text: legacyBody }];
+  }
+
+  return [];
+}
+
+function formatComingWeekItems(items: ComingWeekItem[]) {
+  return items
+    .map((item) => `${item.day}: ${item.text.trim()}`.trim())
+    .filter(Boolean)
+    .join('\n');
 }
 
 function buildNewsletterBody(template: NewsletterTemplateDraft, weekly: WeeklyNewsletterDraft) {
+  const comingWeekBody = formatComingWeekItems(weekly.comingThisWeekItems);
   const sections = [
     template.headline,
     `${template.byline} | ${template.weekLabel}`,
@@ -144,7 +190,7 @@ function buildNewsletterBody(template: NewsletterTemplateDraft, weekly: WeeklyNe
     weekly.closingLetter,
     weekly.featuredStoryTitle ? `${weekly.featuredStoryTitle}\n${weekly.featuredStoryBody}` : weekly.featuredStoryBody,
     weekly.bookSpotlightTitle ? `${weekly.bookSpotlightTitle}\n${weekly.bookSpotlightBody}` : weekly.bookSpotlightBody,
-    weekly.comingThisWeekTitle ? `${weekly.comingThisWeekTitle}\n${weekly.comingThisWeekBody}` : weekly.comingThisWeekBody,
+    weekly.comingThisWeekTitle ? `${weekly.comingThisWeekTitle}\n${comingWeekBody}` : comingWeekBody,
     weekly.affirmationTitle ? `${weekly.affirmationTitle}\n${weekly.affirmationText}` : weekly.affirmationText,
     weekly.bottomEncouragement,
     template.footerAddress,
@@ -165,6 +211,26 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 
 function GoldRule() {
   return <div className="my-8 h-px w-full bg-[#d1aa45]" />;
+}
+
+function renderComingWeekList(items: ComingWeekItem[], isBlank = false) {
+  const visibleItems = isBlank || !items.length
+    ? [
+        { day: 'Monday' as Weekday, text: 'Weekly item' },
+        { day: 'Tuesday' as Weekday, text: 'Weekly item' },
+        { day: 'Thursday' as Weekday, text: 'Weekly item' },
+      ]
+    : items;
+
+  return (
+    <div className="space-y-1">
+      {visibleItems.map((item) => (
+        <p key={item.day}>
+          <strong>{item.day}:</strong> {item.text || 'Add details for this day.'}
+        </p>
+      ))}
+    </div>
+  );
 }
 
 function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft: WeeklyNewsletterDraft, isBlank = false) {
@@ -238,13 +304,9 @@ function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft
 
         <GoldRule />
 
-        <SectionHeading>{weeklyDraft.comingThisWeekTitle || 'What’s Coming This Week'}</SectionHeading>
+        <SectionHeading>{weeklyDraft.comingThisWeekTitle || 'What’s Coming Next Week'}</SectionHeading>
         <div className="mt-5 space-y-5 text-[13px] leading-[1.45] tracking-[0.01em]">
-          {isBlank ? (
-            <p><strong>Monday:</strong> Weekly item<br /><strong>Tuesday:</strong> Weekly item<br /><strong>Thursday:</strong> Weekly item</p>
-          ) : (
-            paragraphize(weeklyDraft.comingThisWeekBody)
-          )}
+          {renderComingWeekList(weeklyDraft.comingThisWeekItems, isBlank)}
         </div>
 
         <GoldRule />
@@ -285,6 +347,7 @@ export default function NewsletterBuilder() {
   useEffect(() => {
     setTemplateDraft(readStoredDraft(TEMPLATE_STORAGE_KEY, defaultTemplate));
     const savedWeeklyDraft = readStoredDraft(WEEKLY_STORAGE_KEY, defaultWeekly);
+    savedWeeklyDraft.comingThisWeekItems = normalizeComingWeekItems(savedWeeklyDraft.comingThisWeekItems, savedWeeklyDraft.comingThisWeekBody || '');
 
     if (typeof window !== 'undefined' && !window.localStorage.getItem(WEEKLY_STORAGE_KEY)) {
       const legacyDraft = window.localStorage.getItem(LEGACY_MONTHLY_STORAGE_KEY);
@@ -299,7 +362,7 @@ export default function NewsletterBuilder() {
             featuredStoryTitle: parsedLegacyDraft.featureTitle || savedWeeklyDraft.featuredStoryTitle,
             featuredStoryBody: parsedLegacyDraft.featureBody || savedWeeklyDraft.featuredStoryBody,
             comingThisWeekTitle: parsedLegacyDraft.updatesTitle || savedWeeklyDraft.comingThisWeekTitle,
-            comingThisWeekBody: parsedLegacyDraft.updatesBody || savedWeeklyDraft.comingThisWeekBody,
+            comingThisWeekItems: normalizeComingWeekItems(null, parsedLegacyDraft.updatesBody || savedWeeklyDraft.comingThisWeekBody || ''),
             affirmationText: parsedLegacyDraft.quote || savedWeeklyDraft.affirmationText,
             closingLetter: parsedLegacyDraft.closingNote || savedWeeklyDraft.closingLetter,
             scheduledFor: parsedLegacyDraft.scheduledFor || savedWeeklyDraft.scheduledFor,
@@ -394,6 +457,24 @@ export default function NewsletterBuilder() {
     setSelectedSubscriberEmails((current) => (
       current.includes(email) ? current.filter((item) => item !== email) : [...current, email]
     ));
+  }
+
+  function handleComingWeekDayToggle(day: Weekday) {
+    setWeeklyDraft((current) => {
+      const exists = current.comingThisWeekItems.some((item) => item.day === day);
+      const comingThisWeekItems = exists
+        ? current.comingThisWeekItems.filter((item) => item.day !== day)
+        : [...current.comingThisWeekItems, { day, text: '' }].sort((first, second) => WEEKDAY_OPTIONS.indexOf(first.day) - WEEKDAY_OPTIONS.indexOf(second.day));
+
+      return { ...current, comingThisWeekItems };
+    });
+  }
+
+  function updateComingWeekDayText(day: Weekday, text: string) {
+    setWeeklyDraft((current) => ({
+      ...current,
+      comingThisWeekItems: current.comingThisWeekItems.map((item) => (item.day === day ? { ...item, text } : item)),
+    }));
   }
 
   async function handleScheduleNewsletter(event: React.FormEvent<HTMLFormElement>) {
@@ -561,7 +642,7 @@ export default function NewsletterBuilder() {
           <form className="grid gap-6 xl:grid-cols-[1fr_0.9fr]" onSubmit={handleScheduleNewsletter}>
             <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
               <h2 className="text-xl font-semibold text-gray-900">Write This Week's Newsletter</h2>
-              <p className="mt-2 text-sm leading-6 text-gray-500">Use the same structure as the reference: opening letter, featured story, book spotlight, weekly schedule, affirmation, and footer.</p>
+              <p className="mt-2 text-sm leading-6 text-gray-500">Use the same structure as the reference: opening letter, featured story, book spotlight, weekday list, affirmation, and footer.</p>
 
               <div className="mt-6 space-y-4">
                 <label className="block">
@@ -599,13 +680,45 @@ export default function NewsletterBuilder() {
                   <textarea className="min-h-[150px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.bookSpotlightBody} onChange={(event) => updateWeekly('bookSpotlightBody', event.target.value)} />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Coming this week heading</span>
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Coming next week heading</span>
                   <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.comingThisWeekTitle} onChange={(event) => updateWeekly('comingThisWeekTitle', event.target.value)} />
                 </label>
-                <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Coming this week body</span>
-                  <textarea className="min-h-[150px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.comingThisWeekBody} onChange={(event) => updateWeekly('comingThisWeekBody', event.target.value)} placeholder="Monday: ...\nTuesday: ...\nThursday: ..." />
-                </label>
+                <div className="rounded-2xl border border-gray-200 bg-slate-50 p-4">
+                  <span className="mb-3 block text-sm font-medium text-gray-700">Select days to include</span>
+                  <div className="flex flex-wrap gap-2">
+                    {WEEKDAY_OPTIONS.map((day) => {
+                      const selected = weeklyDraft.comingThisWeekItems.some((item) => item.day === day);
+
+                      return (
+                        <button
+                          key={day}
+                          type="button"
+                          onClick={() => handleComingWeekDayToggle(day)}
+                          className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${selected ? 'border-brandBlue bg-brandBlue text-white' : 'border-gray-300 bg-white text-gray-700 hover:border-brandBlue hover:text-brandBlue'}`}
+                        >
+                          {day}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    {weeklyDraft.comingThisWeekItems.length ? (
+                      weeklyDraft.comingThisWeekItems.map((item) => (
+                        <label key={item.day} className="block rounded-2xl border border-gray-200 bg-white p-4">
+                          <span className="mb-2 block text-sm font-bold text-gray-900">{item.day}</span>
+                          <textarea
+                            className="min-h-[80px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20"
+                            value={item.text}
+                            onChange={(event) => updateComingWeekDayText(item.day, event.target.value)}
+                            placeholder={`Add ${item.day}'s details here.`}
+                          />
+                        </label>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500">Select one or more days above to add them to the weekly list.</p>
+                    )}
+                  </div>
+                </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="block">
                     <span className="mb-2 block text-sm font-medium text-gray-700">Affirmation heading</span>
