@@ -382,21 +382,47 @@ function buildTakeBackWeeklyLetterHtml(bodyText: string) {
 }
 
 function formatTakeBackWeeklySections(sections: string[]) {
-  return sections
-    .map((section) => {
-      const lines = section.split('\n').map((line) => line.trim()).filter(Boolean);
-      if (!lines.length) {
-        return '';
-      }
+  const htmlSections: string[] = [];
 
-      if (lines.length > 1 && isLikelySectionHeading(lines[0])) {
-        const [heading, ...bodyLines] = lines;
-        return `${goldRule()}${sectionHeading(heading)}${formatNewsletterBody(bodyLines.join('\n'))}`;
-      }
+  for (let index = 0; index < sections.length; index += 1) {
+    const section = sections[index];
+    const lines = section.split('\n').map((line) => line.trim()).filter(Boolean);
 
-      return formatNewsletterBody(section);
-    })
-    .join('');
+    if (!lines.length) {
+      continue;
+    }
+
+    if (isClosingLine(lines[0]) && sections[index + 1]?.trim() === 'Dr. Bree Charles') {
+      htmlSections.push(formatClosingSignature([section, ...sections.slice(index + 1, index + 5)]));
+      index += 4;
+      continue;
+    }
+
+    if (isLikelySectionHeading(lines[0])) {
+      const [heading, ...bodyLines] = lines;
+      const bodyHtml = bodyLines.length ? formatNewsletterBody(bodyLines.join('\n')) : '';
+      htmlSections.push(`${goldRule()}${sectionHeading(heading)}${bodyHtml}`);
+      continue;
+    }
+
+    htmlSections.push(formatNewsletterBody(section));
+  }
+
+  return htmlSections.join('');
+}
+
+function isClosingLine(value: string) {
+  return /^with\s+/i.test(value.trim());
+}
+
+function formatClosingSignature(parts: string[]) {
+  const [closingLine, name, ...rest] = parts.map((part) => part.trim()).filter(Boolean);
+
+  return [
+    `<p style="margin:0 0 16px;">${escapeHtml(closingLine || 'With gratitude,')}</p>`,
+    `<p style="margin:0 0 16px;"><strong style="font-weight:800;color:#17182b;">${escapeHtml(name || 'Dr. Bree Charles')}</strong></p>`,
+    ...rest.map((part) => `<p style="margin:0 0 16px;">${escapeHtml(part).replace(/\n/g, '<br>')}</p>`),
+  ].join('');
 }
 
 function isLikelySectionHeading(value: string) {
