@@ -336,45 +336,43 @@ function buildTakeBackWeeklyLetterHtml(bodyText: string) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
       @media only screen and (max-width: 700px) {
-        .letter-shell { padding: 18px 10px !important; }
         .letter-card { max-width: 100% !important; }
-        .letter-header { padding: 24px 22px !important; }
-        .letter-main { padding: 28px 24px !important; }
-        .letter-title { font-size: 28px !important; line-height: 1.05 !important; }
-        .letter-logo-cell { width: 72px !important; }
-        .letter-logo { width: 64px !important; height: auto !important; }
+        .letter-header { padding: 22px 20px !important; }
+        .letter-main { padding: 26px 22px 18px !important; }
+        .letter-title { font-size: 24px !important; line-height: 1.05 !important; white-space:normal !important; }
+        .letter-meta { white-space:normal !important; }
+        .letter-logo-cell { width: 68px !important; }
+        .letter-logo { width: 60px !important; height: auto !important; }
       }
     </style>
   </head>
-  <body style="margin:0;padding:0;background:#f1f5f9;color:#3d3d45;font-family:Arial,Helvetica,sans-serif;">
-    <div class="letter-shell" style="padding:32px 16px;background:#f1f5f9;">
-      <div class="letter-card" style="max-width:760px;margin:0 auto;background:#ffffff;overflow:hidden;box-shadow:0 18px 48px rgba(10,26,42,0.18);">
-        <div class="letter-header" style="border-bottom:4px solid #d0ad4b;background:#17182b;padding:28px 40px;color:#ffffff;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
-            <tr>
-              <td class="letter-logo-cell" style="width:88px;vertical-align:top;padding-top:4px;">
-                <img class="letter-logo" src="https://www.b3unstoppable.net/images/logos/B3U3D.png" alt="B3U" width="76" style="display:block;width:76px;height:auto;border:0;outline:none;text-decoration:none;">
-              </td>
-              <td style="vertical-align:top;text-align:right;">
-                <h1 class="letter-title" style="margin:0;font-size:31px;line-height:1;font-weight:500;text-transform:uppercase;letter-spacing:0.04em;color:#ffffff;">${escapeHtml(headerTitle)}</h1>
-                <p style="margin:12px 0 0;font-size:12px;line-height:1.5;font-weight:700;color:#d4a536;">${escapeHtml(metaLine)}</p>
-              </td>
-            </tr>
-          </table>
-        </div>
+  <body style="margin:0;padding:0;background:#ffffff;color:#3d3d45;font-family:Arial,Helvetica,sans-serif;">
+    <div class="letter-card" style="max-width:760px;margin:0 auto;background:#ffffff;overflow:hidden;">
+      <div class="letter-header" style="border-bottom:4px solid #d0ad4b;background:#17182b;padding:24px 40px;color:#ffffff;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+          <tr>
+            <td class="letter-logo-cell" style="width:88px;vertical-align:top;padding-top:2px;">
+              <img class="letter-logo" src="https://www.b3unstoppable.net/images/logos/B3U3D.png" alt="B3U" width="76" style="display:block;width:76px;height:auto;border:0;outline:none;text-decoration:none;">
+            </td>
+            <td style="vertical-align:top;text-align:right;">
+              <h1 class="letter-title" style="margin:0;font-size:27px;line-height:1;font-weight:500;text-transform:uppercase;letter-spacing:0.03em;color:#ffffff;white-space:nowrap;">${escapeHtml(headerTitle)}</h1>
+              <p class="letter-meta" style="margin:10px 0 0;font-size:12px;line-height:1.4;font-weight:700;color:#d4a536;white-space:nowrap;">${escapeHtml(metaLine)}</p>
+            </td>
+          </tr>
+        </table>
+      </div>
 
-        <div class="letter-main" style="background:#ffffff;padding:28px 52px;color:#3d3d45;">
-          <p style="margin:0 0 32px;text-align:center;font-size:16px;line-height:1.5;color:#d4a536;">${escapeHtml(tagline)}</p>
-          <h2 style="margin:0;font-size:20px;line-height:1.2;font-weight:800;color:#17182b;">${escapeHtml(mainTitle)}</h2>
-          <div style="margin-top:8px;width:160px;height:1px;background:#c89b2d;"></div>
-          <div style="margin-top:24px;font-size:13px;line-height:1.5;letter-spacing:0.01em;color:#3d3d45;">
-            ${formatTakeBackWeeklySections(contentSections)}
-          </div>
+      <div class="letter-main" style="background:#ffffff;padding:28px 52px 18px;color:#3d3d45;">
+        <p style="margin:0 0 32px;text-align:center;font-size:16px;line-height:1.5;color:#d4a536;">${escapeHtml(tagline)}</p>
+        <h2 style="margin:0;font-size:20px;line-height:1.2;font-weight:800;color:#17182b;">${escapeHtml(mainTitle)}</h2>
+        <div style="margin-top:8px;width:160px;height:1px;background:#c89b2d;"></div>
+        <div style="margin-top:24px;font-size:13px;line-height:1.5;letter-spacing:0.01em;color:#3d3d45;">
+          ${formatTakeBackWeeklySections(contentSections)}
         </div>
+      </div>
 
-        <div style="background:#17182b;padding:18px 32px;text-align:center;color:#ffffff;font-size:11px;line-height:1.6;font-weight:700;">
-          ${escapeHtml(footerLine)}
-        </div>
+      <div style="background:#17182b;padding:18px 32px;text-align:center;color:#ffffff;font-size:11px;line-height:1.6;font-weight:700;">
+        ${escapeHtml(footerLine)}
       </div>
     </div>
   </body>
@@ -400,8 +398,13 @@ function formatTakeBackWeeklySections(sections: string[]) {
 
     if (isLikelySectionHeading(lines[0])) {
       const [heading, ...bodyLines] = lines;
-      const bodyHtml = bodyLines.length ? formatNewsletterBody(bodyLines.join('\n')) : '';
-      htmlSections.push(`${goldRule()}${sectionHeading(heading)}${bodyHtml}`);
+      const bodySource = bodyLines.length ? bodyLines.join('\n') : '';
+      htmlSections.push(`${goldRule()}${sectionHeading(heading)}${formatSectionBody(heading, bodySource)}`);
+      continue;
+    }
+
+    if (index === sections.length - 1) {
+      htmlSections.push(formatBottomEncouragement(section));
       continue;
     }
 
@@ -427,13 +430,20 @@ function formatClosingSignature(parts: string[]) {
 
 function isLikelySectionHeading(value: string) {
   const normalized = value.trim();
-  return normalized.length <= 60 && (
+  return normalized.length <= 80 && (
     /^featured/i.test(normalized) ||
     /^book/i.test(normalized) ||
     /^what/i.test(normalized) ||
+    /^coming/i.test(normalized) ||
+    /spotlight/i.test(normalized) ||
+    /story/i.test(normalized) ||
     /affirmation/i.test(normalized) ||
     normalized === normalized.toUpperCase()
   );
+}
+
+function isAffirmationHeading(value: string) {
+  return /affirmation/i.test(value.trim());
 }
 
 function goldRule() {
@@ -442,6 +452,25 @@ function goldRule() {
 
 function sectionHeading(value: string) {
   return `<h3 style="margin:0;font-size:20px;line-height:1.2;font-weight:800;color:#17182b;">${escapeHtml(value)}</h3><div style="margin-top:8px;margin-bottom:20px;width:160px;height:1px;background:#c89b2d;"></div>`;
+}
+
+function formatSectionBody(heading: string, bodyText: string) {
+  if (!bodyText.trim()) {
+    return '';
+  }
+
+  return isAffirmationHeading(heading) ? formatAffirmationBody(bodyText) : formatNewsletterBody(bodyText);
+}
+
+function formatAffirmationBody(bodyText: string) {
+  return escapeHtml(bodyText)
+    .split(/\n{2,}/)
+    .map((paragraph) => `<p style="margin:0 0 16px;text-align:center;font-style:italic;line-height:1.8;color:#c49124;">${paragraph.replace(/\n/g, '<br>')}</p>`)
+    .join('');
+}
+
+function formatBottomEncouragement(bodyText: string) {
+  return `<p style="margin:26px 0 0;text-align:center;font-size:13px;line-height:1.6;color:#4a4a52;">${escapeHtml(bodyText).replace(/\n/g, '<br>')}</p>`;
 }
 
 function formatNewsletterBody(bodyText: string) {
