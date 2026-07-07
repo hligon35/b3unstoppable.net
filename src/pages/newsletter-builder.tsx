@@ -223,14 +223,14 @@ function GoldRule() {
   return <div className="my-10 h-px w-full bg-[#d1aa45]" />;
 }
 
-function renderComingWeekList(items: ComingWeekItem[] = [], isBlank = false) {
-  const visibleItems = isBlank || !items.length
-    ? [
+function renderComingWeekList(items: ComingWeekItem[] = []) {
+  const visibleItems = items.length
+    ? items
+    : [
         { day: 'Monday' as Weekday, text: 'Weekly item' },
         { day: 'Tuesday' as Weekday, text: 'Weekly item' },
         { day: 'Thursday' as Weekday, text: 'Weekly item' },
-      ]
-    : items;
+      ];
 
   return (
     <div className="space-y-1">
@@ -438,8 +438,15 @@ export default function NewsletterBuilder() {
     setWeeklyDraft((current) => ({ ...current, [key]: value }));
   }
 
-  function handleSubscriberSelect(event: React.ChangeEvent<HTMLSelectElement>) {
-    setSelectedSubscriberEmails(Array.from(event.target.selectedOptions).map((option) => option.value));
+  function handleSubscriberDropdownChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    const email = event.target.value;
+
+    if (!email) {
+      return;
+    }
+
+    setSelectedSubscriberEmails((current) => (current.includes(email) ? current : [...current, email]));
+    event.target.value = '';
   }
 
   function handleClearSubscriberSelection() {
@@ -581,71 +588,101 @@ export default function NewsletterBuilder() {
   return (
     <main className="min-h-screen bg-slate-100 px-6 py-8 text-slate-950 sm:px-8 lg:px-12">
       <div className="mx-auto max-w-[1800px] space-y-6">
-        <div className="rounded-3xl bg-slate-950 px-6 py-7 text-white shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-orange-200">B3U Admin</p>
-          <h1 className="mt-3 text-3xl font-bold">Weekly Newsletter Builder</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">Build the Take Back Weekly letter with ease.</p>
-        </div>
-
-        <section className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
-          <div className="grid gap-4 xl:grid-cols-[1fr_1.2fr_auto_auto_auto_auto] xl:items-end">
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-700">Send date and time</span>
-              <input
-                required
-                type="datetime-local"
-                className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20"
-                value={weeklyDraft.scheduledFor}
-                onChange={(event) => updateWeekly('scheduledFor', event.target.value)}
-              />
-            </label>
-
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-700">Subscribers</span>
-              <select
-                multiple
-                value={selectedSubscriberEmails}
-                onChange={handleSubscriberSelect}
-                className="min-h-[52px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20"
-              >
-                {loading ? <option>Loading subscribers...</option> : null}
-                {!loading && !subscribers.length ? <option>No subscribers available</option> : null}
-                {subscribers.map((subscriber) => (
-                  <option key={subscriber.id} value={subscriber.email}>{subscriber.email}</option>
-                ))}
-              </select>
-              <span className="mt-1 block text-xs text-gray-500">{selectedSubscriberEmails.length} selected</span>
-            </label>
-
-            <button type="button" onClick={() => setShowAddSubscriber((current) => !current)} className="rounded-xl border border-brandBlue px-4 py-3 text-sm font-semibold text-brandBlue transition hover:bg-brandBlue-light/20">
-              Add subscriber
-            </button>
-            <button type="button" onClick={handleClearSubscriberSelection} className="rounded-xl border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 transition hover:bg-slate-50">
-              Clear
-            </button>
-            <button type="button" onClick={handleSendNewsletterNow} disabled={submitting} className="rounded-xl bg-brandOrange px-5 py-3 text-sm font-semibold text-white transition hover:bg-brandOrange-dark disabled:cursor-not-allowed disabled:opacity-70">
-              {submitting ? 'Sending...' : 'Send now'}
-            </button>
-            <button type="button" onClick={handleScheduleNewsletter} disabled={submitting} className="rounded-xl bg-brandBlue px-5 py-3 text-sm font-semibold text-white transition hover:bg-brandBlue-dark disabled:cursor-not-allowed disabled:opacity-70">
-              {submitting ? 'Scheduling...' : 'Schedule'}
-            </button>
-          </div>
-
-          {showAddSubscriber ? (
-            <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-gray-200 bg-slate-50 p-4 sm:flex-row">
-              <input
-                type="email"
-                value={newSubscriberEmail}
-                onChange={(event) => setNewSubscriberEmail(event.target.value)}
-                placeholder="newsubscriber@email.com"
-                className="flex-1 rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20"
-              />
-              <button type="button" onClick={handleAddSubscriber} disabled={subscriberSubmitting} className="rounded-xl bg-brandBlue px-5 py-3 text-sm font-semibold text-white transition hover:bg-brandBlue-dark disabled:cursor-not-allowed disabled:opacity-70">
-                {subscriberSubmitting ? 'Adding...' : 'Add and select'}
-              </button>
+        <div className="rounded-3xl bg-slate-950 px-6 py-6 text-white shadow-sm">
+          <div className="grid gap-5 xl:grid-cols-[minmax(260px,0.72fr)_minmax(640px,1.28fr)] xl:items-center">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-orange-200">B3U Admin</p>
+              <h1 className="mt-3 text-3xl font-bold">Weekly Newsletter Builder</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">Build the Take Back Weekly letter with ease.</p>
             </div>
-          ) : null}
-        </section>
+
+            <div className="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-inner">
+              <div className="grid gap-3 md:grid-cols-[minmax(220px,0.95fr)_minmax(260px,1.05fr)]">
+                <label className="block min-w-0">
+                  <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-orange-100">Send date/time</span>
+                  <input
+                    required
+                    type="datetime-local"
+                    className="h-11 w-full rounded-xl border border-white/20 bg-white px-3 text-sm text-slate-950 shadow-sm outline-none transition focus:border-brandOrange focus:ring-2 focus:ring-brandOrange/30"
+                    value={weeklyDraft.scheduledFor}
+                    onChange={(event) => updateWeekly('scheduledFor', event.target.value)}
+                  />
+                </label>
+
+                <label className="block min-w-0">
+                  <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-orange-100">Subscribers</span>
+                  <select
+                    defaultValue=""
+                    onChange={handleSubscriberDropdownChange}
+                    className="h-11 w-full rounded-xl border border-white/20 bg-white px-3 text-sm text-slate-950 shadow-sm outline-none transition focus:border-brandOrange focus:ring-2 focus:ring-brandOrange/30"
+                  >
+                    <option value="">{loading ? 'Loading subscribers...' : selectedSubscriberEmails.length ? `${selectedSubscriberEmails.length} selected - add another` : 'Select subscriber'}</option>
+                    {!loading && !subscribers.length ? <option value="" disabled>No subscribers available</option> : null}
+                    {subscribers.map((subscriber) => (
+                      <option key={subscriber.id} value={subscriber.email}>{subscriber.email}</option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddSubscriber((current) => !current)}
+                  title="Add subscriber"
+                  aria-label="Add subscriber"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-3 text-sm font-semibold text-white transition hover:bg-white/20"
+                >
+                  <span aria-hidden="true">+</span><span className="hidden sm:inline">Add</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClearSubscriberSelection}
+                  title="Clear subscribers"
+                  aria-label="Clear selected subscribers"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-3 text-sm font-semibold text-white transition hover:bg-white/20"
+                >
+                  <span aria-hidden="true">x</span><span className="hidden sm:inline">Clear</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSendNewsletterNow}
+                  disabled={submitting}
+                  title="Send now"
+                  aria-label="Send newsletter now"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brandOrange px-3 text-sm font-semibold text-white transition hover:bg-brandOrange-dark disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  <span aria-hidden="true">→</span><span className="hidden sm:inline">Send</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleScheduleNewsletter}
+                  disabled={submitting}
+                  title="Schedule newsletter"
+                  aria-label="Schedule newsletter"
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brandBlue px-3 text-sm font-semibold text-white transition hover:bg-brandBlue-dark disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  <span aria-hidden="true">◷</span><span className="hidden sm:inline">Schedule</span>
+                </button>
+              </div>
+
+              {showAddSubscriber ? (
+                <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto]">
+                  <input
+                    type="email"
+                    value={newSubscriberEmail}
+                    onChange={(event) => setNewSubscriberEmail(event.target.value)}
+                    placeholder="newsubscriber@email.com"
+                    className="h-10 min-w-0 rounded-xl border border-white/20 bg-white px-3 text-sm text-slate-950 shadow-sm outline-none transition focus:border-brandOrange focus:ring-2 focus:ring-brandOrange/30"
+                  />
+                  <button type="button" onClick={handleAddSubscriber} disabled={subscriberSubmitting} className="h-10 rounded-xl bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70">
+                    {subscriberSubmitting ? 'Adding...' : 'Add and select'}
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
 
         {notice ? (
           <div className={`rounded-3xl border px-5 py-4 text-sm ${noticeTone === 'success' ? 'border-brandBlue/20 bg-brandBlue-light/20 text-navy' : noticeTone === 'error' ? 'border-brandOrange/25 bg-brandOrange/10 text-navy' : 'border-brandBlue/20 bg-brandBlue-light/10 text-navy'}`}>
