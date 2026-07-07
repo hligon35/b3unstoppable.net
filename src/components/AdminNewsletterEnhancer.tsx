@@ -41,9 +41,9 @@ function ensureBuilderShortcut() {
     <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div>
         <p class="text-xs font-semibold uppercase tracking-[0.22em] text-brandOrange">New</p>
-        <h2 class="mt-2 text-xl font-semibold text-gray-900">Newsletter Template Builder</h2>
+        <h2 class="mt-2 text-xl font-semibold text-gray-900">Weekly Newsletter Template Builder</h2>
         <p class="mt-2 max-w-2xl text-sm leading-6 text-gray-500">
-          Use the new two-tab builder to manage a blank Canva-style template separately from the monthly newsletter text.
+          Use the new two-tab builder to manage a blank letter-style template separately from the weekly newsletter text.
         </p>
       </div>
       <a href="/newsletter-builder" class="inline-flex items-center justify-center rounded-xl bg-brandBlue px-5 py-3 text-sm font-semibold text-white transition hover:bg-brandBlue-dark">
@@ -53,11 +53,11 @@ function ensureBuilderShortcut() {
     <div class="mt-5 grid gap-3 md:grid-cols-2">
       <div class="rounded-2xl border border-gray-200 bg-slate-50 px-4 py-3">
         <div class="text-sm font-semibold text-gray-900">Blank Template</div>
-        <p class="mt-1 text-sm text-gray-600">Upload or preview the reusable blank newsletter design.</p>
+        <p class="mt-1 text-sm text-gray-600">Upload or preview the reusable blank weekly letter design.</p>
       </div>
       <div class="rounded-2xl border border-gray-200 bg-slate-50 px-4 py-3">
-        <div class="text-sm font-semibold text-gray-900">Monthly Newsletter</div>
-        <p class="mt-1 text-sm text-gray-600">Write this month’s sections, preview them, select subscribers, and schedule the email.</p>
+        <div class="text-sm font-semibold text-gray-900">Weekly Newsletter</div>
+        <p class="mt-1 text-sm text-gray-600">Write this week's sections, preview them, select subscribers, and schedule the email.</p>
       </div>
     </div>
   `;
