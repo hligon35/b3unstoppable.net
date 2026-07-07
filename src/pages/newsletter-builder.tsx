@@ -2,7 +2,7 @@ import Image from 'next/image';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 
-type BuilderTab = 'template' | 'monthly';
+type BuilderTab = 'template' | 'weekly';
 type Weekday = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
 
 type Subscriber = {
@@ -16,7 +16,8 @@ type NewsletterTemplateDraft = {
   eyebrow: string;
   headline: string;
   byline: string;
-  weekLabel: string;
+  issueDate: string;
+  weekLabel?: string;
   tagline: string;
   footerAddress?: string;
   footerTagline: string;
@@ -56,9 +57,9 @@ const WEEKDAY_OPTIONS: Weekday[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday'
 const defaultTemplate: NewsletterTemplateDraft = {
   templateName: 'The Take Back Weekly',
   eyebrow: 'THE TAKE BACK WEEKLY',
-  headline: 'THE TAKE BACK WEEKLY',
+  headline: 'The Take Back Weekly',
   byline: 'By Dr. Bree Charles',
-  weekLabel: 'Week of July 6, 2026',
+  issueDate: 'Week of July 6, 2026',
   tagline: 'Breaking Cycles. Building Legacies.',
   footerTagline: 'www.b3unstoppable.net | B3U — Burn. Break. Become Unstoppable.',
   backgroundDataUrl: '',
@@ -67,7 +68,7 @@ const defaultTemplate: NewsletterTemplateDraft = {
 
 const defaultWeekly: WeeklyNewsletterDraft = {
   subject: 'The Take Back Weekly:',
-  mainTitle: 'B3U Returns Tonight, The Big Take Back: What We’re Leaving Behind',
+  mainTitle: 'The Take Back Weekly',
   openingLetter: '',
   closingLine: 'With gratitude,',
   featuredStoryTitle: 'Featured Story',
@@ -176,6 +177,10 @@ function getComingWeekItems(weekly: WeeklyNewsletterDraft) {
   return normalizeComingWeekItems(weekly.comingThisWeekItems);
 }
 
+function getTemplateDate(template: NewsletterTemplateDraft) {
+  return template.issueDate || template.weekLabel || defaultTemplate.issueDate;
+}
+
 function formatComingWeekItems(items?: ComingWeekItem[]) {
   return normalizeComingWeekItems(items)
     .map((item) => `${item.day}: ${item.text.trim()}`.trim())
@@ -197,7 +202,7 @@ function buildNewsletterBody(template: NewsletterTemplateDraft, weekly: WeeklyNe
   const comingWeekBody = formatComingWeekItems(getComingWeekItems(weekly));
   const sections = [
     template.headline,
-    `${template.byline} | ${template.weekLabel}`,
+    `${template.byline} | ${getTemplateDate(template)}`,
     template.tagline,
     weekly.mainTitle,
     weekly.openingLetter,
@@ -277,7 +282,7 @@ function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft
           <div className="text-right">
             <h2 className="text-[28px] font-medium uppercase leading-none tracking-[0.04em] sm:text-[31px]">{templateDraft.headline}</h2>
             <p className="mt-3 text-[12px] font-semibold text-[#d4a536]">
-              {templateDraft.byline} <span className="text-white/70">|</span> {templateDraft.weekLabel}
+              {templateDraft.byline} <span className="text-white/70">|</span> {getTemplateDate(templateDraft)}
             </p>
           </div>
         </div>
@@ -286,7 +291,7 @@ function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft
       <main className="bg-white px-10 py-5 text-[#3d3d45] sm:px-[52px]">
         <p className="mb-8 text-center text-[16px] leading-6 text-[#d4a536]">{templateDraft.tagline}</p>
 
-        <SectionHeading>{isBlank ? 'Main Letter Title' : weeklyDraft.mainTitle}</SectionHeading>
+        <SectionHeading>{isBlank ? 'The Take Back Weekly' : weeklyDraft.mainTitle}</SectionHeading>
 
         <div className="mt-6 space-y-5 text-[13px] leading-[1.45] tracking-[0.01em]">
           {isBlank ? (
@@ -365,9 +370,15 @@ export default function NewsletterBuilder() {
 
   useEffect(() => {
     const savedTemplateDraft = readStoredDraft(TEMPLATE_STORAGE_KEY, defaultTemplate);
-    setTemplateDraft({ ...savedTemplateDraft, footerAddress: '' });
+    setTemplateDraft({
+      ...savedTemplateDraft,
+      headline: savedTemplateDraft.headline === 'Burn, Break, Become Unstoppable' ? defaultTemplate.headline : savedTemplateDraft.headline,
+      issueDate: savedTemplateDraft.issueDate || savedTemplateDraft.weekLabel || defaultTemplate.issueDate,
+      footerAddress: '',
+    });
 
     const savedWeeklyDraft = readStoredDraft(WEEKLY_STORAGE_KEY, defaultWeekly);
+    savedWeeklyDraft.mainTitle = savedWeeklyDraft.mainTitle === 'Burn, Break, Become Unstoppable' ? defaultWeekly.mainTitle : savedWeeklyDraft.mainTitle;
     savedWeeklyDraft.comingThisWeekItems = normalizeComingWeekItems(savedWeeklyDraft.comingThisWeekItems, savedWeeklyDraft.comingThisWeekBody || '');
     savedWeeklyDraft.closingLine = savedWeeklyDraft.closingLine || savedWeeklyDraft.closingLetter?.split('\n').find((line) => line.trim()) || defaultWeekly.closingLine;
 
@@ -547,7 +558,7 @@ export default function NewsletterBuilder() {
       setNoticeTone('success');
       setWeeklyDraft({ ...defaultWeekly, scheduledFor: formatDateTimeInput() });
       setSelectedSubscriberEmails([]);
-      setActiveTab('monthly');
+      setActiveTab('weekly');
     } catch (error) {
       setNotice(error instanceof Error ? error.message : 'Failed to schedule newsletter.');
       setNoticeTone('error');
@@ -563,9 +574,9 @@ export default function NewsletterBuilder() {
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-orange-200">B3U Admin</p>
           <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold">Weekly Newsletter Template Builder</h1>
+              <h1 className="text-3xl font-bold">Weekly Newsletter Builder</h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-                Build the weekly issue using the same header, section titles, gold rules, body spacing, and footer format as the Take Back Weekly letter.
+                Build the Take Back Weekly letter with ease.
               </p>
             </div>
             <button
@@ -588,8 +599,8 @@ export default function NewsletterBuilder() {
           </button>
           <button
             type="button"
-            onClick={() => setActiveTab('monthly')}
-            className={`rounded-2xl px-5 py-3 text-sm font-semibold transition ${activeTab === 'monthly' ? 'bg-brandBlue text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-brandBlue-light/20'}`}
+            onClick={() => setActiveTab('weekly')}
+            className={`rounded-2xl px-5 py-3 text-sm font-semibold transition ${activeTab === 'weekly' ? 'bg-brandBlue text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-brandBlue-light/20'}`}
           >
             Weekly Newsletter
           </button>
@@ -615,7 +626,7 @@ export default function NewsletterBuilder() {
                   <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.templateName} onChange={(event) => updateTemplate('templateName', event.target.value)} />
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Header title</span>
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Newsletter template title</span>
                   <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.headline} onChange={(event) => updateTemplate('headline', event.target.value)} />
                 </label>
                 <div className="grid gap-4 md:grid-cols-2">
@@ -624,8 +635,8 @@ export default function NewsletterBuilder() {
                     <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.byline} onChange={(event) => updateTemplate('byline', event.target.value)} />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-gray-700">Week label</span>
-                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.weekLabel} onChange={(event) => updateTemplate('weekLabel', event.target.value)} />
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Date</span>
+                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={getTemplateDate(templateDraft)} onChange={(event) => updateTemplate('issueDate', event.target.value)} />
                   </label>
                 </div>
                 <label className="block">
@@ -658,11 +669,10 @@ export default function NewsletterBuilder() {
           </div>
         ) : null}
 
-        {activeTab === 'monthly' ? (
+        {activeTab === 'weekly' ? (
           <form className="grid gap-6 xl:grid-cols-[1fr_0.9fr]" onSubmit={handleScheduleNewsletter}>
             <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
               <h2 className="text-xl font-semibold text-gray-900">Write This Week's Newsletter</h2>
-              <p className="mt-2 text-sm leading-6 text-gray-500">Use the same structure as the reference: opening letter, built-in closing block, featured story, book spotlight, weekday list, body section, affirmation, and footer.</p>
 
               <div className="mt-6 space-y-4">
                 <label className="block">
