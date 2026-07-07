@@ -586,35 +586,37 @@ export default function NewsletterBuilder() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-100 px-6 py-8 text-slate-950 sm:px-8 lg:px-12">
-      <div className="mx-auto max-w-[1800px] space-y-6">
-        <div className="rounded-3xl bg-slate-950 px-6 py-6 text-white shadow-sm">
-          <div className="grid gap-5 xl:grid-cols-[minmax(260px,0.72fr)_minmax(640px,1.28fr)] xl:items-center">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-orange-200">B3U Admin</p>
-              <h1 className="mt-3 text-3xl font-bold">Weekly Newsletter Builder</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">Build the Take Back Weekly letter with ease.</p>
+    <main className="min-h-screen bg-slate-100 px-6 py-6 text-slate-950 sm:px-8 lg:px-12">
+      <div className="mx-auto max-w-[1800px] space-y-5">
+        <div className="rounded-3xl bg-slate-950 px-5 py-4 text-white shadow-sm sm:px-6">
+          <div className="grid gap-4 lg:grid-cols-[minmax(260px,1fr)_minmax(500px,auto)] lg:items-center">
+            <div className="min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-orange-200">B3U Admin</p>
+              <h1 className="mt-2 text-2xl font-bold sm:text-3xl">Weekly Newsletter Builder</h1>
+              <p className="mt-1 max-w-2xl text-sm leading-5 text-slate-300">Build the Take Back Weekly letter with ease.</p>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-inner">
-              <div className="grid gap-3 md:grid-cols-[minmax(220px,0.95fr)_minmax(260px,1.05fr)]">
+            <div className="w-full max-w-[680px] justify-self-end rounded-2xl border border-white/10 bg-white/10 p-3 shadow-inner">
+              <div className="grid grid-cols-2 gap-2">
                 <label className="block min-w-0">
-                  <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-orange-100">Send date/time</span>
+                  <span className="sr-only">Send date and time</span>
                   <input
                     required
                     type="datetime-local"
-                    className="h-11 w-full rounded-xl border border-white/20 bg-white px-3 text-sm text-slate-950 shadow-sm outline-none transition focus:border-brandOrange focus:ring-2 focus:ring-brandOrange/30"
+                    title="Send date and time"
+                    className="h-9 w-full rounded-lg border border-white/20 bg-white px-2 text-xs text-slate-950 shadow-sm outline-none transition focus:border-brandOrange focus:ring-2 focus:ring-brandOrange/30"
                     value={weeklyDraft.scheduledFor}
                     onChange={(event) => updateWeekly('scheduledFor', event.target.value)}
                   />
                 </label>
 
                 <label className="block min-w-0">
-                  <span className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-orange-100">Subscribers</span>
+                  <span className="sr-only">Subscribers</span>
                   <select
                     defaultValue=""
                     onChange={handleSubscriberDropdownChange}
-                    className="h-11 w-full rounded-xl border border-white/20 bg-white px-3 text-sm text-slate-950 shadow-sm outline-none transition focus:border-brandOrange focus:ring-2 focus:ring-brandOrange/30"
+                    title="Subscribers"
+                    className="h-9 w-full rounded-lg border border-white/20 bg-white px-2 text-xs text-slate-950 shadow-sm outline-none transition focus:border-brandOrange focus:ring-2 focus:ring-brandOrange/30"
                   >
                     <option value="">{loading ? 'Loading subscribers...' : selectedSubscriberEmails.length ? `${selectedSubscriberEmails.length} selected - add another` : 'Select subscriber'}</option>
                     {!loading && !subscribers.length ? <option value="" disabled>No subscribers available</option> : null}
@@ -625,24 +627,24 @@ export default function NewsletterBuilder() {
                 </label>
               </div>
 
-              <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
+              <div className="mt-2 flex flex-wrap items-center justify-end gap-1.5">
                 <button
                   type="button"
                   onClick={() => setShowAddSubscriber((current) => !current)}
                   title="Add subscriber"
                   aria-label="Add subscriber"
-                  className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-3 text-sm font-semibold text-white transition hover:bg-white/20"
+                  className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-white/25 bg-white/10 px-2.5 text-xs font-semibold text-white transition hover:bg-white/20"
                 >
-                  <span aria-hidden="true">+</span><span className="hidden sm:inline">Add</span>
+                  <span aria-hidden="true">+</span><span className="hidden md:inline">Add</span>
                 </button>
                 <button
                   type="button"
                   onClick={handleClearSubscriberSelection}
                   title="Clear subscribers"
                   aria-label="Clear selected subscribers"
-                  className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-3 text-sm font-semibold text-white transition hover:bg-white/20"
+                  className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-white/25 bg-white/10 px-2.5 text-xs font-semibold text-white transition hover:bg-white/20"
                 >
-                  <span aria-hidden="true">x</span><span className="hidden sm:inline">Clear</span>
+                  <span aria-hidden="true">x</span><span className="hidden md:inline">Clear</span>
                 </button>
                 <button
                   type="button"
@@ -650,9 +652,9 @@ export default function NewsletterBuilder() {
                   disabled={submitting}
                   title="Send now"
                   aria-label="Send newsletter now"
-                  className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brandOrange px-3 text-sm font-semibold text-white transition hover:bg-brandOrange-dark disabled:cursor-not-allowed disabled:opacity-70"
+                  className="inline-flex h-8 items-center justify-center gap-1 rounded-lg bg-brandOrange px-2.5 text-xs font-semibold text-white transition hover:bg-brandOrange-dark disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  <span aria-hidden="true">→</span><span className="hidden sm:inline">Send</span>
+                  <span aria-hidden="true">→</span><span className="hidden md:inline">Send</span>
                 </button>
                 <button
                   type="button"
@@ -660,22 +662,22 @@ export default function NewsletterBuilder() {
                   disabled={submitting}
                   title="Schedule newsletter"
                   aria-label="Schedule newsletter"
-                  className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brandBlue px-3 text-sm font-semibold text-white transition hover:bg-brandBlue-dark disabled:cursor-not-allowed disabled:opacity-70"
+                  className="inline-flex h-8 items-center justify-center gap-1 rounded-lg bg-brandBlue px-2.5 text-xs font-semibold text-white transition hover:bg-brandBlue-dark disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  <span aria-hidden="true">◷</span><span className="hidden sm:inline">Schedule</span>
+                  <span aria-hidden="true">◷</span><span className="hidden md:inline">Schedule</span>
                 </button>
               </div>
 
               {showAddSubscriber ? (
-                <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto]">
+                <div className="mt-2 grid gap-2 sm:grid-cols-[1fr_auto]">
                   <input
                     type="email"
                     value={newSubscriberEmail}
                     onChange={(event) => setNewSubscriberEmail(event.target.value)}
                     placeholder="newsubscriber@email.com"
-                    className="h-10 min-w-0 rounded-xl border border-white/20 bg-white px-3 text-sm text-slate-950 shadow-sm outline-none transition focus:border-brandOrange focus:ring-2 focus:ring-brandOrange/30"
+                    className="h-9 min-w-0 rounded-lg border border-white/20 bg-white px-2 text-xs text-slate-950 shadow-sm outline-none transition focus:border-brandOrange focus:ring-2 focus:ring-brandOrange/30"
                   />
-                  <button type="button" onClick={handleAddSubscriber} disabled={subscriberSubmitting} className="h-10 rounded-xl bg-white px-4 text-sm font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70">
+                  <button type="button" onClick={handleAddSubscriber} disabled={subscriberSubmitting} className="h-9 rounded-lg bg-white px-3 text-xs font-semibold text-slate-950 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-70">
                     {subscriberSubmitting ? 'Adding...' : 'Add and select'}
                   </button>
                 </div>
