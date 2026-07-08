@@ -419,11 +419,6 @@ function formatTakeBackWeeklySections(sections: string[]) {
       }
 
       htmlSections.push(formatSectionBody(activeSectionHeading, section));
-
-      if (!isAffirmationHeading(activeSectionHeading)) {
-        activeSectionHeading = null;
-      }
-
       continue;
     }
 
@@ -460,9 +455,9 @@ function formatClosingSignature(parts: string[]) {
   const [closingLine, name, ...rest] = parts.map((part) => part.trim()).filter(Boolean);
 
   return [
-    `<p style="margin:0 0 16px;">${escapeHtml(closingLine || 'With gratitude,')}</p>`,
-    `<p style="margin:0 0 16px;"><strong style="font-weight:800;color:#17182b;">${escapeHtml(name || 'Dr. Bree Charles')}</strong></p>`,
-    ...rest.map((part) => `<p style="margin:0 0 16px;">${escapeHtml(part).replace(/\n/g, '<br>')}</p>`),
+    `<p style="margin:0 0 16px;">${escapeHtml(collapseSoftLineBreaks(closingLine || 'With gratitude,'))}</p>`,
+    `<p style="margin:0 0 16px;"><strong style="font-weight:800;color:#17182b;">${escapeHtml(collapseSoftLineBreaks(name || 'Dr. Bree Charles'))}</strong></p>`,
+    ...rest.map((part) => `<p style="margin:0 0 16px;">${escapeHtml(collapseSoftLineBreaks(part))}</p>`),
   ].join('');
 }
 
@@ -482,12 +477,17 @@ function isAffirmationHeading(value: string) {
   return /affirmation/i.test(value.trim());
 }
 
+function isComingWeekHeading(value: string) {
+  const normalized = value.trim().toLowerCase();
+  return normalized.includes('coming next week') || normalized.includes('what’s coming next week') || normalized.includes("what's coming next week");
+}
+
 function goldRule() {
-  return '<div style="margin:32px 0;height:1px;width:100%;background:#d1aa45;"></div>';
+  return '<div style="margin:32px 0;height:1px;width:100%;background:#d1aa45;line-height:1px;font-size:1px;">&nbsp;</div>';
 }
 
 function sectionHeading(value: string) {
-  return `<p style="margin:0;font-size:20px;line-height:1.2;font-weight:800;color:#17182b;mso-line-height-rule:exactly;"><strong style="font-weight:800;color:#17182b;">${escapeHtml(value)}</strong></p><div style="margin-top:8px;margin-bottom:20px;width:160px;height:1px;background:#c89b2d;line-height:1px;font-size:1px;">&nbsp;</div>`;
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 20px;"><tr><td style="padding:0;font-size:22px;line-height:1.2;font-weight:800;color:#17182b;font-family:Arial,Helvetica,sans-serif;"><strong style="font-weight:800;color:#17182b;font-size:22px;line-height:1.2;">${escapeHtml(value)}</strong></td></tr><tr><td style="padding-top:8px;"><div style="width:160px;height:2px;background:#c89b2d;line-height:2px;font-size:2px;">&nbsp;</div></td></tr></table>`;
 }
 
 function formatSectionBody(heading: string, bodyText: string) {
@@ -495,25 +495,69 @@ function formatSectionBody(heading: string, bodyText: string) {
     return '';
   }
 
-  return isAffirmationHeading(heading) ? formatAffirmationBody(bodyText) : formatNewsletterBody(bodyText);
+  if (isAffirmationHeading(heading)) {
+    return formatAffirmationBody(bodyText);
+  }
+
+  if (isComingWeekHeading(heading)) {
+    return formatComingWeekBody(bodyText);
+  }
+
+  return formatNewsletterBody(bodyText);
+}
+
+function formatComingWeekBody(bodyText: string) {
+  const lines = bodyText.split('\n').map((line) => line.trim()).filter(Boolean);
+  const html: string[] = [];
+  let proseLines: string[] = [];
+
+  function flushProse() {
+    if (proseLines.length) {
+      html.push(`<p style="margin:0 0 16px;">${escapeHtml(proseLines.join(' '))}</p>`);
+      proseLines = [];
+    }
+  }
+
+  lines.forEach((line) => {
+    const dayMatch = line.match(/^([A-Za-z]+):\s*(.*)$/);
+
+    if (dayMatch) {
+      flushProse();
+      html.push(`<p style="margin:0 0 8px;"><strong style="font-weight:800;color:#17182b;">${escapeHtml(dayMatch[1])}:</strong> ${escapeHtml(collapseSoftLineBreaks(dayMatch[2] || ''))}</p>`);
+      return;
+    }
+
+    proseLines.push(line);
+  });
+
+  flushProse();
+  return html.join('');
 }
 
 function formatAffirmationBody(bodyText: string) {
-  return escapeHtml(bodyText)
+  return escapeHtml(collapseSoftLineBreaks(bodyText))
     .split(/\n{2,}/)
-    .map((paragraph) => `<p style="margin:0 0 16px;text-align:center;font-style:italic;line-height:1.8;color:#c49124;"><em style="font-style:italic;color:#c49124;">${paragraph.replace(/\n/g, '<br>')}</em></p>`)
+    .map((paragraph) => `<p style="margin:0 0 16px;text-align:center;font-style:italic;line-height:1.8;color:#c49124;"><em style="font-style:italic;color:#c49124;">${paragraph}</em></p>`)
     .join('');
 }
 
 function formatBottomEncouragement(bodyText: string) {
-  return `<p style="margin:26px 0 0;text-align:center;font-size:13px;line-height:1.6;color:#4a4a52;">${escapeHtml(bodyText).replace(/\n/g, '<br>')}</p>`;
+  return `<p style="margin:26px 0 0;text-align:center;font-size:13px;line-height:1.6;color:#4a4a52;">${escapeHtml(collapseSoftLineBreaks(bodyText))}</p>`;
 }
 
 function formatNewsletterBody(bodyText: string) {
-  return escapeHtml(bodyText)
+  return bodyText
     .split(/\n{2,}/)
-    .map((paragraph) => `<p style="margin:0 0 16px;">${paragraph.replace(/\n/g, '<br>')}</p>`)
+    .map((paragraph) => `<p style="margin:0 0 16px;">${escapeHtml(collapseSoftLineBreaks(paragraph))}</p>`)
     .join('');
+}
+
+function collapseSoftLineBreaks(value: string) {
+  return value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join(' ');
 }
 
 function escapeHtml(value: string) {
