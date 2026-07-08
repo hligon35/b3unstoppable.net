@@ -410,11 +410,11 @@ function formatWeeklyContentBlocks(sections: string[]) {
   }
 
   const bottomEncouragement = blocks.pop() || '';
-  const affirmationBlock = blocks.pop();
-  const featuredBlock = blocks.shift();
-  const bookBlock = blocks.shift();
-  const comingBlocks = blocks;
   const htmlSections: string[] = [];
+  const featuredBlock = takeStructuredContentBlock(blocks, 3);
+  const bookBlock = takeStructuredContentBlock(blocks, 2);
+  const comingBlock = takeStructuredContentBlock(blocks, 1);
+  const affirmationBlock = takeStructuredContentBlock(blocks, 0);
 
   if (featuredBlock) {
     htmlSections.push(`${goldRule()}${formatStructuredBlock(featuredBlock, 'Featured Story')}`);
@@ -424,8 +424,8 @@ function formatWeeklyContentBlocks(sections: string[]) {
     htmlSections.push(`${goldRule()}${formatStructuredBlock(bookBlock, 'Book Spotlight')}`);
   }
 
-  if (comingBlocks.length) {
-    htmlSections.push(`${goldRule()}${formatComingWeekStructuredBlock(comingBlocks)}`);
+  if (comingBlock) {
+    htmlSections.push(`${goldRule()}${formatComingWeekStructuredBlock(comingBlock)}`);
   }
 
   if (affirmationBlock) {
@@ -439,6 +439,35 @@ function formatWeeklyContentBlocks(sections: string[]) {
   return htmlSections.join('');
 }
 
+function takeStructuredContentBlock(blocks: string[], remainingHeadingSlots: number) {
+  if (!blocks.length) {
+    return null;
+  }
+
+  const parts = [blocks.shift() as string];
+
+  while (blocks.length > remainingHeadingSlots && !looksLikeSectionStart(blocks[0])) {
+    parts.push(blocks.shift() as string);
+  }
+
+  return parts.join('\n\n');
+}
+
+function looksLikeSectionStart(section: string) {
+  const lines = section.split('\n').map((line) => line.trim()).filter(Boolean);
+  const firstLine = lines[0] || '';
+
+  if (isKnownBuilderHeading(firstLine)) {
+    return true;
+  }
+
+  if (lines.length < 2) {
+    return false;
+  }
+
+  return firstLine.length <= 160 && !/[.!?]$/.test(firstLine);
+}
+
 function formatStructuredBlock(section: string, fallbackHeading: string, isAffirmation = false) {
   const { heading, body } = splitHeadingAndBody(section, fallbackHeading);
   const bodyHtml = isAffirmation ? formatAffirmationBody(body) : formatNewsletterBody(body);
@@ -446,12 +475,10 @@ function formatStructuredBlock(section: string, fallbackHeading: string, isAffir
   return `${sectionHeading(heading)}${bodyHtml}`;
 }
 
-function formatComingWeekStructuredBlock(sections: string[]) {
-  const [firstSection, ...extraBodySections] = sections;
-  const { heading, body } = splitHeadingAndBody(firstSection, 'What’s Coming Next Week');
-  const bodyText = [body, ...extraBodySections].map((section) => section.trim()).filter(Boolean).join('\n\n');
+function formatComingWeekStructuredBlock(section: string) {
+  const { heading, body } = splitHeadingAndBody(section, 'What’s Coming This Week');
 
-  return `${sectionHeading(heading)}${formatComingWeekBody(bodyText)}`;
+  return `${sectionHeading(heading)}${formatComingWeekBody(body)}`;
 }
 
 function splitHeadingAndBody(section: string, fallbackHeading: string) {
@@ -478,6 +505,7 @@ function isKnownBuilderHeading(value: string) {
     'book spotlight',
     'coming next week',
     'whats coming next week',
+    'whats coming this week',
     'this weeks affirmation',
   ].includes(normalizeHeading(value));
 }
