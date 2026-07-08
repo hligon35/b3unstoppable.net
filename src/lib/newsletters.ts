@@ -548,8 +548,38 @@ function formatBottomEncouragement(bodyText: string) {
 function formatNewsletterBody(bodyText: string) {
   return bodyText
     .split(/\n{2,}/)
-    .map((paragraph) => `<p style="margin:0 0 16px;">${escapeHtml(collapseSoftLineBreaks(paragraph))}</p>`)
+    .map((paragraph) => {
+      const lines = paragraph.split('\n').map((line) => line.trim()).filter(Boolean);
+      const [firstLine, ...bodyLines] = lines;
+
+      if (firstLine && bodyLines.length && looksLikeCustomSectionHeading(firstLine)) {
+        return `${sectionHeading(firstLine)}${formatNewsletterBody(bodyLines.join('\n'))}`;
+      }
+
+      return `<p style="margin:0 0 16px;">${escapeHtml(collapseSoftLineBreaks(paragraph))}</p>`;
+    })
     .join('');
+}
+
+function looksLikeCustomSectionHeading(value: string) {
+  const normalized = value.trim();
+
+  if (normalized.length < 6 || normalized.length > 120) {
+    return false;
+  }
+
+  if (/[.!?]$/.test(normalized)) {
+    return false;
+  }
+
+  return (
+    normalized.includes(':') ||
+    /^b3u\b/i.test(normalized) ||
+    /^the\s+/i.test(normalized) ||
+    /\btonight\b/i.test(normalized) ||
+    /\bbook\b/i.test(normalized) ||
+    /\bseason\b/i.test(normalized)
+  );
 }
 
 function collapseSoftLineBreaks(value: string) {
