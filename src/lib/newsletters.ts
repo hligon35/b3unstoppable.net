@@ -381,7 +381,6 @@ function buildTakeBackWeeklyLetterHtml(bodyText: string) {
 
 function formatTakeBackWeeklySections(sections: string[]) {
   const htmlSections: string[] = [];
-  let activeSectionHeading: string | null = null;
 
   for (let index = 0; index < sections.length; index += 1) {
     const section = sections[index];
@@ -392,41 +391,9 @@ function formatTakeBackWeeklySections(sections: string[]) {
     }
 
     if (isClosingLine(lines[0]) && sections[index + 1]?.trim() === 'Dr. Bree Charles') {
-      activeSectionHeading = null;
       htmlSections.push(formatClosingSignature([section, ...sections.slice(index + 1, index + 5)]));
-      index += 4;
-      continue;
-    }
-
-    const sectionHeadingParts = getSectionHeadingParts(section);
-
-    if (sectionHeadingParts) {
-      activeSectionHeading = sectionHeadingParts.heading;
-      htmlSections.push(`${goldRule()}${sectionHeading(sectionHeadingParts.heading)}`);
-
-      if (sectionHeadingParts.body) {
-        htmlSections.push(formatSectionBody(sectionHeadingParts.heading, sectionHeadingParts.body));
-        activeSectionHeading = isAffirmationHeading(sectionHeadingParts.heading) || isComingWeekHeading(sectionHeadingParts.heading) ? sectionHeadingParts.heading : null;
-      }
-
-      continue;
-    }
-
-    if (activeSectionHeading) {
-      if (index === sections.length - 1) {
-        htmlSections.push(formatBottomEncouragement(section));
-        activeSectionHeading = null;
-        continue;
-      }
-
-      htmlSections.push(formatSectionBody(activeSectionHeading, section));
-      activeSectionHeading = isAffirmationHeading(activeSectionHeading) || isComingWeekHeading(activeSectionHeading) ? activeSectionHeading : null;
-      continue;
-    }
-
-    if (index === sections.length - 1) {
-      htmlSections.push(formatBottomEncouragement(section));
-      continue;
+      htmlSections.push(formatWeeklyContentBlocks(sections.slice(index + 5)));
+      return htmlSections.join('');
     }
 
     htmlSections.push(formatNewsletterBody(section));
@@ -435,18 +402,93 @@ function formatTakeBackWeeklySections(sections: string[]) {
   return htmlSections.join('');
 }
 
-function getSectionHeadingParts(section: string) {
-  const lines = section.split('\n').map((line) => line.trim()).filter(Boolean);
-  const [heading, ...bodyLines] = lines;
+function formatWeeklyContentBlocks(sections: string[]) {
+  const blocks = sections.map((section) => section.trim()).filter(Boolean);
 
-  if (!heading || !isTemplateSectionHeading(heading)) {
-    return null;
+  if (!blocks.length) {
+    return '';
+  }
+
+  const bottomEncouragement = blocks.pop() || '';
+  const affirmationBlock = blocks.pop();
+  const featuredBlock = blocks.shift();
+  const bookBlock = blocks.shift();
+  const comingBlocks = blocks;
+  const htmlSections: string[] = [];
+
+  if (featuredBlock) {
+    htmlSections.push(`${goldRule()}${formatStructuredBlock(featuredBlock, 'Featured Story')}`);
+  }
+
+  if (bookBlock) {
+    htmlSections.push(`${goldRule()}${formatStructuredBlock(bookBlock, 'Book Spotlight')}`);
+  }
+
+  if (comingBlocks.length) {
+    htmlSections.push(`${goldRule()}${formatComingWeekStructuredBlock(comingBlocks)}`);
+  }
+
+  if (affirmationBlock) {
+    htmlSections.push(`${goldRule()}${formatStructuredBlock(affirmationBlock, 'THIS WEEK’S AFFIRMATION', true)}`);
+  }
+
+  if (bottomEncouragement) {
+    htmlSections.push(`${goldRule()}${formatBottomEncouragement(bottomEncouragement)}`);
+  }
+
+  return htmlSections.join('');
+}
+
+function formatStructuredBlock(section: string, fallbackHeading: string, isAffirmation = false) {
+  const { heading, body } = splitHeadingAndBody(section, fallbackHeading);
+  const bodyHtml = isAffirmation ? formatAffirmationBody(body) : formatNewsletterBody(body);
+
+  return `${sectionHeading(heading)}${bodyHtml}`;
+}
+
+function formatComingWeekStructuredBlock(sections: string[]) {
+  const [firstSection, ...extraBodySections] = sections;
+  const { heading, body } = splitHeadingAndBody(firstSection, 'What’s Coming Next Week');
+  const bodyText = [body, ...extraBodySections].map((section) => section.trim()).filter(Boolean).join('\n\n');
+
+  return `${sectionHeading(heading)}${formatComingWeekBody(bodyText)}`;
+}
+
+function splitHeadingAndBody(section: string, fallbackHeading: string) {
+  const lines = section.split('\n').map((line) => line.trim()).filter(Boolean);
+  const [firstLine, ...bodyLines] = lines;
+
+  if (!firstLine) {
+    return { heading: fallbackHeading, body: '' };
+  }
+
+  if (!bodyLines.length && !isKnownBuilderHeading(firstLine)) {
+    return { heading: fallbackHeading, body: section };
   }
 
   return {
-    heading,
+    heading: firstLine,
     body: bodyLines.join('\n').trim(),
   };
+}
+
+function isKnownBuilderHeading(value: string) {
+  return [
+    'featured story',
+    'book spotlight',
+    'coming next week',
+    'whats coming next week',
+    'this weeks affirmation',
+  ].includes(normalizeHeading(value));
+}
+
+function normalizeHeading(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[’']/g, '')
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ');
 }
 
 function isClosingLine(value: string) {
@@ -463,57 +505,12 @@ function formatClosingSignature(parts: string[]) {
   ].join('');
 }
 
-function isTemplateSectionHeading(value: string) {
-  const normalized = normalizeHeading(value);
-  return [
-    'featured story',
-    'book spotlight',
-    'coming next week',
-    'whats coming next week',
-    'this weeks affirmation',
-  ].includes(normalized);
-}
-
-function normalizeHeading(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[’']/g, '')
-    .replace(/[^a-z0-9\s]/g, '')
-    .replace(/\s+/g, ' ');
-}
-
-function isAffirmationHeading(value: string) {
-  return normalizeHeading(value).includes('affirmation');
-}
-
-function isComingWeekHeading(value: string) {
-  const normalized = normalizeHeading(value);
-  return normalized === 'coming next week' || normalized === 'whats coming next week';
-}
-
 function goldRule() {
   return '<div style="margin:32px 0;height:1px;width:100%;background:#d1aa45;line-height:1px;font-size:1px;">&nbsp;</div>';
 }
 
 function sectionHeading(value: string) {
   return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 20px;"><tr><td style="padding:0;font-family:Arial,Helvetica,sans-serif;color:#17182b;font-size:22px;line-height:1.2;font-weight:800;mso-line-height-rule:exactly;"><strong style="font-weight:800;color:#17182b;font-size:22px;line-height:1.2;">${escapeHtml(value)}</strong></td></tr><tr><td style="padding-top:8px;"><div style="width:208px;height:1px;background:#c89b2d;line-height:1px;font-size:1px;">&nbsp;</div></td></tr></table>`;
-}
-
-function formatSectionBody(heading: string, bodyText: string) {
-  if (!bodyText.trim()) {
-    return '';
-  }
-
-  if (isAffirmationHeading(heading)) {
-    return formatAffirmationBody(bodyText);
-  }
-
-  if (isComingWeekHeading(heading)) {
-    return formatComingWeekBody(bodyText);
-  }
-
-  return formatNewsletterBody(bodyText);
 }
 
 function formatComingWeekBody(bodyText: string) {
@@ -545,6 +542,10 @@ function formatComingWeekBody(bodyText: string) {
 }
 
 function formatAffirmationBody(bodyText: string) {
+  if (!bodyText.trim()) {
+    return '';
+  }
+
   return escapeHtml(collapseSoftLineBreaks(bodyText))
     .split(/\n{2,}/)
     .map((paragraph) => `<p style="margin:0 0 16px;text-align:center;font-style:italic;line-height:1.8;color:#c49124;"><em style="font-style:italic;color:#c49124;">${paragraph}</em></p>`)
@@ -556,6 +557,10 @@ function formatBottomEncouragement(bodyText: string) {
 }
 
 function formatNewsletterBody(bodyText: string) {
+  if (!bodyText.trim()) {
+    return '';
+  }
+
   return bodyText
     .split(/\n{2,}/)
     .map((paragraph) => `<p style="margin:0 0 16px;">${escapeHtml(collapseSoftLineBreaks(paragraph))}</p>`)
