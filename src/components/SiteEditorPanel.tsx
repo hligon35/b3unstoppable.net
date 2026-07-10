@@ -16,6 +16,7 @@ import {
   siteImagePages,
   type SiteImagePage,
   type SiteImageField,
+  type UploadedSiteImageSelection,
 } from '@/lib/siteEditorImages';
 import {
   clearSavedSiteEditorDraft,
@@ -138,6 +139,83 @@ async function normalizeUploadedImage(file: File) {
   } finally {
     URL.revokeObjectURL(objectUrl);
   }
+}
+
+function isUploadedDraftImage(value: SiteDraft[keyof SiteDraft]): value is UploadedSiteImageSelection {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const candidate = value as Partial<UploadedSiteImageSelection>;
+  return candidate.kind === 'uploaded' && typeof candidate.dataUrl === 'string' && typeof candidate.fileName === 'string';
+}
+
+async function normalizeUploadedImageDataUrl(dataUrl: string, fileName: string) {
+  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const nextImage = new window.Image();
+    nextImage.onload = () => resolve(nextImage);
+    nextImage.onerror = () => reject(new Error('Unable to process the selected image.'));
+    nextImage.src = dataUrl;
+  });
+
+  const longestSide = Math.max(image.naturalWidth, image.naturalHeight, 1);
+  const scale = Math.min(1, MAX_EDITOR_IMAGE_DIMENSION / longestSide);
+  const width = Math.max(1, Math.round(image.naturalWidth * scale));
+  const height = Math.max(1, Math.round(image.naturalHeight * scale));
+  const canvas = window.document.createElement('canvas');
+
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext('2d');
+
+  if (!context) {
+    throw new Error('Image editor is unavailable in this browser.');
+  }
+
+  context.drawImage(image, 0, 0, width, height);
+
+  const normalizedDataUrl = canvas.toDataURL('image/webp', EDITOR_IMAGE_OUTPUT_QUALITY);
+
+  if (!normalizedDataUrl) {
+    throw new Error('Unable to process the selected image.');
+  }
+
+  const normalizedFileName = fileName.replace(/\.[^.]+$/, '') || 'upload';
+
+  return {
+    kind: 'uploaded' as const,
+    dataUrl: normalizedDataUrl,
+    fileName: `${normalizedFileName}.webp`,
+  };
+}
+
+async function normalizeDraftUploads(currentDraft: SiteDraft) {
+  let changed = false;
+  let nextDraft = currentDraft;
+
+  for (const field of Object.keys(defaultSiteImageSelections) as SiteImageField[]) {
+    const currentValue = nextDraft[field];
+
+    if (!isUploadedDraftImage(currentValue)) {
+      continue;
+    }
+
+    const normalizedValue = await normalizeUploadedImageDataUrl(currentValue.dataUrl, currentValue.fileName);
+
+    if (normalizedValue.dataUrl === currentValue.dataUrl && normalizedValue.fileName === currentValue.fileName) {
+      continue;
+    }
+
+    if (!changed) {
+      nextDraft = { ...currentDraft };
+      changed = true;
+    }
+
+    nextDraft[field] = normalizedValue;
+  }
+
+  return { draft: nextDraft, changed };
 }
 
 export default function SiteEditorPanel() {
@@ -545,16 +623,26 @@ export default function SiteEditorPanel() {
   }
 
   async function handleSaveDraft() {
-    const savedAt = new Date().toISOString();
-    const result = await saveSiteEditorDraftLocally(draft, savedAt);
+    try {
+      setSaveMessage('Optimizing images...');
+      const { draft: normalizedDraft, changed } = await normalizeDraftUploads(draft);
+      const savedAt = new Date().toISOString();
+      const result = await saveSiteEditorDraftLocally(normalizedDraft, savedAt);
 
-    if (!result.persisted) {
-      setSaveMessage('Draft could not be saved locally on this device.');
-      return;
+      if (changed) {
+        setDraft(normalizedDraft);
+      }
+
+      if (!result.persisted) {
+        setSaveMessage('Draft could not be saved locally on this device.');
+        return;
+      }
+
+      setLastSavedAt(savedAt);
+      setSaveMessage(result.skippedUploadedImages ? 'Draft saved locally, but uploaded images may not persist after refresh.' : 'Draft saved locally.');
+    } catch {
+      setSaveMessage('Uploaded images could not be processed for saving. Try re-uploading them.');
     }
-
-    setLastSavedAt(savedAt);
-    setSaveMessage(result.skippedUploadedImages ? 'Draft saved locally, but uploaded images may not persist after refresh.' : 'Draft saved locally.');
   }
 
   async function handlePublish() {
@@ -565,10 +653,18 @@ export default function SiteEditorPanel() {
     }
 
     setIsPublishing(true);
-    setSaveMessage('Publishing changes...');
+    setSaveMessage('Optimizing images...');
 
     try {
-      const payload = JSON.stringify({ draft });
+      const { draft: normalizedDraft, changed } = await normalizeDraftUploads(draft);
+
+      if (changed) {
+        setDraft(normalizedDraft);
+      }
+
+      setSaveMessage('Publishing changes...');
+
+      const payload = JSON.stringify({ draft: normalizedDraft });
 
       if (new Blob([payload]).size > MAX_PUBLISH_PAYLOAD_BYTES) {
         setSaveMessage('Publish payload is still too large. Use smaller images before publishing.');
@@ -599,7 +695,7 @@ export default function SiteEditorPanel() {
       }
 
       const savedAt = typeof data?.updatedAt === 'string' ? data.updatedAt : new Date().toISOString();
-      const localSave = await saveSiteEditorDraftLocally(draft, savedAt);
+      const localSave = await saveSiteEditorDraftLocally(normalizedDraft, savedAt);
       setLastSavedAt(savedAt);
 
       if (!localSave.persisted) {

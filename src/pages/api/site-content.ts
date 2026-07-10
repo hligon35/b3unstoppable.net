@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { withApiMonitoring } from '../../../utils/debug/server';
 
 import { isAuthenticatedRequest } from '../../lib/adminAuth';
 import { mergeSiteDraft } from '../../lib/siteEditorContent';
@@ -13,7 +14,7 @@ export const config = {
   },
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
       const published = await getPublishedSiteDraft();
@@ -29,16 +30,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    try {
-      const nextDraft = mergeSiteDraft(req.body?.draft);
-      const published = await savePublishedSiteDraft(nextDraft);
-      return res.status(200).json({ message: 'Published successfully', ...published });
-    } catch (error) {
-      console.error('Failed to save site content', error);
-      return res.status(500).json({ error: 'Failed to save site content' });
-    }
+    const nextDraft = mergeSiteDraft(req.body?.draft);
+    const published = await savePublishedSiteDraft(nextDraft);
+    return res.status(200).json({ message: 'Published successfully', ...published });
   }
 
   res.setHeader('Allow', ['GET', 'PUT']);
   return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
 }
+
+export default withApiMonitoring('site-content', handler, { capturePayload: true });
