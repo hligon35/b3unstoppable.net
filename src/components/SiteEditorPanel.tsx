@@ -18,6 +18,7 @@ import {
   type SiteImageField,
 } from '@/lib/siteEditorImages';
 import {
+  clearSavedSiteEditorDraft,
   defaultSiteDraft,
   mergeSiteDraft,
   readSavedSiteEditorDraft,
@@ -152,17 +153,17 @@ export default function SiteEditorPanel() {
   }
 
   useEffect(() => {
-    const savedDraft = readSavedSiteEditorDraft();
-
-    if (savedDraft) {
-      setDraft(savedDraft.draft);
-      setLastSavedAt(savedDraft.savedAt);
-      return;
-    }
-
     let cancelled = false;
 
-    async function loadPublishedDraft() {
+    async function initializeDraft() {
+      const savedDraft = await readSavedSiteEditorDraft();
+
+      if (!cancelled && savedDraft) {
+        setDraft(savedDraft.draft);
+        setLastSavedAt(savedDraft.savedAt);
+        return;
+      }
+
       try {
         const response = await fetch('/api/site-content');
         if (!response.ok) {
@@ -179,7 +180,7 @@ export default function SiteEditorPanel() {
       }
     }
 
-    void loadPublishedDraft();
+    void initializeDraft();
 
     return () => {
       cancelled = true;
@@ -498,11 +499,17 @@ export default function SiteEditorPanel() {
     setDragOverShopProductId(null);
   }
 
-  function handleSaveDraft() {
+  async function handleSaveDraft() {
     const savedAt = new Date().toISOString();
-    saveSiteEditorDraftLocally(draft, savedAt);
+    const result = await saveSiteEditorDraftLocally(draft, savedAt);
+
+    if (!result.persisted) {
+      setSaveMessage('Draft could not be saved locally on this device.');
+      return;
+    }
+
     setLastSavedAt(savedAt);
-    setSaveMessage('Draft saved locally.');
+    setSaveMessage(result.skippedUploadedImages ? 'Draft saved locally, but uploaded images may not persist after refresh.' : 'Draft saved locally.');
   }
 
   async function handlePublish() {
@@ -538,9 +545,19 @@ export default function SiteEditorPanel() {
       }
 
       const savedAt = typeof data?.updatedAt === 'string' ? data.updatedAt : new Date().toISOString();
-      saveSiteEditorDraftLocally(draft, savedAt);
+      const localSave = await saveSiteEditorDraftLocally(draft, savedAt);
       setLastSavedAt(savedAt);
-      setSaveMessage('Published to the live site.');
+
+      if (!localSave.persisted) {
+        setSaveMessage('Published to the live site. Local draft cache could not be updated.');
+        return;
+      }
+
+      setSaveMessage(
+        localSave.skippedUploadedImages
+          ? 'Published to the live site. Uploaded images may not remain in the local draft cache.'
+          : 'Published to the live site.',
+      );
     } catch {
       setSaveMessage('Publish failed. Please try again.');
     } finally {
@@ -552,10 +569,7 @@ export default function SiteEditorPanel() {
     setDraft(defaultSiteDraft);
     setLastSavedAt(null);
     setSaveMessage('Draft reset to current source values.');
-
-    if (typeof window !== 'undefined') {
-      window.localStorage.removeItem('b3u-site-editor-home-draft');
-    }
+    void clearSavedSiteEditorDraft();
   }
 
   return (
@@ -614,7 +628,7 @@ export default function SiteEditorPanel() {
               </button>
                 <button
                   type="button"
-                  onClick={handleSaveDraft}
+                  onClick={() => void handleSaveDraft()}
                   aria-label="Save draft"
                   title="Save draft"
                   className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-300 bg-white text-base font-semibold text-gray-700 transition hover:border-gray-400 hover:text-gray-900"
