@@ -48,6 +48,10 @@ const editorTabs: Array<{ id: EditorTab; label: string }> = [
   { id: 'images', label: 'Images' },
 ];
 
+const MAX_EDITOR_IMAGE_DIMENSION = 1600;
+const EDITOR_IMAGE_OUTPUT_QUALITY = 0.82;
+const MAX_PUBLISH_PAYLOAD_BYTES = 10 * 1024 * 1024;
+
 function formatSavedAt(savedAt: string | null) {
   if (!savedAt) {
     return 'Not saved yet';
@@ -89,6 +93,51 @@ function stackedCardZIndex(position: number, expanded: boolean) {
 
   const zIndexClasses = ['z-50', 'z-40', 'z-30', 'z-20', 'z-10', 'z-0'];
   return zIndexClasses[position] ?? 'z-0';
+}
+
+async function normalizeUploadedImage(file: File) {
+  const objectUrl = URL.createObjectURL(file);
+
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const nextImage = new window.Image();
+      nextImage.onload = () => resolve(nextImage);
+      nextImage.onerror = () => reject(new Error('Unable to load the selected image.'));
+      nextImage.src = objectUrl;
+    });
+
+    const longestSide = Math.max(image.naturalWidth, image.naturalHeight, 1);
+    const scale = Math.min(1, MAX_EDITOR_IMAGE_DIMENSION / longestSide);
+    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const canvas = window.document.createElement('canvas');
+
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext('2d');
+
+    if (!context) {
+      throw new Error('Image editor is unavailable in this browser.');
+    }
+
+    context.drawImage(image, 0, 0, width, height);
+
+    const dataUrl = canvas.toDataURL('image/webp', EDITOR_IMAGE_OUTPUT_QUALITY);
+
+    if (!dataUrl) {
+      throw new Error('Unable to process the selected image.');
+    }
+
+    const normalizedFileName = file.name.replace(/\.[^.]+$/, '') || 'upload';
+
+    return {
+      dataUrl,
+      fileName: `${normalizedFileName}.webp`,
+    };
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
 }
 
 export default function SiteEditorPanel() {
@@ -290,23 +339,19 @@ export default function SiteEditorPanel() {
       return;
     }
 
-    const reader = new FileReader();
+    setSaveMessage('Processing image...');
 
-    reader.onload = () => {
-      const dataUrl = typeof reader.result === 'string' ? reader.result : null;
-
-      if (!dataUrl) {
-        return;
-      }
-
-      updateDraft(field, {
-        kind: 'uploaded',
-        dataUrl,
-        fileName: file.name,
+    void normalizeUploadedImage(file)
+      .then(({ dataUrl, fileName }) => {
+        updateDraft(field, {
+          kind: 'uploaded',
+          dataUrl,
+          fileName,
+        });
+      })
+      .catch(() => {
+        setSaveMessage('Selected image could not be processed. Try a different file.');
       });
-    };
-
-    reader.readAsDataURL(file);
   }
 
   function updateShopProduct<Field extends keyof PayPalProductDraft>(index: number, field: Field, value: PayPalProductDraft[Field]) {
@@ -523,12 +568,19 @@ export default function SiteEditorPanel() {
     setSaveMessage('Publishing changes...');
 
     try {
+      const payload = JSON.stringify({ draft });
+
+      if (new Blob([payload]).size > MAX_PUBLISH_PAYLOAD_BYTES) {
+        setSaveMessage('Publish payload is still too large. Use smaller images before publishing.');
+        return;
+      }
+
       const response = await fetch('/api/site-content', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ draft }),
+        body: payload,
       });
 
       if (response.status === 401) {
@@ -539,7 +591,9 @@ export default function SiteEditorPanel() {
       const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        const message = data?.error || data?.message || `Publish failed with status ${response.status}`;
+        const message = response.status === 413
+          ? 'Uploaded images are too large to publish. Use smaller images and try again.'
+          : data?.error || data?.message || `Publish failed with status ${response.status}`;
         setSaveMessage(message);
         return;
       }
