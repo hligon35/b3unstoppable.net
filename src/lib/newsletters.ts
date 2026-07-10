@@ -470,9 +470,10 @@ function looksLikeSectionStart(section: string) {
 
 function formatStructuredBlock(section: string, fallbackHeading: string, isAffirmation = false) {
   const { heading, body } = splitHeadingAndBody(section, fallbackHeading);
-  const bodyHtml = isAffirmation ? formatAffirmationBody(body) : formatNewsletterBody(body);
+  const resolved = isAffirmation ? { heading, body } : promoteLeadParagraphHeading(heading, body, fallbackHeading);
+  const bodyHtml = isAffirmation ? formatAffirmationBody(resolved.body) : formatNewsletterBody(resolved.body);
 
-  return `${sectionHeading(heading)}${bodyHtml}`;
+  return `${sectionHeading(resolved.heading)}${bodyHtml}`;
 }
 
 function formatComingWeekStructuredBlock(section: string) {
@@ -497,6 +498,48 @@ function splitHeadingAndBody(section: string, fallbackHeading: string) {
     heading: firstLine,
     body: bodyLines.join('\n').trim(),
   };
+}
+
+function promoteLeadParagraphHeading(heading: string, body: string, fallbackHeading: string) {
+  if (!isGenericSectionLabel(heading, fallbackHeading) || !body.trim()) {
+    return { heading, body };
+  }
+
+  const paragraphs = body
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+  const [firstParagraph, ...rest] = paragraphs;
+
+  if (!firstParagraph || !looksLikePromotableHeading(firstParagraph)) {
+    return { heading, body };
+  }
+
+  return {
+    heading: collapseSoftLineBreaks(firstParagraph),
+    body: rest.join('\n\n'),
+  };
+}
+
+function isGenericSectionLabel(heading: string, fallbackHeading: string) {
+  const normalizedHeading = normalizeHeading(heading);
+  const normalizedFallback = normalizeHeading(fallbackHeading);
+
+  if (normalizedHeading !== normalizedFallback) {
+    return false;
+  }
+
+  return ['featured story', 'book spotlight'].includes(normalizedHeading);
+}
+
+function looksLikePromotableHeading(value: string) {
+  const collapsed = collapseSoftLineBreaks(value);
+
+  if (!collapsed || collapsed.length > 160) {
+    return false;
+  }
+
+  return !/[.!?]$/.test(collapsed);
 }
 
 function isKnownBuilderHeading(value: string) {
@@ -538,7 +581,7 @@ function goldRule() {
 }
 
 function sectionHeading(value: string) {
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 20px;"><tr><td style="padding:0;font-family:Arial,Helvetica,sans-serif;color:#17182b;font-size:22px;line-height:1.2;font-weight:800;mso-line-height-rule:exactly;"><strong style="font-weight:800;color:#17182b;font-size:22px;line-height:1.2;">${escapeHtml(value)}</strong></td></tr><tr><td style="padding-top:8px;"><div style="width:208px;height:1px;background:#c89b2d;line-height:1px;font-size:1px;">&nbsp;</div></td></tr></table>`;
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr><td style="padding:0 0 8px;font-family:Arial,Helvetica,sans-serif;color:#17182b;font-size:22px;line-height:1.2;font-weight:800;mso-line-height-rule:exactly;"><h3 style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:22px;line-height:1.2;font-weight:800;color:#17182b;">${escapeHtml(value)}</h3></td></tr><tr><td style="padding:0;"><table role="presentation" width="208" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr><td style="height:1px;line-height:1px;font-size:1px;background:#c89b2d;">&nbsp;</td></tr></table></td></tr><tr><td style="padding:20px 0 0;line-height:0;font-size:0;">&nbsp;</td></tr></table>`;
 }
 
 function formatComingWeekBody(bodyText: string) {

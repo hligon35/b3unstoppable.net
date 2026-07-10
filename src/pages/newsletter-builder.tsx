@@ -210,6 +210,47 @@ function buildNewsletterBody(template: NewsletterTemplateDraft, weekly: WeeklyNe
   return sections.map((section) => section.trim()).filter(Boolean).join('\n\n');
 }
 
+function normalizeHeadingLabel(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[’']/g, '')
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ');
+}
+
+function looksLikePromotableHeading(value: string) {
+  const collapsed = value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join(' ');
+
+  if (!collapsed || collapsed.length > 160) {
+    return false;
+  }
+
+  return !/[.!?]$/.test(collapsed);
+}
+
+function resolvePreviewSection(heading: string, body: string, genericLabel: string) {
+  if (normalizeHeadingLabel(heading) !== normalizeHeadingLabel(genericLabel)) {
+    return { heading, body };
+  }
+
+  const paragraphs = body
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+  const [firstParagraph, ...rest] = paragraphs;
+
+  if (!firstParagraph || !looksLikePromotableHeading(firstParagraph)) {
+    return { heading, body };
+  }
+
+  return { heading: firstParagraph, body: rest.join('\n\n') };
+}
+
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
     <div>
@@ -257,6 +298,8 @@ function renderClosingBlock(closingLine: string) {
 
 function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft: WeeklyNewsletterDraft) {
   const comingWeekItems = getComingWeekItems(weeklyDraft);
+  const featuredSection = resolvePreviewSection(weeklyDraft.featuredStoryTitle || 'Featured Story', weeklyDraft.featuredStoryBody, 'Featured Story');
+  const bookSection = resolvePreviewSection(weeklyDraft.bookSpotlightTitle || 'Book Spotlight', weeklyDraft.bookSpotlightBody, 'Book Spotlight');
 
   return (
     <div className="mx-auto max-w-[1140px] overflow-hidden bg-white shadow-2xl ring-1 ring-black/5">
@@ -293,16 +336,16 @@ function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft
 
         <GoldRule />
 
-        <SectionHeading>{weeklyDraft.featuredStoryTitle || 'Featured Story'}</SectionHeading>
+        <SectionHeading>{featuredSection.heading}</SectionHeading>
         <div className="mt-6 space-y-5 text-[14px] leading-[1.55] tracking-[0.01em]">
-          {weeklyDraft.featuredStoryBody ? paragraphize(weeklyDraft.featuredStoryBody) : <p className="text-slate-400">Featured story body will appear here.</p>}
+          {featuredSection.body ? paragraphize(featuredSection.body) : <p className="text-slate-400">Featured story body will appear here.</p>}
         </div>
 
         <GoldRule />
 
-        <SectionHeading>{weeklyDraft.bookSpotlightTitle || 'Book Spotlight'}</SectionHeading>
+        <SectionHeading>{bookSection.heading}</SectionHeading>
         <div className="mt-6 space-y-5 text-[14px] leading-[1.55] tracking-[0.01em]">
-          {weeklyDraft.bookSpotlightBody ? paragraphize(weeklyDraft.bookSpotlightBody) : <p className="text-slate-400">Book spotlight body will appear here.</p>}
+          {bookSection.body ? paragraphize(bookSection.body) : <p className="text-slate-400">Book spotlight body will appear here.</p>}
         </div>
 
         <GoldRule />

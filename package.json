@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
-    "predev": "node scripts/ensure-root-dev.mjs",
+    "predev": "node -e \"const fs=require('node:fs');const path=require('node:path');const { pathToFileURL }=require('node:url');let dir=process.cwd();for(;;){const candidate=path.join(dir,'scripts','ensure-root-dev.mjs');if(fs.existsSync(candidate)){import(pathToFileURL(candidate).href).catch((error)=>{console.error(error);process.exit(1);});break;}const parent=path.dirname(dir);if(parent===dir){console.error('Could not find scripts/ensure-root-dev.mjs from current directory or any parent.');process.exit(1);}dir=parent;}\"",
     "dev": "next dev",
     "prebuild": "node -e \"try{require('fs').rmSync('src/pages/api/submit',{recursive:true,force:true})}catch(e){}\"",
     "build": "next build",
