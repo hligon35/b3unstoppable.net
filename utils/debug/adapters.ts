@@ -62,6 +62,24 @@ type CloudflareCombo = {
   uniqField: string | null;
 };
 
+type CloudflareGraphqlGroup = {
+  sum?: Record<string, unknown>;
+  uniq?: Record<string, unknown>;
+};
+
+type CloudflareGraphqlAccount = Record<string, unknown>;
+
+type CloudflareGraphqlResponse = {
+  data?: {
+    viewer?: {
+      accounts?: CloudflareGraphqlAccount[];
+    };
+  };
+  errors?: Array<{
+    message?: string;
+  }>;
+};
+
 const CLOUDFLARE_GRAPHQL_ENDPOINT = 'https://api.cloudflare.com/client/v4/graphql';
 const cloudflareDatasetCandidates = ['webAnalyticsAdaptiveGroups', 'rumPageloadEventsAdaptiveGroups', 'rumPerformanceEventsAdaptiveGroups'];
 const cloudflareDimCandidates = ['datetimeFiveMinutes', 'datetimeMinute', 'datetime', 'datetimeHour'];
@@ -305,7 +323,8 @@ async function queryCloudflareTotals(
   }`;
 
   const data = await cloudflareGraphql(token, query);
-  const groups = data?.data?.viewer?.accounts?.[0]?.[combo.dataset] || [];
+  const firstAccount = data.data?.viewer?.accounts?.[0];
+  const groups = Array.isArray(firstAccount?.[combo.dataset]) ? (firstAccount[combo.dataset] as CloudflareGraphqlGroup[]) : [];
 
   let totalVisitors = 0;
   let sawVisitors = false;
@@ -343,7 +362,7 @@ async function queryCloudflareTotals(
   };
 }
 
-async function cloudflareGraphql(token: string, query: string): Promise<any> {
+async function cloudflareGraphql(token: string, query: string): Promise<CloudflareGraphqlResponse> {
   const response = await fetch(CLOUDFLARE_GRAPHQL_ENDPOINT, {
     method: 'POST',
     headers: {
@@ -355,7 +374,7 @@ async function cloudflareGraphql(token: string, query: string): Promise<any> {
   });
 
   const bodyText = await response.text();
-  let data: any = null;
+  let data: CloudflareGraphqlResponse = {};
 
   try {
     data = bodyText ? JSON.parse(bodyText) : null;

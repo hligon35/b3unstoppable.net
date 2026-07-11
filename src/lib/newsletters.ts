@@ -364,6 +364,7 @@ function buildTakeBackWeeklyLetterHtml(bodyText: string) {
 
       <div class="letter-main" style="background:#ffffff;padding:28px 52px 18px;color:#3d3d45;">
         <p style="margin:0 0 32px;text-align:center;font-size:16px;line-height:1.5;color:#d4a536;">${escapeHtml(tagline)}</p>
+        <p style="margin:0 0 8px;font-size:11px;line-height:1.4;font-weight:700;letter-spacing:0.24em;text-transform:uppercase;color:#c89b2d;">01. Opening letter</p>
         <h2 style="margin:0;font-size:20px;line-height:1.2;font-weight:800;color:#17182b;">${escapeHtml(mainTitle)}</h2>
         <div style="margin-top:8px;width:160px;height:1px;background:#c89b2d;"></div>
         <div style="margin-top:24px;font-size:13px;line-height:1.5;letter-spacing:0.01em;color:#3d3d45;">
@@ -417,23 +418,23 @@ function formatWeeklyContentBlocks(sections: string[]) {
   const affirmationBlock = takeStructuredContentBlock(blocks, 0);
 
   if (featuredBlock) {
-    htmlSections.push(`${goldRule()}${formatStructuredBlock(featuredBlock, 'Featured Story')}`);
+    htmlSections.push(`${goldRule()}${formatStructuredBlock(featuredBlock, 'Featured Story', { stepLabel: '02. Featured story' })}`);
   }
 
   if (bookBlock) {
-    htmlSections.push(`${goldRule()}${formatStructuredBlock(bookBlock, 'Book Spotlight')}`);
+    htmlSections.push(`${goldRule()}${formatStructuredBlock(bookBlock, 'Book Spotlight', { stepLabel: '03. Book spotlight' })}`);
   }
 
   if (comingBlock) {
-    htmlSections.push(`${goldRule()}${formatComingWeekStructuredBlock(comingBlock)}`);
+    htmlSections.push(`${goldRule()}${formatComingWeekStructuredBlock(comingBlock, '04. Coming next week')}`);
   }
 
   if (affirmationBlock) {
-    htmlSections.push(`${goldRule()}${formatStructuredBlock(affirmationBlock, 'THIS WEEK’S AFFIRMATION', true)}`);
+    htmlSections.push(`${goldRule()}${formatStructuredBlock(affirmationBlock, 'THIS WEEK’S AFFIRMATION', { stepLabel: '05. Weekly affirmation', isAffirmation: true })}`);
   }
 
   if (bottomEncouragement) {
-    htmlSections.push(`${goldRule()}${formatBottomEncouragement(bottomEncouragement)}`);
+    htmlSections.push(`${goldRule()}${formatBottomEncouragement(bottomEncouragement, '06. Closing encouragement')}`);
   }
 
   return htmlSections.join('');
@@ -468,18 +469,18 @@ function looksLikeSectionStart(section: string) {
   return firstLine.length <= 160 && !/[.!?]$/.test(firstLine);
 }
 
-function formatStructuredBlock(section: string, fallbackHeading: string, isAffirmation = false) {
+function formatStructuredBlock(section: string, fallbackHeading: string, options?: { stepLabel?: string; isAffirmation?: boolean }) {
   const { heading, body } = splitHeadingAndBody(section, fallbackHeading);
-  const resolved = isAffirmation ? { heading, body } : promoteLeadParagraphHeading(heading, body, fallbackHeading);
-  const bodyHtml = isAffirmation ? formatAffirmationBody(resolved.body) : formatNewsletterBody(resolved.body);
+  const resolved = { heading, body };
+  const bodyHtml = options?.isAffirmation ? formatAffirmationBody(resolved.body) : formatNewsletterBody(resolved.body);
 
-  return `${sectionHeading(resolved.heading)}${bodyHtml}`;
+  return `${sectionHeading(resolved.heading, options?.stepLabel)}${bodyHtml}`;
 }
 
-function formatComingWeekStructuredBlock(section: string) {
+function formatComingWeekStructuredBlock(section: string, stepLabel?: string) {
   const { heading, body } = splitHeadingAndBody(section, 'What’s Coming This Week');
 
-  return `${sectionHeading(heading)}${formatComingWeekBody(body)}`;
+  return `${sectionHeading(heading, stepLabel)}${formatComingWeekBody(body)}`;
 }
 
 function splitHeadingAndBody(section: string, fallbackHeading: string) {
@@ -498,48 +499,6 @@ function splitHeadingAndBody(section: string, fallbackHeading: string) {
     heading: firstLine,
     body: bodyLines.join('\n').trim(),
   };
-}
-
-function promoteLeadParagraphHeading(heading: string, body: string, fallbackHeading: string) {
-  if (!isGenericSectionLabel(heading, fallbackHeading) || !body.trim()) {
-    return { heading, body };
-  }
-
-  const paragraphs = body
-    .split(/\n{2,}/)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean);
-  const [firstParagraph, ...rest] = paragraphs;
-
-  if (!firstParagraph || !looksLikePromotableHeading(firstParagraph)) {
-    return { heading, body };
-  }
-
-  return {
-    heading: collapseSoftLineBreaks(firstParagraph),
-    body: rest.join('\n\n'),
-  };
-}
-
-function isGenericSectionLabel(heading: string, fallbackHeading: string) {
-  const normalizedHeading = normalizeHeading(heading);
-  const normalizedFallback = normalizeHeading(fallbackHeading);
-
-  if (normalizedHeading !== normalizedFallback) {
-    return false;
-  }
-
-  return ['featured story', 'book spotlight'].includes(normalizedHeading);
-}
-
-function looksLikePromotableHeading(value: string) {
-  const collapsed = collapseSoftLineBreaks(value);
-
-  if (!collapsed || collapsed.length > 160) {
-    return false;
-  }
-
-  return !/[.!?]$/.test(collapsed);
 }
 
 function isKnownBuilderHeading(value: string) {
@@ -580,8 +539,8 @@ function goldRule() {
   return '<div style="margin:32px 0;height:1px;width:100%;background:#d1aa45;line-height:1px;font-size:1px;">&nbsp;</div>';
 }
 
-function sectionHeading(value: string) {
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr><td style="padding:0 0 8px;font-family:Arial,Helvetica,sans-serif;color:#17182b;font-size:22px;line-height:1.2;font-weight:800;mso-line-height-rule:exactly;"><h3 style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:22px;line-height:1.2;font-weight:800;color:#17182b;">${escapeHtml(value)}</h3></td></tr><tr><td style="padding:0;"><table role="presentation" width="208" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr><td style="height:1px;line-height:1px;font-size:1px;background:#c89b2d;">&nbsp;</td></tr></table></td></tr><tr><td style="padding:20px 0 0;line-height:0;font-size:0;">&nbsp;</td></tr></table>`;
+function sectionHeading(value: string, stepLabel?: string) {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr><td style="padding:0 0 6px;font-family:Arial,Helvetica,sans-serif;">${stepLabel ? `<p style="margin:0 0 8px;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.4;font-weight:700;letter-spacing:0.24em;text-transform:uppercase;color:#c89b2d;">${escapeHtml(stepLabel)}</p>` : ''}<h3 style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:22px;line-height:1.2;font-weight:800;color:#17182b;">${escapeHtml(value)}</h3></td></tr><tr><td style="padding:0;"><table role="presentation" width="208" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr><td style="height:1px;line-height:1px;font-size:1px;background:#c89b2d;">&nbsp;</td></tr></table></td></tr><tr><td style="padding:20px 0 0;line-height:0;font-size:0;">&nbsp;</td></tr></table>`;
 }
 
 function formatComingWeekBody(bodyText: string) {
@@ -623,8 +582,8 @@ function formatAffirmationBody(bodyText: string) {
     .join('');
 }
 
-function formatBottomEncouragement(bodyText: string) {
-  return `<p style="margin:26px 0 0;text-align:center;font-size:13px;line-height:1.6;color:#4a4a52;">${escapeHtml(collapseSoftLineBreaks(bodyText))}</p>`;
+function formatBottomEncouragement(bodyText: string, stepLabel?: string) {
+  return `${stepLabel ? `<p style="margin:0 0 10px;text-align:center;font-size:11px;line-height:1.4;font-weight:700;letter-spacing:0.24em;text-transform:uppercase;color:#c89b2d;">${escapeHtml(stepLabel)}</p>` : ''}<p style="margin:26px 0 0;text-align:center;font-size:13px;line-height:1.6;color:#4a4a52;">${escapeHtml(collapseSoftLineBreaks(bodyText))}</p>`;
 }
 
 function formatNewsletterBody(bodyText: string) {
