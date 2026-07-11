@@ -326,7 +326,7 @@ function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft
     ? 'mx-auto w-full max-w-[760px] overflow-hidden bg-white ring-1 ring-black/5 sm:max-w-[1140px] sm:shadow-2xl'
     : 'mx-auto max-w-[1140px] overflow-hidden bg-white shadow-2xl ring-1 ring-black/5';
   const previewHeaderClassName = adminEmbed
-    ? 'border-b-[4px] border-[#d0ad4b] bg-[#17182b] px-5 py-6 text-white sm:px-[60px] sm:py-7'
+    ? 'border-b-[4px] border-[#d0ad4b] bg-[#17182b] px-[18px] py-6 text-white sm:px-[60px] sm:py-7'
     : 'border-b-[4px] border-[#d0ad4b] bg-[#17182b] px-9 py-7 text-white sm:px-[60px]';
   const previewHeaderGridClassName = adminEmbed
     ? 'grid grid-cols-[74px_1fr] items-start gap-4 sm:grid-cols-[110px_1fr] sm:gap-8'
@@ -338,10 +338,10 @@ function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft
     ? 'text-[26px] font-medium uppercase leading-none tracking-[0.04em] sm:text-[42px]'
     : 'text-[34px] font-medium uppercase leading-none tracking-[0.04em] sm:text-[42px]';
   const previewMainClassName = adminEmbed
-    ? 'bg-white px-6 py-7 text-[#3d3d45] sm:px-[78px] sm:py-8'
+    ? 'bg-white px-[18px] py-7 text-[#3d3d45] sm:px-[78px] sm:py-8'
     : 'bg-white px-14 py-8 text-[#3d3d45] sm:px-[78px]';
   const previewFooterClassName = adminEmbed
-    ? 'bg-[#17182b] px-6 py-4 text-center text-[12px] font-semibold leading-5 text-white sm:px-[60px] sm:py-5'
+    ? 'bg-[#17182b] px-[18px] py-4 text-center text-[12px] font-semibold leading-5 text-white sm:px-[60px] sm:py-5'
     : 'bg-[#17182b] px-8 py-5 text-center text-[12px] font-semibold leading-5 text-white sm:px-[60px]';
 
   return (
@@ -677,7 +677,7 @@ export default function NewsletterBuilder() {
   const comingWeekItems = getComingWeekItems(weeklyDraft);
 
   return (
-    <main className={`min-h-screen bg-slate-100 py-6 text-slate-950 sm:px-8 lg:px-12 ${isAdminEmbed ? 'px-9' : 'px-6'}`}>
+    <main className={`min-h-screen bg-slate-100 py-6 text-slate-950 sm:px-8 lg:px-12 ${isAdminEmbed ? 'px-[18px]' : 'px-6'}`}>
       <div className="mx-auto max-w-[1800px] space-y-5">
         <div className={`rounded-3xl bg-slate-950 px-5 text-white shadow-sm sm:px-6 ${isAdminEmbed ? 'py-3 sm:py-4' : 'py-4'}`}>
           <div className="grid gap-4 lg:grid-cols-[minmax(260px,1fr)_minmax(500px,auto)] lg:items-center">
