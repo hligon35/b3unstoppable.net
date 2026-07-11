@@ -143,7 +143,7 @@ export default function CommunityPage() {
         const raw = window.localStorage?.getItem('b3u.hiddenStories');
         if (raw) {
           const arr = JSON.parse(raw);
-          if (Array.isArray(arr)) setHiddenIds(new Set(arr.filter((x: any) => typeof x === 'string')));
+          if (Array.isArray(arr)) setHiddenIds(new Set(arr.filter((value): value is string => typeof value === 'string')));
         }
       } catch {}
     } catch {}

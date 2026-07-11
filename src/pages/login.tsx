@@ -49,8 +49,22 @@ export default function Login({ csrfToken }: LoginPageProps) {
       return;
     }
 
-    const data = await response.json().catch(() => ({ message: 'Login failed' }));
-    setError(data.message ?? 'Login failed');
+    const contentType = response.headers.get('content-type') || '';
+    const responseText = await response.text().catch(() => '');
+    let message = 'Login failed';
+
+    if (contentType.includes('application/json')) {
+      try {
+        const data = JSON.parse(responseText) as { message?: string; error?: string };
+        message = data.message ?? data.error ?? message;
+      } catch {
+        // Fall back to the generic message when a JSON response cannot be parsed.
+      }
+    } else if (response.status >= 500) {
+      message = 'The login service is temporarily unavailable. Please try again in a moment.';
+    }
+
+    setError(message);
     setIsSubmitting(false);
   }
 

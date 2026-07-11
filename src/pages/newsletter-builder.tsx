@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
 type Weekday = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
@@ -48,6 +48,7 @@ const TEMPLATE_STORAGE_KEY = 'b3u-newsletter-template-draft';
 const WEEKLY_STORAGE_KEY = 'b3u-weekly-newsletter-draft';
 const LEGACY_MONTHLY_STORAGE_KEY = 'b3u-monthly-newsletter-draft';
 const WEEKDAY_OPTIONS: Weekday[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const NEWSLETTER_SECTION_MARKER_PREFIX = '[[B3U:';
 
 const defaultTemplate: NewsletterTemplateDraft = {
   templateName: 'The Take Back Weekly',
@@ -190,24 +191,57 @@ function formatClosingBlock(closingLine: string) {
   ].join('\n\n');
 }
 
+function serializeNewsletterSection(key: string, value: string) {
+  return `${NEWSLETTER_SECTION_MARKER_PREFIX}${key}]]\n${value.trim()}`;
+}
+
+function buildStructuredSection(heading: string, body: string, genericLabel: string) {
+  if (normalizeHeadingLabel(heading) !== normalizeHeadingLabel(genericLabel)) {
+    return { heading, body };
+  }
+
+  const paragraphs = body
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+  const [firstParagraph, ...rest] = paragraphs;
+
+  if (!firstParagraph || !looksLikePromotableHeading(firstParagraph)) {
+    return { heading, body };
+  }
+
+  return { heading: firstParagraph, body: rest.join('\n\n') };
+}
+
 function buildNewsletterBody(template: NewsletterTemplateDraft, weekly: WeeklyNewsletterDraft) {
   const comingWeekBody = formatComingWeekItems(getComingWeekItems(weekly));
+  const featuredSection = buildStructuredSection(weekly.featuredStoryTitle || 'Featured Story', weekly.featuredStoryBody, 'Featured Story');
+  const bookSection = buildStructuredSection(weekly.bookSpotlightTitle || 'Book Spotlight', weekly.bookSpotlightBody, 'Book Spotlight');
+  const comingSectionBody = [comingWeekBody, weekly.comingThisWeekBody.trim()].filter(Boolean).join('\n\n');
   const sections = [
-    template.headline,
-    `${template.byline} | ${getTemplateDate(template)}`,
-    template.tagline,
-    weekly.mainTitle,
-    weekly.openingLetter,
-    formatClosingBlock(weekly.closingLine),
-    weekly.featuredStoryTitle ? `${weekly.featuredStoryTitle}\n${weekly.featuredStoryBody}` : weekly.featuredStoryBody,
-    weekly.bookSpotlightTitle ? `${weekly.bookSpotlightTitle}\n${weekly.bookSpotlightBody}` : weekly.bookSpotlightBody,
-    weekly.comingThisWeekTitle ? `${weekly.comingThisWeekTitle}\n${comingWeekBody}\n\n${weekly.comingThisWeekBody}` : `${comingWeekBody}\n\n${weekly.comingThisWeekBody}`,
-    weekly.affirmationTitle ? `${weekly.affirmationTitle}\n${weekly.affirmationText}` : weekly.affirmationText,
-    weekly.bottomEncouragement,
-    template.footerTagline,
+    serializeNewsletterSection('header-title', template.headline),
+    serializeNewsletterSection('meta-line', `${template.byline} | ${getTemplateDate(template)}`),
+    serializeNewsletterSection('tagline', template.tagline),
+    serializeNewsletterSection('main-title', weekly.mainTitle),
+    serializeNewsletterSection('opening-body', weekly.openingLetter),
+    serializeNewsletterSection('closing-signature', formatClosingBlock(weekly.closingLine)),
+    serializeNewsletterSection('featured-title', featuredSection.heading),
+    serializeNewsletterSection('featured-body', featuredSection.body),
+    serializeNewsletterSection('book-title', bookSection.heading),
+    serializeNewsletterSection('book-body', bookSection.body),
+    serializeNewsletterSection('coming-title', weekly.comingThisWeekTitle || 'What’s Coming Next Week'),
+    serializeNewsletterSection('coming-body', comingSectionBody),
+    serializeNewsletterSection('affirmation-title', weekly.affirmationTitle || 'THIS WEEK’S AFFIRMATION'),
+    serializeNewsletterSection('affirmation-body', weekly.affirmationText),
+    serializeNewsletterSection('bottom-encouragement', weekly.bottomEncouragement),
+    serializeNewsletterSection('footer-tagline', template.footerTagline),
   ];
 
   return sections.map((section) => section.trim()).filter(Boolean).join('\n\n');
+}
+
+function buildLetterEmailHtml(template: NewsletterTemplateDraft, weekly: WeeklyNewsletterDraft) {
+  return buildNewsletterBody(template, weekly);
 }
 
 function normalizeHeadingLabel(value: string) {
@@ -234,26 +268,13 @@ function looksLikePromotableHeading(value: string) {
 }
 
 function resolvePreviewSection(heading: string, body: string, genericLabel: string) {
-  if (normalizeHeadingLabel(heading) !== normalizeHeadingLabel(genericLabel)) {
-    return { heading, body };
-  }
-
-  const paragraphs = body
-    .split(/\n{2,}/)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean);
-  const [firstParagraph, ...rest] = paragraphs;
-
-  if (!firstParagraph || !looksLikePromotableHeading(firstParagraph)) {
-    return { heading, body };
-  }
-
-  return { heading: firstParagraph, body: rest.join('\n\n') };
+  return buildStructuredSection(heading, body, genericLabel);
 }
 
-function SectionHeading({ children }: { children: React.ReactNode }) {
+function SectionHeading({ stepLabel, children }: { stepLabel?: string; children: React.ReactNode }) {
   return (
     <div>
+      {stepLabel ? <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#c89b2d]">{stepLabel}</p> : null}
       <h3 className="text-[20px] font-extrabold leading-tight text-[#17182b] sm:text-[22px]">{children}</h3>
       <div className="mt-2 h-px w-52 bg-[#c89b2d]" />
     </div>
@@ -326,7 +347,7 @@ function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft
       <main className="bg-white px-14 py-8 text-[#3d3d45] sm:px-[78px]">
         <p className="mb-10 text-center text-[18px] leading-7 text-[#d4a536]">{templateDraft.tagline}</p>
 
-        <SectionHeading>{weeklyDraft.mainTitle}</SectionHeading>
+        <SectionHeading stepLabel="01. Opening letter">{weeklyDraft.mainTitle}</SectionHeading>
 
         <div className="mt-7 space-y-5 text-[14px] leading-[1.55] tracking-[0.01em]">
           {weeklyDraft.openingLetter ? paragraphize(weeklyDraft.openingLetter) : <p className="text-slate-400">Opening letter body will appear here.</p>}
@@ -336,21 +357,21 @@ function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft
 
         <GoldRule />
 
-        <SectionHeading>{featuredSection.heading}</SectionHeading>
+        <SectionHeading stepLabel="02. Featured story">{featuredSection.heading}</SectionHeading>
         <div className="mt-6 space-y-5 text-[14px] leading-[1.55] tracking-[0.01em]">
           {featuredSection.body ? paragraphize(featuredSection.body) : <p className="text-slate-400">Featured story body will appear here.</p>}
         </div>
 
         <GoldRule />
 
-        <SectionHeading>{bookSection.heading}</SectionHeading>
+        <SectionHeading stepLabel="03. Book spotlight">{bookSection.heading}</SectionHeading>
         <div className="mt-6 space-y-5 text-[14px] leading-[1.55] tracking-[0.01em]">
           {bookSection.body ? paragraphize(bookSection.body) : <p className="text-slate-400">Book spotlight body will appear here.</p>}
         </div>
 
         <GoldRule />
 
-        <SectionHeading>{weeklyDraft.comingThisWeekTitle || 'What’s Coming Next Week'}</SectionHeading>
+        <SectionHeading stepLabel="04. Coming next week">{weeklyDraft.comingThisWeekTitle || 'What’s Coming Next Week'}</SectionHeading>
         <div className="mt-6 space-y-5 text-[14px] leading-[1.55] tracking-[0.01em]">
           {renderComingWeekList(comingWeekItems)}
           {weeklyDraft.comingThisWeekBody ? paragraphize(weeklyDraft.comingThisWeekBody) : <p className="text-slate-400">Coming next week body will appear here.</p>}
@@ -358,13 +379,16 @@ function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft
 
         <GoldRule />
 
-        <SectionHeading>{weeklyDraft.affirmationTitle || 'THIS WEEK’S AFFIRMATION'}</SectionHeading>
+        <SectionHeading stepLabel="05. Weekly affirmation">{weeklyDraft.affirmationTitle || 'THIS WEEK’S AFFIRMATION'}</SectionHeading>
         <div className="mt-6 text-center text-[14px] italic leading-7 text-[#c49124]">
           {weeklyDraft.affirmationText ? paragraphize(weeklyDraft.affirmationText) : <p>“Affirmation text will appear here.”</p>}
         </div>
 
         <GoldRule />
-        <p className="text-center text-[14px] leading-6 text-[#4a4a52]">{weeklyDraft.bottomEncouragement}</p>
+        <div>
+          <p className="text-center text-[11px] font-semibold uppercase tracking-[0.24em] text-[#c89b2d]">06. Closing encouragement</p>
+          <p className="mt-3 text-center text-[14px] leading-6 text-[#4a4a52]">{weeklyDraft.bottomEncouragement}</p>
+        </div>
       </main>
 
       <footer className="bg-[#17182b] px-8 py-5 text-center text-[12px] font-semibold leading-5 text-white sm:px-[60px]">
@@ -439,7 +463,7 @@ export default function NewsletterBuilder() {
     saveStoredDraft(WEEKLY_STORAGE_KEY, weeklyDraft);
   }, [weeklyDraft]);
 
-  async function refreshSubscribers() {
+  const refreshSubscribers = useCallback(async () => {
     const response = await fetch('/api/subscribers');
 
     if (response.status === 401) {
@@ -454,7 +478,7 @@ export default function NewsletterBuilder() {
     const data = (await response.json()) as Subscriber[];
     setSubscribers(data ?? []);
     return data ?? [];
-  }
+  }, [router]);
 
   useEffect(() => {
     async function loadSubscribers() {
@@ -469,9 +493,7 @@ export default function NewsletterBuilder() {
     }
 
     void loadSubscribers();
-  }, []);
-
-  const bodyPreview = useMemo(() => buildNewsletterBody(templateDraft, weeklyDraft), [templateDraft, weeklyDraft]);
+  }, [refreshSubscribers]);
 
   function updateTemplate<K extends keyof NewsletterTemplateDraft>(key: K, value: NewsletterTemplateDraft[K]) {
     setTemplateDraft((current) => ({ ...current, [key]: value }));
@@ -574,7 +596,7 @@ export default function NewsletterBuilder() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           subject: weeklyDraft.subject.trim(),
-          bodyText: bodyPreview,
+          bodyText: buildLetterEmailHtml(templateDraft, weeklyDraft),
           scheduledFor: scheduledForIso,
           recipientEmails: selectedSubscriberEmails,
         }),
@@ -627,6 +649,8 @@ export default function NewsletterBuilder() {
   async function handleSendNewsletterNow() {
     await queueNewsletter(new Date().toISOString(), true);
   }
+
+  const comingWeekItems = getComingWeekItems(weeklyDraft);
 
   return (
     <main className="min-h-screen bg-slate-100 px-6 py-6 text-slate-950 sm:px-8 lg:px-12">
@@ -738,134 +762,183 @@ export default function NewsletterBuilder() {
         <div className="grid gap-6 2xl:grid-cols-[0.82fr_1.18fr]">
           <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
             <h2 className="text-xl font-semibold text-gray-900">Newsletter Content</h2>
+            <p className="mt-2 text-sm text-gray-600">The editor now follows the same top-to-bottom order as the letter preview.</p>
 
-            <div className="mt-6 space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Newsletter template title</span>
-                  <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.headline} onChange={(event) => updateTemplate('headline', event.target.value)} />
-                </label>
-                <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Date</span>
-                  <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={getTemplateDate(templateDraft)} onChange={(event) => updateTemplate('issueDate', event.target.value)} />
-                </label>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Byline</span>
-                  <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.byline} onChange={(event) => updateTemplate('byline', event.target.value)} />
-                </label>
-                <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Email subject</span>
-                  <input required maxLength={160} className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.subject} onChange={(event) => updateWeekly('subject', event.target.value)} />
-                </label>
-              </div>
-              <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-700">Gold tagline</span>
-                <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.tagline} onChange={(event) => updateTemplate('tagline', event.target.value)} />
-              </label>
-              <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-700">Opening letter title</span>
-                <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.mainTitle} onChange={(event) => updateWeekly('mainTitle', event.target.value)} />
-              </label>
-              <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-700">Opening letter body</span>
-                <textarea required className="min-h-[240px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.openingLetter} onChange={(event) => updateWeekly('openingLetter', event.target.value)} placeholder="Paste the full opening letter here. Use blank lines between paragraphs." />
-              </label>
-              <div className="rounded-2xl border border-gray-200 bg-slate-50 p-4">
-                <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Closing line</span>
-                  <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.closingLine} onChange={(event) => updateWeekly('closingLine', event.target.value)} />
-                </label>
-                <div className="mt-4 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm leading-7 text-gray-700">
-                  <p><strong>Built-in signature block:</strong></p>
-                  <p>Dr. Bree Charles</p>
-                  <p>Transformational Speaker | U.S. Army Veteran | Author | Host of B3U</p>
-                  <p>Burn. Break. Become Unstoppable.</p>
-                  <p>Breaking Cycles. Building Legacies.</p>
+            <div className="mt-6 space-y-5">
+              <div className="rounded-2xl border border-gray-200 bg-slate-50 p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brandBlue">Header setup</p>
+                <h3 className="mt-2 text-lg font-semibold text-gray-900">Before the reader opens the letter</h3>
+                <p className="mt-1 text-sm text-gray-600">These fields control the inbox subject line and the top masthead of the newsletter.</p>
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Inbox subject line</span>
+                    <input required maxLength={160} className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.subject} onChange={(event) => updateWeekly('subject', event.target.value)} />
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Header title in the letter</span>
+                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.headline} onChange={(event) => updateTemplate('headline', event.target.value)} />
+                  </label>
+                </div>
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Issue date line</span>
+                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={getTemplateDate(templateDraft)} onChange={(event) => updateTemplate('issueDate', event.target.value)} />
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Byline under the title</span>
+                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.byline} onChange={(event) => updateTemplate('byline', event.target.value)} />
+                  </label>
+                </div>
+                <div className="mt-4 grid gap-4 md:grid-cols-2">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Gold message line below the header</span>
+                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.tagline} onChange={(event) => updateTemplate('tagline', event.target.value)} />
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Footer website and brand line</span>
+                    <textarea className="min-h-[80px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.footerTagline} onChange={(event) => updateTemplate('footerTagline', event.target.value)} />
+                  </label>
                 </div>
               </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Featured story heading</span>
-                  <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.featuredStoryTitle} onChange={(event) => updateWeekly('featuredStoryTitle', event.target.value)} />
-                </label>
-                <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Book spotlight heading</span>
-                  <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.bookSpotlightTitle} onChange={(event) => updateWeekly('bookSpotlightTitle', event.target.value)} />
-                </label>
-              </div>
-              <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-700">Featured story body</span>
-                <textarea className="min-h-[170px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.featuredStoryBody} onChange={(event) => updateWeekly('featuredStoryBody', event.target.value)} />
-              </label>
-              <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-700">Book spotlight body</span>
-                <textarea className="min-h-[150px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.bookSpotlightBody} onChange={(event) => updateWeekly('bookSpotlightBody', event.target.value)} />
-              </label>
-              <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-700">Coming next week heading</span>
-                <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.comingThisWeekTitle} onChange={(event) => updateWeekly('comingThisWeekTitle', event.target.value)} />
-              </label>
-              <div className="rounded-2xl border border-gray-200 bg-slate-50 p-4">
-                <span className="mb-3 block text-sm font-medium text-gray-700">Select days to include</span>
-                <div className="flex flex-wrap gap-2">
-                  {WEEKDAY_OPTIONS.map((day) => {
-                    const comingWeekItems = getComingWeekItems(weeklyDraft);
-                    const selected = comingWeekItems.some((item) => item.day === day);
 
-                    return (
-                      <button
-                        key={day}
-                        type="button"
-                        onClick={() => handleComingWeekDayToggle(day)}
-                        className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${selected ? 'border-brandBlue bg-brandBlue text-white' : 'border-gray-300 bg-white text-gray-700 hover:border-brandBlue hover:text-brandBlue'}`}
-                      >
-                        {day}
-                      </button>
-                    );
-                  })}
-                </div>
-                <div className="mt-4 space-y-3">
-                  {getComingWeekItems(weeklyDraft).length ? (
-                    getComingWeekItems(weeklyDraft).map((item) => (
-                      <label key={item.day} className="block rounded-2xl border border-gray-200 bg-white p-4">
-                        <span className="mb-2 block text-sm font-bold text-gray-900">{item.day}</span>
-                        <textarea
-                          className="min-h-[80px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20"
-                          value={item.text}
-                          onChange={(event) => updateComingWeekDayText(item.day, event.target.value)}
-                          placeholder={`Add ${item.day}'s details here.`}
-                        />
-                      </label>
-                    ))
-                  ) : (
-                    <p className="text-sm text-gray-500">Select one or more days above to add them to the weekly list.</p>
-                  )}
+              <div className="rounded-2xl border border-gray-200 bg-white p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brandBlue">01. Opening letter</p>
+                <h3 className="mt-2 text-lg font-semibold text-gray-900">Main welcome section</h3>
+                <p className="mt-1 text-sm text-gray-600">This is the first section readers see after the masthead.</p>
+                <div className="mt-4 space-y-4">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Section heading shown in the letter</span>
+                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.mainTitle} onChange={(event) => updateWeekly('mainTitle', event.target.value)} />
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Opening letter body</span>
+                    <textarea required className="min-h-[240px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.openingLetter} onChange={(event) => updateWeekly('openingLetter', event.target.value)} placeholder="Paste the full opening letter here. Use blank lines between paragraphs." />
+                  </label>
+                  <div className="rounded-2xl border border-gray-200 bg-slate-50 p-4">
+                    <label className="block">
+                      <span className="mb-2 block text-sm font-medium text-gray-700">Sign-off line before the built-in signature</span>
+                      <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.closingLine} onChange={(event) => updateWeekly('closingLine', event.target.value)} />
+                    </label>
+                    <div className="mt-4 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm leading-7 text-gray-700">
+                      <p><strong>Built-in signature block:</strong></p>
+                      <p>Dr. Bree Charles</p>
+                      <p>Transformational Speaker | U.S. Army Veteran | Author | Host of B3U</p>
+                      <p>Burn. Break. Become Unstoppable.</p>
+                      <p>Breaking Cycles. Building Legacies.</p>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-700">Coming next week body</span>
-                <textarea className="min-h-[140px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.comingThisWeekBody} onChange={(event) => updateWeekly('comingThisWeekBody', event.target.value)} placeholder="Add the paragraph section that follows the day-by-day list." />
-              </label>
-              <div className="grid gap-4 md:grid-cols-2">
-                <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Affirmation heading</span>
-                  <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.affirmationTitle} onChange={(event) => updateWeekly('affirmationTitle', event.target.value)} />
-                </label>
-                <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-700">Bottom encouragement</span>
+
+              <div className="rounded-2xl border border-gray-200 bg-white p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brandBlue">02. Featured story</p>
+                <h3 className="mt-2 text-lg font-semibold text-gray-900">Story spotlight section</h3>
+                <p className="mt-1 text-sm text-gray-600">This appears right after the opening letter and signature.</p>
+                <div className="mt-4 space-y-4">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Section heading in the letter</span>
+                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.featuredStoryTitle} onChange={(event) => updateWeekly('featuredStoryTitle', event.target.value)} />
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Story copy</span>
+                    <textarea className="min-h-[170px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.featuredStoryBody} onChange={(event) => updateWeekly('featuredStoryBody', event.target.value)} />
+                  </label>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-gray-200 bg-white p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brandBlue">03. Book spotlight</p>
+                <h3 className="mt-2 text-lg font-semibold text-gray-900">Book highlight section</h3>
+                <p className="mt-1 text-sm text-gray-600">This section follows the featured story in the final letter.</p>
+                <div className="mt-4 space-y-4">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Section heading in the letter</span>
+                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.bookSpotlightTitle} onChange={(event) => updateWeekly('bookSpotlightTitle', event.target.value)} />
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Book spotlight copy</span>
+                    <textarea className="min-h-[150px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.bookSpotlightBody} onChange={(event) => updateWeekly('bookSpotlightBody', event.target.value)} />
+                  </label>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-gray-200 bg-white p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brandBlue">04. Coming next week</p>
+                <h3 className="mt-2 text-lg font-semibold text-gray-900">Upcoming events and schedule</h3>
+                <p className="mt-1 text-sm text-gray-600">The day-by-day list and supporting paragraph appear together in this section.</p>
+                <div className="mt-4 space-y-4">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Section heading in the letter</span>
+                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.comingThisWeekTitle} onChange={(event) => updateWeekly('comingThisWeekTitle', event.target.value)} />
+                  </label>
+                  <div className="rounded-2xl border border-gray-200 bg-slate-50 p-4">
+                    <span className="mb-3 block text-sm font-medium text-gray-700">Choose which weekday entries appear in the list</span>
+                    <div className="flex flex-wrap gap-2">
+                      {WEEKDAY_OPTIONS.map((day) => {
+                        const selected = comingWeekItems.some((item) => item.day === day);
+
+                        return (
+                          <button
+                            key={day}
+                            type="button"
+                            onClick={() => handleComingWeekDayToggle(day)}
+                            className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${selected ? 'border-brandBlue bg-brandBlue text-white' : 'border-gray-300 bg-white text-gray-700 hover:border-brandBlue hover:text-brandBlue'}`}
+                          >
+                            {day}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="mt-4 space-y-3">
+                      {comingWeekItems.length ? (
+                        comingWeekItems.map((item) => (
+                          <label key={item.day} className="block rounded-2xl border border-gray-200 bg-white p-4">
+                            <span className="mb-2 block text-sm font-bold text-gray-900">{item.day} list item</span>
+                            <textarea
+                              className="min-h-[80px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20"
+                              value={item.text}
+                              onChange={(event) => updateComingWeekDayText(item.day, event.target.value)}
+                              placeholder={`Add ${item.day}'s details here.`}
+                            />
+                          </label>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-500">Select one or more days above to add them to the weekly list.</p>
+                      )}
+                    </div>
+                  </div>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Supporting paragraph below the day list</span>
+                    <textarea className="min-h-[140px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.comingThisWeekBody} onChange={(event) => updateWeekly('comingThisWeekBody', event.target.value)} placeholder="Add the paragraph section that follows the day-by-day list." />
+                  </label>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-gray-200 bg-white p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brandBlue">05. Weekly affirmation</p>
+                <h3 className="mt-2 text-lg font-semibold text-gray-900">Affirmation callout</h3>
+                <p className="mt-1 text-sm text-gray-600">This section sits near the end of the letter and leads into the final encouragement.</p>
+                <div className="mt-4 space-y-4">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Section heading in the letter</span>
+                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.affirmationTitle} onChange={(event) => updateWeekly('affirmationTitle', event.target.value)} />
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Affirmation text</span>
+                    <textarea className="min-h-[120px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.affirmationText} onChange={(event) => updateWeekly('affirmationText', event.target.value)} />
+                  </label>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-gray-200 bg-white p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brandBlue">06. Closing encouragement</p>
+                <h3 className="mt-2 text-lg font-semibold text-gray-900">Final line at the bottom of the letter</h3>
+                <p className="mt-1 text-sm text-gray-600">Use this for the final encouragement that appears above the footer.</p>
+                <label className="mt-4 block">
+                  <span className="mb-2 block text-sm font-medium text-gray-700">Bottom encouragement line</span>
                   <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.bottomEncouragement} onChange={(event) => updateWeekly('bottomEncouragement', event.target.value)} />
                 </label>
               </div>
-              <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-700">Affirmation text</span>
-                <textarea className="min-h-[120px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.affirmationText} onChange={(event) => updateWeekly('affirmationText', event.target.value)} />
-              </label>
-              <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-700">Footer website/tagline line</span>
-                <textarea className="min-h-[80px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={templateDraft.footerTagline} onChange={(event) => updateTemplate('footerTagline', event.target.value)} />
-              </label>
             </div>
           </section>
 

@@ -14,6 +14,7 @@ import {
 const MAX_SUBJECT_LENGTH = 160;
 const MAX_BODY_LENGTH = 20000;
 const SENDGRID_BATCH_SIZE = 500;
+const NEWSLETTER_SECTION_MARKER_PATTERN = /^\[\[B3U:([a-z0-9-]+)\]\]$/i;
 
 type ScheduledNewsletterRecord = {
   id: number;
@@ -314,7 +315,130 @@ function buildNewsletterHtml(bodyText: string) {
     return trimmedBody;
   }
 
+  const structuredSections = parseStructuredNewsletterBody(trimmedBody);
+
+  if (structuredSections) {
+    return buildStructuredTakeBackWeeklyLetterHtml(structuredSections);
+  }
+
   return buildTakeBackWeeklyLetterHtml(trimmedBody);
+}
+
+function parseStructuredNewsletterBody(bodyText: string) {
+  const lines = bodyText.replace(/\r\n/g, '\n').split('\n');
+  const sections = new Map<string, string>();
+  let currentKey: string | null = null;
+  let buffer: string[] = [];
+
+  function flushSection() {
+    if (!currentKey) {
+      return;
+    }
+
+    sections.set(currentKey, buffer.join('\n').trim());
+    buffer = [];
+  }
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    const markerMatch = line.match(NEWSLETTER_SECTION_MARKER_PATTERN);
+
+    if (markerMatch) {
+      flushSection();
+      currentKey = markerMatch[1].toLowerCase();
+      continue;
+    }
+
+    if (!currentKey) {
+      if (line) {
+        return null;
+      }
+
+      continue;
+    }
+
+    buffer.push(rawLine);
+  }
+
+  flushSection();
+
+  return sections.size ? sections : null;
+}
+
+function buildStructuredTakeBackWeeklyLetterHtml(sections: Map<string, string>) {
+  const headerTitle = sections.get('header-title') || 'The Take Back Weekly';
+  const metaLine = sections.get('meta-line') || 'By Dr. Bree Charles';
+  const tagline = sections.get('tagline') || 'Breaking Cycles. Building Legacies.';
+  const mainTitle = sections.get('main-title') || 'The Take Back Weekly';
+  const openingBody = sections.get('opening-body') || '';
+  const closingSignature = sections.get('closing-signature') || '';
+  const featuredTitle = sections.get('featured-title') || 'Featured Story';
+  const featuredBody = sections.get('featured-body') || '';
+  const bookTitle = sections.get('book-title') || 'Book Spotlight';
+  const bookBody = sections.get('book-body') || '';
+  const comingTitle = sections.get('coming-title') || 'What’s Coming Next Week';
+  const comingBody = sections.get('coming-body') || '';
+  const affirmationTitle = sections.get('affirmation-title') || 'THIS WEEK’S AFFIRMATION';
+  const affirmationBody = sections.get('affirmation-body') || '';
+  const bottomEncouragement = sections.get('bottom-encouragement') || '';
+  const footerLine = sections.get('footer-tagline') || 'www.b3unstoppable.net | B3U — Burn. Break. Become Unstoppable.';
+  const htmlSections = [
+    formatNewsletterBody(openingBody),
+    formatClosingSignatureText(closingSignature),
+    featuredBody ? `${goldRule()}${sectionHeading(featuredTitle)}${formatNewsletterBody(featuredBody)}` : '',
+    bookBody ? `${goldRule()}${sectionHeading(bookTitle)}${formatNewsletterBody(bookBody)}` : '',
+    comingBody ? `${goldRule()}${sectionHeading(comingTitle)}${formatComingWeekBody(comingBody)}` : '',
+    affirmationBody ? `${goldRule()}${sectionHeading(affirmationTitle)}${formatAffirmationBody(affirmationBody)}` : '',
+    bottomEncouragement ? `${goldRule()}${formatBottomEncouragement(bottomEncouragement)}` : '',
+  ].filter(Boolean).join('');
+
+  return `<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      @media only screen and (max-width: 700px) {
+        .letter-card { max-width: 100% !important; }
+        .letter-header { padding: 22px 20px !important; }
+        .letter-main { padding: 26px 22px 18px !important; }
+        .letter-title { font-size: 24px !important; line-height: 1.05 !important; white-space:normal !important; }
+        .letter-meta { white-space:normal !important; }
+        .letter-logo-cell { width: 68px !important; }
+        .letter-logo { width: 60px !important; height: auto !important; }
+      }
+    </style>
+  </head>
+  <body style="margin:0;padding:0;background:#ffffff;color:#3d3d45;font-family:Arial,Helvetica,sans-serif;">
+    <div class="letter-card" style="max-width:760px;margin:0 auto;background:#ffffff;overflow:hidden;">
+      <div class="letter-header" style="border-bottom:4px solid #d0ad4b;background:#17182b;padding:24px 40px;color:#ffffff;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+          <tr>
+            <td class="letter-logo-cell" style="width:88px;vertical-align:top;padding-top:2px;">
+              <img class="letter-logo" src="https://www.b3unstoppable.net/images/logos/B3U3D.png" alt="B3U" width="76" style="display:block;width:76px;height:auto;border:0;outline:none;text-decoration:none;">
+            </td>
+            <td style="vertical-align:top;text-align:right;">
+              <h1 class="letter-title" style="margin:0;font-size:27px;line-height:1;font-weight:500;text-transform:uppercase;letter-spacing:0.03em;color:#ffffff;white-space:nowrap;">${escapeHtml(headerTitle)}</h1>
+              <p class="letter-meta" style="margin:10px 0 0;font-size:12px;line-height:1.4;font-weight:700;color:#d4a536;white-space:nowrap;">${escapeHtml(metaLine)}</p>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="letter-main" style="background:#ffffff;padding:28px 52px 18px;color:#3d3d45;">
+        <p style="margin:0 0 32px;text-align:center;font-size:16px;line-height:1.5;color:#d4a536;">${escapeHtml(tagline)}</p>
+        <h2 style="margin:0;font-size:20px;line-height:1.2;font-weight:800;color:#17182b;">${escapeHtml(mainTitle)}</h2>
+        <div style="margin-top:8px;width:160px;height:1px;background:#c89b2d;"></div>
+        <div style="margin-top:24px;font-size:13px;line-height:1.5;letter-spacing:0.01em;color:#3d3d45;">
+          ${htmlSections}
+        </div>
+      </div>
+
+      <div style="background:#17182b;padding:18px 32px;text-align:center;color:#ffffff;font-size:11px;line-height:1.6;font-weight:700;">
+        ${escapeHtml(footerLine)}
+      </div>
+    </div>
+  </body>
+</html>`;
 }
 
 function buildTakeBackWeeklyLetterHtml(bodyText: string) {
@@ -429,7 +553,7 @@ function formatWeeklyContentBlocks(sections: string[]) {
   }
 
   if (affirmationBlock) {
-    htmlSections.push(`${goldRule()}${formatStructuredBlock(affirmationBlock, 'THIS WEEK’S AFFIRMATION', true)}`);
+    htmlSections.push(`${goldRule()}${formatStructuredBlock(affirmationBlock, 'THIS WEEK’S AFFIRMATION', { isAffirmation: true })}`);
   }
 
   if (bottomEncouragement) {
@@ -468,18 +592,18 @@ function looksLikeSectionStart(section: string) {
   return firstLine.length <= 160 && !/[.!?]$/.test(firstLine);
 }
 
-function formatStructuredBlock(section: string, fallbackHeading: string, isAffirmation = false) {
+function formatStructuredBlock(section: string, fallbackHeading: string, options?: { stepLabel?: string; isAffirmation?: boolean }) {
   const { heading, body } = splitHeadingAndBody(section, fallbackHeading);
-  const resolved = isAffirmation ? { heading, body } : promoteLeadParagraphHeading(heading, body, fallbackHeading);
-  const bodyHtml = isAffirmation ? formatAffirmationBody(resolved.body) : formatNewsletterBody(resolved.body);
+  const resolved = { heading, body };
+  const bodyHtml = options?.isAffirmation ? formatAffirmationBody(resolved.body) : formatNewsletterBody(resolved.body);
 
-  return `${sectionHeading(resolved.heading)}${bodyHtml}`;
+  return `${sectionHeading(resolved.heading, options?.stepLabel)}${bodyHtml}`;
 }
 
-function formatComingWeekStructuredBlock(section: string) {
+function formatComingWeekStructuredBlock(section: string, stepLabel?: string) {
   const { heading, body } = splitHeadingAndBody(section, 'What’s Coming This Week');
 
-  return `${sectionHeading(heading)}${formatComingWeekBody(body)}`;
+  return `${sectionHeading(heading, stepLabel)}${formatComingWeekBody(body)}`;
 }
 
 function splitHeadingAndBody(section: string, fallbackHeading: string) {
@@ -498,48 +622,6 @@ function splitHeadingAndBody(section: string, fallbackHeading: string) {
     heading: firstLine,
     body: bodyLines.join('\n').trim(),
   };
-}
-
-function promoteLeadParagraphHeading(heading: string, body: string, fallbackHeading: string) {
-  if (!isGenericSectionLabel(heading, fallbackHeading) || !body.trim()) {
-    return { heading, body };
-  }
-
-  const paragraphs = body
-    .split(/\n{2,}/)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean);
-  const [firstParagraph, ...rest] = paragraphs;
-
-  if (!firstParagraph || !looksLikePromotableHeading(firstParagraph)) {
-    return { heading, body };
-  }
-
-  return {
-    heading: collapseSoftLineBreaks(firstParagraph),
-    body: rest.join('\n\n'),
-  };
-}
-
-function isGenericSectionLabel(heading: string, fallbackHeading: string) {
-  const normalizedHeading = normalizeHeading(heading);
-  const normalizedFallback = normalizeHeading(fallbackHeading);
-
-  if (normalizedHeading !== normalizedFallback) {
-    return false;
-  }
-
-  return ['featured story', 'book spotlight'].includes(normalizedHeading);
-}
-
-function looksLikePromotableHeading(value: string) {
-  const collapsed = collapseSoftLineBreaks(value);
-
-  if (!collapsed || collapsed.length > 160) {
-    return false;
-  }
-
-  return !/[.!?]$/.test(collapsed);
 }
 
 function isKnownBuilderHeading(value: string) {
@@ -576,12 +658,16 @@ function formatClosingSignature(parts: string[]) {
   ].join('');
 }
 
+function formatClosingSignatureText(signatureText: string) {
+  return formatClosingSignature(signatureText.split(/\n{2,}/));
+}
+
 function goldRule() {
   return '<div style="margin:32px 0;height:1px;width:100%;background:#d1aa45;line-height:1px;font-size:1px;">&nbsp;</div>';
 }
 
-function sectionHeading(value: string) {
-  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr><td style="padding:0 0 8px;font-family:Arial,Helvetica,sans-serif;color:#17182b;font-size:22px;line-height:1.2;font-weight:800;mso-line-height-rule:exactly;"><h3 style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:22px;line-height:1.2;font-weight:800;color:#17182b;">${escapeHtml(value)}</h3></td></tr><tr><td style="padding:0;"><table role="presentation" width="208" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr><td style="height:1px;line-height:1px;font-size:1px;background:#c89b2d;">&nbsp;</td></tr></table></td></tr><tr><td style="padding:20px 0 0;line-height:0;font-size:0;">&nbsp;</td></tr></table>`;
+function sectionHeading(value: string, stepLabel?: string) {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr><td style="padding:0 0 6px;font-family:Arial,Helvetica,sans-serif;">${stepLabel ? `<p style="margin:0 0 8px;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:1.4;font-weight:700;letter-spacing:0.24em;text-transform:uppercase;color:#c89b2d;">${escapeHtml(stepLabel)}</p>` : ''}<h3 style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:22px;line-height:1.2;font-weight:800;color:#17182b;">${escapeHtml(value)}</h3></td></tr><tr><td style="padding:0;"><table role="presentation" width="208" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr><td style="height:1px;line-height:1px;font-size:1px;background:#c89b2d;">&nbsp;</td></tr></table></td></tr><tr><td style="padding:20px 0 0;line-height:0;font-size:0;">&nbsp;</td></tr></table>`;
 }
 
 function formatComingWeekBody(bodyText: string) {
@@ -623,8 +709,8 @@ function formatAffirmationBody(bodyText: string) {
     .join('');
 }
 
-function formatBottomEncouragement(bodyText: string) {
-  return `<p style="margin:26px 0 0;text-align:center;font-size:13px;line-height:1.6;color:#4a4a52;">${escapeHtml(collapseSoftLineBreaks(bodyText))}</p>`;
+function formatBottomEncouragement(bodyText: string, stepLabel?: string) {
+  return `${stepLabel ? `<p style="margin:0 0 10px;text-align:center;font-size:11px;line-height:1.4;font-weight:700;letter-spacing:0.24em;text-transform:uppercase;color:#c89b2d;">${escapeHtml(stepLabel)}</p>` : ''}<p style="margin:26px 0 0;text-align:center;font-size:13px;line-height:1.6;color:#4a4a52;">${escapeHtml(collapseSoftLineBreaks(bodyText))}</p>`;
 }
 
 function formatNewsletterBody(bodyText: string) {

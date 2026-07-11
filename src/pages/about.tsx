@@ -187,8 +187,8 @@ export default function AboutPage({ initialSiteDraft, initialSiteUpdatedAt }: Ab
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            <a href="/podcast" className="btn-primary">Listen to The B3U Podcast</a>
-            <a href="/contact" className="btn-outline">Book Bree to Speak</a>
+            <Link href="/podcast" className="btn-primary">Listen to The B3U Podcast</Link>
+            <Link href="/contact" className="btn-outline">Book Bree to Speak</Link>
           </div>
           
           <div className="max-w-md mx-auto">

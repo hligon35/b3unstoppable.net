@@ -26,7 +26,7 @@
     "fetch:youtube": "node scripts/fetch-youtube.mjs 6",
     "refresh:content": "npm run fetch:podcast && npm run fetch:youtube",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "format": "prettier --write ."
   },
   "dependencies": {

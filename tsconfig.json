@@ -15,6 +15,7 @@
     "jsx": "preserve",
     "incremental": true,
   "types": ["node", "react"],
+    "ignoreDeprecations": "5.0",
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
