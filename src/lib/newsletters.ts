@@ -308,48 +308,342 @@ async function sendNewsletterEmail(params: {
 }
 
 function buildNewsletterHtml(bodyText: string) {
+  const trimmedBody = bodyText.trim();
+
+  if (/^<!doctype html>/i.test(trimmedBody) || /^<html[\s>]/i.test(trimmedBody)) {
+    return trimmedBody;
+  }
+
+  return buildTakeBackWeeklyLetterHtml(trimmedBody);
+}
+
+function buildTakeBackWeeklyLetterHtml(bodyText: string) {
+  const sections = bodyText
+    .split(/\n{2,}/)
+    .map((section) => section.trim())
+    .filter(Boolean);
+
+  const headerTitle = sections[0] || 'The Take Back Weekly';
+  const metaLine = sections[1] || 'By Dr. Bree Charles';
+  const tagline = sections[2] || 'Breaking Cycles. Building Legacies.';
+  const mainTitle = sections[3] || 'The Take Back Weekly';
+  const footerLine = sections.at(-1)?.includes('b3unstoppable') ? sections.at(-1) as string : 'www.b3unstoppable.net | B3U — Burn. Break. Become Unstoppable.';
+  const contentSections = sections.slice(4, sections.at(-1) === footerLine ? -1 : undefined);
+
   return `<!doctype html>
 <html>
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-      @media only screen and (max-width: 640px) {
-        .email-shell { padding: 18px 10px !important; }
-        .email-card { border-radius: 18px !important; }
-        .email-header,
-        .email-content,
-        .email-footer { padding-left: 20px !important; padding-right: 20px !important; }
-        .email-title { font-size: 24px !important; line-height: 1.2 !important; }
+      @media only screen and (max-width: 700px) {
+        .letter-card { max-width: 100% !important; }
+        .letter-header { padding: 22px 20px !important; }
+        .letter-main { padding: 26px 22px 18px !important; }
+        .letter-title { font-size: 24px !important; line-height: 1.05 !important; white-space:normal !important; }
+        .letter-meta { white-space:normal !important; }
+        .letter-logo-cell { width: 68px !important; }
+        .letter-logo { width: 60px !important; height: auto !important; }
       }
     </style>
   </head>
-  <body style="margin:0;padding:0;background:#f4f8fb;color:#102437;font-family:Arial,Helvetica,sans-serif;">
-    <div class="email-shell" style="padding:32px 16px;">
-      <div class="email-card" style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #d7e5f0;border-radius:24px;overflow:hidden;box-shadow:0 18px 48px rgba(10,26,42,0.12);">
-        <div class="email-header" style="background:linear-gradient(135deg,#0A1A2A 0%,#173a58 100%);padding:28px 32px 24px;color:#ffffff;">
-          <div style="font-size:12px;letter-spacing:1.8px;text-transform:uppercase;color:#d7e5f0;font-weight:700;margin-bottom:10px;">The Take Back Monthly</div>
-          <div class="email-title" style="font-size:30px;line-height:1.1;font-weight:700;margin:0 0 8px;">Burn, Break, Become Unstoppable</div>
-          <div style="font-size:14px;line-height:1.6;color:#d7e5f0;">Breaking Cycles. Building Legacies.</div>
+  <body style="margin:0;padding:0;background:#ffffff;color:#3d3d45;font-family:Arial,Helvetica,sans-serif;">
+    <div class="letter-card" style="max-width:760px;margin:0 auto;background:#ffffff;overflow:hidden;">
+      <div class="letter-header" style="border-bottom:4px solid #d0ad4b;background:#17182b;padding:24px 40px;color:#ffffff;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+          <tr>
+            <td class="letter-logo-cell" style="width:88px;vertical-align:top;padding-top:2px;">
+              <img class="letter-logo" src="https://www.b3unstoppable.net/images/logos/B3U3D.png" alt="B3U" width="76" style="display:block;width:76px;height:auto;border:0;outline:none;text-decoration:none;">
+            </td>
+            <td style="vertical-align:top;text-align:right;">
+              <h1 class="letter-title" style="margin:0;font-size:27px;line-height:1;font-weight:500;text-transform:uppercase;letter-spacing:0.03em;color:#ffffff;white-space:nowrap;">${escapeHtml(headerTitle)}</h1>
+              <p class="letter-meta" style="margin:10px 0 0;font-size:12px;line-height:1.4;font-weight:700;color:#d4a536;white-space:nowrap;">${escapeHtml(metaLine)}</p>
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="letter-main" style="background:#ffffff;padding:28px 52px 18px;color:#3d3d45;">
+        <p style="margin:0 0 32px;text-align:center;font-size:16px;line-height:1.5;color:#d4a536;">${escapeHtml(tagline)}</p>
+        <h2 style="margin:0;font-size:20px;line-height:1.2;font-weight:800;color:#17182b;">${escapeHtml(mainTitle)}</h2>
+        <div style="margin-top:8px;width:160px;height:1px;background:#c89b2d;"></div>
+        <div style="margin-top:24px;font-size:13px;line-height:1.5;letter-spacing:0.01em;color:#3d3d45;">
+          ${formatTakeBackWeeklySections(contentSections)}
         </div>
-        <div class="email-content" style="padding:32px;">
-          <div style="font-size:12px;letter-spacing:1.8px;text-transform:uppercase;color:#CC5500;font-weight:700;margin-bottom:10px;">Newsletter</div>
-          <div style="font-size:15px;line-height:1.8;color:#102437;">${formatNewsletterBody(bodyText)}</div>
-        </div>
-        <div class="email-footer" style="padding:20px 32px 28px;border-top:1px solid #e4edf4;background:#fbfdff;color:#5a7389;font-size:13px;line-height:1.7;">
-          You are receiving this email because you subscribed to B3U updates.<br>
-          B3U exists to help people burn away fear, break destructive cycles, and become unstoppable.
-        </div>
+      </div>
+
+      <div style="background:#17182b;padding:18px 32px;text-align:center;color:#ffffff;font-size:11px;line-height:1.6;font-weight:700;">
+        ${escapeHtml(footerLine)}
       </div>
     </div>
   </body>
 </html>`;
 }
 
-function formatNewsletterBody(bodyText: string) {
-  return escapeHtml(bodyText)
+function formatTakeBackWeeklySections(sections: string[]) {
+  const htmlSections: string[] = [];
+
+  for (let index = 0; index < sections.length; index += 1) {
+    const section = sections[index];
+    const lines = section.split('\n').map((line) => line.trim()).filter(Boolean);
+
+    if (!lines.length) {
+      continue;
+    }
+
+    if (isClosingLine(lines[0]) && sections[index + 1]?.trim() === 'Dr. Bree Charles') {
+      htmlSections.push(formatClosingSignature([section, ...sections.slice(index + 1, index + 5)]));
+      htmlSections.push(formatWeeklyContentBlocks(sections.slice(index + 5)));
+      return htmlSections.join('');
+    }
+
+    htmlSections.push(formatNewsletterBody(section));
+  }
+
+  return htmlSections.join('');
+}
+
+function formatWeeklyContentBlocks(sections: string[]) {
+  const blocks = sections.map((section) => section.trim()).filter(Boolean);
+
+  if (!blocks.length) {
+    return '';
+  }
+
+  const bottomEncouragement = blocks.pop() || '';
+  const htmlSections: string[] = [];
+  const featuredBlock = takeStructuredContentBlock(blocks, 3);
+  const bookBlock = takeStructuredContentBlock(blocks, 2);
+  const comingBlock = takeStructuredContentBlock(blocks, 1);
+  const affirmationBlock = takeStructuredContentBlock(blocks, 0);
+
+  if (featuredBlock) {
+    htmlSections.push(`${goldRule()}${formatStructuredBlock(featuredBlock, 'Featured Story')}`);
+  }
+
+  if (bookBlock) {
+    htmlSections.push(`${goldRule()}${formatStructuredBlock(bookBlock, 'Book Spotlight')}`);
+  }
+
+  if (comingBlock) {
+    htmlSections.push(`${goldRule()}${formatComingWeekStructuredBlock(comingBlock)}`);
+  }
+
+  if (affirmationBlock) {
+    htmlSections.push(`${goldRule()}${formatStructuredBlock(affirmationBlock, 'THIS WEEK’S AFFIRMATION', true)}`);
+  }
+
+  if (bottomEncouragement) {
+    htmlSections.push(`${goldRule()}${formatBottomEncouragement(bottomEncouragement)}`);
+  }
+
+  return htmlSections.join('');
+}
+
+function takeStructuredContentBlock(blocks: string[], remainingHeadingSlots: number) {
+  if (!blocks.length) {
+    return null;
+  }
+
+  const parts = [blocks.shift() as string];
+
+  while (blocks.length > remainingHeadingSlots && !looksLikeSectionStart(blocks[0])) {
+    parts.push(blocks.shift() as string);
+  }
+
+  return parts.join('\n\n');
+}
+
+function looksLikeSectionStart(section: string) {
+  const lines = section.split('\n').map((line) => line.trim()).filter(Boolean);
+  const firstLine = lines[0] || '';
+
+  if (isKnownBuilderHeading(firstLine)) {
+    return true;
+  }
+
+  if (lines.length < 2) {
+    return false;
+  }
+
+  return firstLine.length <= 160 && !/[.!?]$/.test(firstLine);
+}
+
+function formatStructuredBlock(section: string, fallbackHeading: string, isAffirmation = false) {
+  const { heading, body } = splitHeadingAndBody(section, fallbackHeading);
+  const resolved = isAffirmation ? { heading, body } : promoteLeadParagraphHeading(heading, body, fallbackHeading);
+  const bodyHtml = isAffirmation ? formatAffirmationBody(resolved.body) : formatNewsletterBody(resolved.body);
+
+  return `${sectionHeading(resolved.heading)}${bodyHtml}`;
+}
+
+function formatComingWeekStructuredBlock(section: string) {
+  const { heading, body } = splitHeadingAndBody(section, 'What’s Coming This Week');
+
+  return `${sectionHeading(heading)}${formatComingWeekBody(body)}`;
+}
+
+function splitHeadingAndBody(section: string, fallbackHeading: string) {
+  const lines = section.split('\n').map((line) => line.trim()).filter(Boolean);
+  const [firstLine, ...bodyLines] = lines;
+
+  if (!firstLine) {
+    return { heading: fallbackHeading, body: '' };
+  }
+
+  if (!bodyLines.length && !isKnownBuilderHeading(firstLine)) {
+    return { heading: fallbackHeading, body: section };
+  }
+
+  return {
+    heading: firstLine,
+    body: bodyLines.join('\n').trim(),
+  };
+}
+
+function promoteLeadParagraphHeading(heading: string, body: string, fallbackHeading: string) {
+  if (!isGenericSectionLabel(heading, fallbackHeading) || !body.trim()) {
+    return { heading, body };
+  }
+
+  const paragraphs = body
     .split(/\n{2,}/)
-    .map((paragraph) => `<p style="margin:0 0 16px;">${paragraph.replace(/\n/g, '<br>')}</p>`)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+  const [firstParagraph, ...rest] = paragraphs;
+
+  if (!firstParagraph || !looksLikePromotableHeading(firstParagraph)) {
+    return { heading, body };
+  }
+
+  return {
+    heading: collapseSoftLineBreaks(firstParagraph),
+    body: rest.join('\n\n'),
+  };
+}
+
+function isGenericSectionLabel(heading: string, fallbackHeading: string) {
+  const normalizedHeading = normalizeHeading(heading);
+  const normalizedFallback = normalizeHeading(fallbackHeading);
+
+  if (normalizedHeading !== normalizedFallback) {
+    return false;
+  }
+
+  return ['featured story', 'book spotlight'].includes(normalizedHeading);
+}
+
+function looksLikePromotableHeading(value: string) {
+  const collapsed = collapseSoftLineBreaks(value);
+
+  if (!collapsed || collapsed.length > 160) {
+    return false;
+  }
+
+  return !/[.!?]$/.test(collapsed);
+}
+
+function isKnownBuilderHeading(value: string) {
+  return [
+    'featured story',
+    'book spotlight',
+    'coming next week',
+    'whats coming next week',
+    'whats coming this week',
+    'this weeks affirmation',
+  ].includes(normalizeHeading(value));
+}
+
+function normalizeHeading(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[’']/g, '')
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ');
+}
+
+function isClosingLine(value: string) {
+  return /^with\s+/i.test(value.trim());
+}
+
+function formatClosingSignature(parts: string[]) {
+  const [closingLine, name, ...rest] = parts.map((part) => part.trim()).filter(Boolean);
+
+  return [
+    `<p style="margin:0 0 16px;">${escapeHtml(collapseSoftLineBreaks(closingLine || 'With gratitude,'))}</p>`,
+    `<p style="margin:0 0 16px;"><strong style="font-weight:800;color:#17182b;">${escapeHtml(collapseSoftLineBreaks(name || 'Dr. Bree Charles'))}</strong></p>`,
+    ...rest.map((part) => `<p style="margin:0 0 16px;">${escapeHtml(collapseSoftLineBreaks(part))}</p>`),
+  ].join('');
+}
+
+function goldRule() {
+  return '<div style="margin:32px 0;height:1px;width:100%;background:#d1aa45;line-height:1px;font-size:1px;">&nbsp;</div>';
+}
+
+function sectionHeading(value: string) {
+  return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr><td style="padding:0 0 8px;font-family:Arial,Helvetica,sans-serif;color:#17182b;font-size:22px;line-height:1.2;font-weight:800;mso-line-height-rule:exactly;"><h3 style="margin:0;font-family:Arial,Helvetica,sans-serif;font-size:22px;line-height:1.2;font-weight:800;color:#17182b;">${escapeHtml(value)}</h3></td></tr><tr><td style="padding:0;"><table role="presentation" width="208" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr><td style="height:1px;line-height:1px;font-size:1px;background:#c89b2d;">&nbsp;</td></tr></table></td></tr><tr><td style="padding:20px 0 0;line-height:0;font-size:0;">&nbsp;</td></tr></table>`;
+}
+
+function formatComingWeekBody(bodyText: string) {
+  const lines = bodyText.split('\n').map((line) => line.trim()).filter(Boolean);
+  const html: string[] = [];
+  let proseLines: string[] = [];
+
+  function flushProse() {
+    if (proseLines.length) {
+      html.push(`<p style="margin:0 0 16px;">${escapeHtml(proseLines.join(' '))}</p>`);
+      proseLines = [];
+    }
+  }
+
+  lines.forEach((line) => {
+    const dayMatch = line.match(/^([A-Za-z]+):\s*(.*)$/);
+
+    if (dayMatch) {
+      flushProse();
+      html.push(`<p style="margin:0 0 8px;"><strong style="font-weight:800;color:#17182b;">${escapeHtml(dayMatch[1])}:</strong> ${escapeHtml(collapseSoftLineBreaks(dayMatch[2] || ''))}</p>`);
+      return;
+    }
+
+    proseLines.push(line);
+  });
+
+  flushProse();
+  return html.join('');
+}
+
+function formatAffirmationBody(bodyText: string) {
+  if (!bodyText.trim()) {
+    return '';
+  }
+
+  return escapeHtml(collapseSoftLineBreaks(bodyText))
+    .split(/\n{2,}/)
+    .map((paragraph) => `<p style="margin:0 0 16px;text-align:center;font-style:italic;line-height:1.8;color:#c49124;"><em style="font-style:italic;color:#c49124;">${paragraph}</em></p>`)
     .join('');
+}
+
+function formatBottomEncouragement(bodyText: string) {
+  return `<p style="margin:26px 0 0;text-align:center;font-size:13px;line-height:1.6;color:#4a4a52;">${escapeHtml(collapseSoftLineBreaks(bodyText))}</p>`;
+}
+
+function formatNewsletterBody(bodyText: string) {
+  if (!bodyText.trim()) {
+    return '';
+  }
+
+  return bodyText
+    .split(/\n{2,}/)
+    .map((paragraph) => `<p style="margin:0 0 16px;">${escapeHtml(collapseSoftLineBreaks(paragraph))}</p>`)
+    .join('');
+}
+
+function collapseSoftLineBreaks(value: string) {
+  return value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .join(' ');
 }
 
 function escapeHtml(value: string) {
