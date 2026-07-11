@@ -317,26 +317,48 @@ function renderClosingBlock(closingLine: string) {
   );
 }
 
-function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft: WeeklyNewsletterDraft) {
+function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft: WeeklyNewsletterDraft, adminEmbed = false) {
   const comingWeekItems = getComingWeekItems(weeklyDraft);
   const featuredSection = resolvePreviewSection(weeklyDraft.featuredStoryTitle || 'Featured Story', weeklyDraft.featuredStoryBody, 'Featured Story');
   const bookSection = resolvePreviewSection(weeklyDraft.bookSpotlightTitle || 'Book Spotlight', weeklyDraft.bookSpotlightBody, 'Book Spotlight');
 
+  const outerClassName = adminEmbed
+    ? 'mx-auto w-full max-w-[760px] overflow-hidden bg-white ring-1 ring-black/5 sm:max-w-[1140px] sm:shadow-2xl'
+    : 'mx-auto max-w-[1140px] overflow-hidden bg-white shadow-2xl ring-1 ring-black/5';
+  const previewHeaderClassName = adminEmbed
+    ? 'border-b-[4px] border-[#d0ad4b] bg-[#17182b] px-5 py-6 text-white sm:px-[60px] sm:py-7'
+    : 'border-b-[4px] border-[#d0ad4b] bg-[#17182b] px-9 py-7 text-white sm:px-[60px]';
+  const previewHeaderGridClassName = adminEmbed
+    ? 'grid grid-cols-[74px_1fr] items-start gap-4 sm:grid-cols-[110px_1fr] sm:gap-8'
+    : 'grid grid-cols-[110px_1fr] items-start gap-8';
+  const previewLogoClassName = adminEmbed
+    ? 'h-[56px] w-[74px] object-contain sm:h-[68px] sm:w-[92px]'
+    : 'h-[68px] w-[92px] object-contain';
+  const previewTitleClassName = adminEmbed
+    ? 'text-[26px] font-medium uppercase leading-none tracking-[0.04em] sm:text-[42px]'
+    : 'text-[34px] font-medium uppercase leading-none tracking-[0.04em] sm:text-[42px]';
+  const previewMainClassName = adminEmbed
+    ? 'bg-white px-6 py-7 text-[#3d3d45] sm:px-[78px] sm:py-8'
+    : 'bg-white px-14 py-8 text-[#3d3d45] sm:px-[78px]';
+  const previewFooterClassName = adminEmbed
+    ? 'bg-[#17182b] px-6 py-4 text-center text-[12px] font-semibold leading-5 text-white sm:px-[60px] sm:py-5'
+    : 'bg-[#17182b] px-8 py-5 text-center text-[12px] font-semibold leading-5 text-white sm:px-[60px]';
+
   return (
-    <div className="mx-auto max-w-[1140px] overflow-hidden bg-white shadow-2xl ring-1 ring-black/5">
-      <header className="border-b-[4px] border-[#d0ad4b] bg-[#17182b] px-9 py-7 text-white sm:px-[60px]">
-        <div className="grid grid-cols-[110px_1fr] items-start gap-8">
+    <div className={outerClassName}>
+      <header className={previewHeaderClassName}>
+        <div className={previewHeaderGridClassName}>
           <div className="pt-1">
             <Image
               src="/images/logos/B3U3D.png"
               alt="B3U logo"
               width={92}
               height={92}
-              className="h-[68px] w-[92px] object-contain"
+              className={previewLogoClassName}
             />
           </div>
           <div className="text-right">
-            <h2 className="text-[34px] font-medium uppercase leading-none tracking-[0.04em] sm:text-[42px]">{templateDraft.headline}</h2>
+            <h2 className={previewTitleClassName}>{templateDraft.headline}</h2>
             <p className="mt-4 text-[14px] font-semibold text-[#d4a536]">
               {templateDraft.byline} <span className="text-white/70">|</span> {getTemplateDate(templateDraft)}
             </p>
@@ -344,7 +366,7 @@ function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft
         </div>
       </header>
 
-      <main className="bg-white px-14 py-8 text-[#3d3d45] sm:px-[78px]">
+      <main className={previewMainClassName}>
         <p className="mb-10 text-center text-[18px] leading-7 text-[#d4a536]">{templateDraft.tagline}</p>
 
         <SectionHeading stepLabel="01. Opening letter">{weeklyDraft.mainTitle}</SectionHeading>
@@ -391,7 +413,7 @@ function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft
         </div>
       </main>
 
-      <footer className="bg-[#17182b] px-8 py-5 text-center text-[12px] font-semibold leading-5 text-white sm:px-[60px]">
+      <footer className={previewFooterClassName}>
         <p>{templateDraft.footerTagline}</p>
       </footer>
     </div>
@@ -400,6 +422,8 @@ function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft
 
 export default function NewsletterBuilder() {
   const router = useRouter();
+  const embedMode = router.query.embed;
+  const isAdminEmbed = embedMode === 'admin' || (Array.isArray(embedMode) && embedMode.includes('admin'));
   const [templateDraft, setTemplateDraft] = useState<NewsletterTemplateDraft>(defaultTemplate);
   const [weeklyDraft, setWeeklyDraft] = useState<WeeklyNewsletterDraft>(defaultWeekly);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
@@ -653,9 +677,9 @@ export default function NewsletterBuilder() {
   const comingWeekItems = getComingWeekItems(weeklyDraft);
 
   return (
-    <main className="min-h-screen bg-slate-100 px-6 py-6 text-slate-950 sm:px-8 lg:px-12">
+    <main className={`min-h-screen bg-slate-100 py-6 text-slate-950 sm:px-8 lg:px-12 ${isAdminEmbed ? 'px-9' : 'px-6'}`}>
       <div className="mx-auto max-w-[1800px] space-y-5">
-        <div className="rounded-3xl bg-slate-950 px-5 py-4 text-white shadow-sm sm:px-6">
+        <div className={`rounded-3xl bg-slate-950 px-5 text-white shadow-sm sm:px-6 ${isAdminEmbed ? 'py-3 sm:py-4' : 'py-4'}`}>
           <div className="grid gap-4 lg:grid-cols-[minmax(260px,1fr)_minmax(500px,auto)] lg:items-center">
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-orange-200">B3U Admin</p>
@@ -664,7 +688,7 @@ export default function NewsletterBuilder() {
             </div>
 
             <div className="w-full max-w-[680px] justify-self-end rounded-2xl border border-white/10 bg-white/10 p-3 shadow-inner">
-              <div className="grid grid-cols-2 gap-2">
+              <div className={`grid gap-2 ${isAdminEmbed ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'}`}>
                 <label className="block min-w-0">
                   <span className="sr-only">Send date and time</span>
                   <input
@@ -944,9 +968,15 @@ export default function NewsletterBuilder() {
 
           <section className="min-w-0 2xl:sticky 2xl:top-6 2xl:self-start">
             <h2 className="text-xl font-semibold text-gray-900">Letter Preview</h2>
-            <div className="mt-5 overflow-hidden rounded-[2rem] border border-[#d7e5f0] bg-slate-100 p-3 sm:p-4 shadow-sm">
-              {renderLetterPreview(templateDraft, weeklyDraft)}
-            </div>
+            {isAdminEmbed ? (
+              <div className="mt-5 sm:overflow-hidden sm:rounded-[2rem] sm:border sm:border-[#d7e5f0] sm:bg-slate-100 sm:p-4 sm:shadow-sm">
+                {renderLetterPreview(templateDraft, weeklyDraft, true)}
+              </div>
+            ) : (
+              <div className="mt-5 overflow-hidden rounded-[2rem] border border-[#d7e5f0] bg-slate-100 p-3 sm:p-4 shadow-sm">
+                {renderLetterPreview(templateDraft, weeklyDraft)}
+              </div>
+            )}
           </section>
         </div>
       </div>
