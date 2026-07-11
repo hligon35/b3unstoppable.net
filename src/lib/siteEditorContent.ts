@@ -9,8 +9,12 @@ import {
 } from './eventGalleryContent';
 import {
   SITE_EDITOR_STORAGE_KEY,
+  clearSavedUploadedSiteImages,
   defaultSiteImageSelections,
+  hydrateSiteImageSelectionsFromLocalStorage,
   mergeSiteImageSelections,
+  serializeSiteImageSelectionsForLocalStorage,
+  type SiteImageField,
   type SiteImageSelections,
 } from './siteEditorImages';
 
@@ -226,7 +230,7 @@ export function mergeSiteDraft(value: unknown): SiteDraft {
   };
 }
 
-export function readSavedSiteEditorDraft() {
+export async function readSavedSiteEditorDraft() {
   if (typeof window === 'undefined') {
     return null;
   }
@@ -239,8 +243,14 @@ export function readSavedSiteEditorDraft() {
     }
 
     const parsed = JSON.parse(rawDraft) as { draft?: unknown; savedAt?: string };
+    const savedDraft = parsed.draft && typeof parsed.draft === 'object' ? (parsed.draft as Partial<Record<keyof SiteDraft, unknown>>) : {};
+    const hydratedImages = await hydrateSiteImageSelectionsFromLocalStorage(savedDraft as Partial<Record<SiteImageField, unknown>>);
+
     return {
-      draft: mergeSiteDraft(parsed.draft),
+      draft: mergeSiteDraft({
+        ...savedDraft,
+        ...hydratedImages,
+      }),
       savedAt: typeof parsed.savedAt === 'string' ? parsed.savedAt : null,
     };
   } catch {
@@ -248,12 +258,40 @@ export function readSavedSiteEditorDraft() {
   }
 }
 
-export function saveSiteEditorDraftLocally(draft: SiteDraft, savedAt: string) {
+export async function saveSiteEditorDraftLocally(draft: SiteDraft, savedAt: string) {
+  if (typeof window === 'undefined') {
+    return { persisted: false, skippedUploadedImages: false };
+  }
+
+  try {
+    const { selections, skippedUploadedImages } = await serializeSiteImageSelectionsForLocalStorage(draft);
+
+    window.localStorage.setItem(SITE_EDITOR_STORAGE_KEY, JSON.stringify({
+      draft: {
+        ...draft,
+        ...selections,
+      },
+      savedAt,
+    }));
+
+    return { persisted: true, skippedUploadedImages };
+  } catch {
+    return { persisted: false, skippedUploadedImages: false };
+  }
+}
+
+export async function clearSavedSiteEditorDraft() {
   if (typeof window === 'undefined') {
     return;
   }
 
-  window.localStorage.setItem(SITE_EDITOR_STORAGE_KEY, JSON.stringify({ draft, savedAt }));
+  try {
+    window.localStorage.removeItem(SITE_EDITOR_STORAGE_KEY);
+  } catch {
+    // Best-effort cleanup only.
+  }
+
+  await clearSavedUploadedSiteImages();
 }
 
 export function usePublishedSiteDraft(options: UsePublishedSiteDraftOptions = {}) {
@@ -261,25 +299,27 @@ export function usePublishedSiteDraft(options: UsePublishedSiteDraftOptions = {}
   const [updatedAt, setUpdatedAt] = useState<string | null>(options.initialUpdatedAt ?? null);
 
   useEffect(() => {
-    if (options.preferLocalDraft !== false) {
-      const savedDraft = readSavedSiteEditorDraft();
-
-      if (savedDraft) {
-        setDraft(savedDraft.draft);
-        setUpdatedAt(savedDraft.savedAt);
-        return;
-      }
-    }
-
-    if (options.initialDraft) {
-      setDraft(options.initialDraft);
-      setUpdatedAt(options.initialUpdatedAt ?? null);
-      return;
-    }
-
     let cancelled = false;
 
-    async function loadPublishedDraft() {
+    async function initializeDraft() {
+      if (options.preferLocalDraft !== false) {
+        const savedDraft = await readSavedSiteEditorDraft();
+
+        if (!cancelled && savedDraft) {
+          setDraft(savedDraft.draft);
+          setUpdatedAt(savedDraft.savedAt);
+          return;
+        }
+      }
+
+      if (options.initialDraft) {
+        if (!cancelled) {
+          setDraft(options.initialDraft);
+          setUpdatedAt(options.initialUpdatedAt ?? null);
+        }
+        return;
+      }
+
       try {
         const response = await fetch('/api/site-content');
         if (!response.ok) {
@@ -296,7 +336,7 @@ export function usePublishedSiteDraft(options: UsePublishedSiteDraftOptions = {}
       }
     }
 
-    void loadPublishedDraft();
+    void initializeDraft();
 
     return () => {
       cancelled = true;

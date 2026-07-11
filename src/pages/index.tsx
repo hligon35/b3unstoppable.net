@@ -140,7 +140,7 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
                 alt={img.alt}
                 width={800}
                 height={800}
-                className={`w-full aspect-square rounded-3xl object-cover ${i === 2 ? 'object-top' : 'object-center'}`}
+                className="w-full aspect-square rounded-3xl object-cover object-center"
                 sizes="(max-width: 768px) 50vw, 25vw"
               />
             ))}

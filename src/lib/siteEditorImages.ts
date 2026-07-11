@@ -41,6 +41,12 @@ export type UploadedSiteImageSelection = {
   fileName: string;
 };
 
+type PersistedUploadedSiteImageSelection = {
+  kind: 'uploaded';
+  fileName: string;
+  storageKey: string;
+};
+
 export type SiteImageSelectionValue = SiteImageOptionId | UploadedSiteImageSelection;
 export type SiteImageSelections = Record<SiteImageField, SiteImageSelectionValue>;
 
@@ -101,6 +107,114 @@ export const siteImageFieldMeta: Record<SiteImageField, { label: string; descrip
   shopBookImage: { label: 'Shop Book Cover', description: 'Primary book image used across the Shop page.' },
 };
 
+const SITE_EDITOR_IMAGE_DB_NAME = 'b3u-site-editor';
+const SITE_EDITOR_IMAGE_DB_VERSION = 1;
+const SITE_EDITOR_IMAGE_STORE_NAME = 'uploaded-images';
+
+function buildUploadedSiteImageStorageKey(field: SiteImageField) {
+  return `uploaded-site-image:${field}`;
+}
+
+function isPersistedUploadedSiteImageSelection(value: unknown): value is PersistedUploadedSiteImageSelection {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const candidate = value as Partial<PersistedUploadedSiteImageSelection>;
+  return candidate.kind === 'uploaded' && typeof candidate.fileName === 'string' && typeof candidate.storageKey === 'string';
+}
+
+async function openSiteEditorImageDatabase() {
+  if (typeof window === 'undefined' || typeof window.indexedDB === 'undefined') {
+    return null;
+  }
+
+  return new Promise<IDBDatabase>((resolve, reject) => {
+    const request = window.indexedDB.open(SITE_EDITOR_IMAGE_DB_NAME, SITE_EDITOR_IMAGE_DB_VERSION);
+
+    request.onupgradeneeded = () => {
+      const database = request.result;
+
+      if (!database.objectStoreNames.contains(SITE_EDITOR_IMAGE_STORE_NAME)) {
+        database.createObjectStore(SITE_EDITOR_IMAGE_STORE_NAME, { keyPath: 'key' });
+      }
+    };
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error ?? new Error('Failed to open uploaded image storage.'));
+  });
+}
+
+async function writeUploadedSiteImage(storageKey: string, dataUrl: string) {
+  const database = await openSiteEditorImageDatabase();
+
+  if (!database) {
+    return false;
+  }
+
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(SITE_EDITOR_IMAGE_STORE_NAME, 'readwrite');
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error ?? new Error('Failed to store uploaded image.'));
+      transaction.objectStore(SITE_EDITOR_IMAGE_STORE_NAME).put({ key: storageKey, dataUrl });
+    });
+
+    return true;
+  } catch {
+    return false;
+  } finally {
+    database.close();
+  }
+}
+
+async function readUploadedSiteImage(storageKey: string) {
+  const database = await openSiteEditorImageDatabase();
+
+  if (!database) {
+    return null;
+  }
+
+  try {
+    return await new Promise<string | null>((resolve, reject) => {
+      const transaction = database.transaction(SITE_EDITOR_IMAGE_STORE_NAME, 'readonly');
+      const request = transaction.objectStore(SITE_EDITOR_IMAGE_STORE_NAME).get(storageKey);
+
+      request.onsuccess = () => {
+        const result = request.result as { dataUrl?: unknown } | undefined;
+        resolve(typeof result?.dataUrl === 'string' ? result.dataUrl : null);
+      };
+
+      request.onerror = () => reject(request.error ?? new Error('Failed to read uploaded image.'));
+    });
+  } catch {
+    return null;
+  } finally {
+    database.close();
+  }
+}
+
+async function deleteUploadedSiteImage(storageKey: string) {
+  const database = await openSiteEditorImageDatabase();
+
+  if (!database) {
+    return;
+  }
+
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(SITE_EDITOR_IMAGE_STORE_NAME, 'readwrite');
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error ?? new Error('Failed to delete uploaded image.'));
+      transaction.objectStore(SITE_EDITOR_IMAGE_STORE_NAME).delete(storageKey);
+    });
+  } catch {
+    // Best-effort cleanup only.
+  } finally {
+    database.close();
+  }
+}
+
 function isValidSiteImageOptionId(value: unknown): value is SiteImageOptionId {
   return typeof value === 'string' && value in siteImageOptionsById;
 }
@@ -112,6 +226,77 @@ function isUploadedSiteImageSelection(value: unknown): value is UploadedSiteImag
 
   const candidate = value as Partial<UploadedSiteImageSelection>;
   return candidate.kind === 'uploaded' && typeof candidate.dataUrl === 'string' && typeof candidate.fileName === 'string';
+}
+
+export async function serializeSiteImageSelectionsForLocalStorage(partialSelections?: Partial<Record<SiteImageField, unknown>>) {
+  const selections = {} as Partial<Record<SiteImageField, SiteImageOptionId | PersistedUploadedSiteImageSelection>>;
+  let skippedUploadedImages = false;
+
+  for (const [field, fallbackId] of Object.entries(defaultSiteImageSelections)) {
+    const nextField = field as SiteImageField;
+    const nextValue = partialSelections?.[nextField];
+    const storageKey = buildUploadedSiteImageStorageKey(nextField);
+
+    if (isUploadedSiteImageSelection(nextValue)) {
+      const stored = await writeUploadedSiteImage(storageKey, nextValue.dataUrl);
+
+      if (stored) {
+        selections[nextField] = {
+          kind: 'uploaded',
+          fileName: nextValue.fileName,
+          storageKey,
+        };
+      } else {
+        selections[nextField] = fallbackId;
+        skippedUploadedImages = true;
+      }
+
+      continue;
+    }
+
+    selections[nextField] = isValidSiteImageOptionId(nextValue) ? nextValue : fallbackId;
+    await deleteUploadedSiteImage(storageKey);
+  }
+
+  return { selections, skippedUploadedImages };
+}
+
+export async function hydrateSiteImageSelectionsFromLocalStorage(partialSelections?: Partial<Record<SiteImageField, unknown>>) {
+  const selections = { ...defaultSiteImageSelections } as SiteImageSelections;
+
+  for (const [field, fallbackId] of Object.entries(defaultSiteImageSelections)) {
+    const nextField = field as SiteImageField;
+    const nextValue = partialSelections?.[nextField];
+
+    if (isValidSiteImageOptionId(nextValue) || isUploadedSiteImageSelection(nextValue)) {
+      selections[nextField] = nextValue;
+      continue;
+    }
+
+    if (isPersistedUploadedSiteImageSelection(nextValue)) {
+      const dataUrl = await readUploadedSiteImage(nextValue.storageKey);
+
+      selections[nextField] = dataUrl
+        ? {
+            kind: 'uploaded',
+            dataUrl,
+            fileName: nextValue.fileName,
+          }
+        : fallbackId;
+
+      continue;
+    }
+
+    selections[nextField] = fallbackId;
+  }
+
+  return selections;
+}
+
+export async function clearSavedUploadedSiteImages() {
+  await Promise.all(
+    (Object.keys(defaultSiteImageSelections) as SiteImageField[]).map((field) => deleteUploadedSiteImage(buildUploadedSiteImageStorageKey(field))),
+  );
 }
 
 export function resolveSiteImage(imageValue: unknown, fallbackId?: SiteImageOptionId) {
@@ -141,7 +326,7 @@ export function mergeSiteImageSelections(partialSelections?: Partial<Record<Site
   }, { ...defaultSiteImageSelections } as SiteImageSelections);
 }
 
-export function readSavedSiteImageSelections() {
+export async function readSavedSiteImageSelections() {
   if (typeof window === 'undefined') {
     return defaultSiteImageSelections;
   }
@@ -154,7 +339,7 @@ export function readSavedSiteImageSelections() {
     }
 
     const parsed = JSON.parse(rawDraft) as { draft?: Partial<Record<SiteImageField, unknown>> };
-    return mergeSiteImageSelections(parsed.draft);
+    return hydrateSiteImageSelectionsFromLocalStorage(parsed.draft);
   } catch {
     return defaultSiteImageSelections;
   }
@@ -164,14 +349,25 @@ export function useSavedSiteImageSelections() {
   const [selections, setSelections] = useState<SiteImageSelections>(defaultSiteImageSelections);
 
   useEffect(() => {
-    setSelections(readSavedSiteImageSelections());
+    let cancelled = false;
+
+    async function loadSelections() {
+      const nextSelections = await readSavedSiteImageSelections();
+
+      if (!cancelled) {
+        setSelections(nextSelections);
+      }
+    }
+
+    void loadSelections();
 
     const handleStorage = () => {
-      setSelections(readSavedSiteImageSelections());
+      void loadSelections();
     };
 
     window.addEventListener('storage', handleStorage);
     return () => {
+      cancelled = true;
       window.removeEventListener('storage', handleStorage);
     };
   }, []);
