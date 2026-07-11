@@ -1,6 +1,6 @@
 import type { GetServerSideProps } from 'next';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
 import { hasAdminSession } from '../lib/adminAuth';
@@ -18,6 +18,12 @@ export default function Login({ csrfToken }: LoginPageProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const redirectTarget = typeof router.query.redirect === 'string' ? router.query.redirect : '/admin';
+
+  useEffect(() => {
+    if (typeof router.query.error === 'string') {
+      setError(router.query.error);
+    }
+  }, [router.query.error]);
 
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -62,11 +68,31 @@ export default function Login({ csrfToken }: LoginPageProps) {
     setIsSubmitting(false);
   }
 
+  function handleGoogleLogin() {
+    const params = new URLSearchParams({ redirect: redirectTarget });
+    window.location.href = `/api/auth/google/start?${params.toString()}`;
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-brandBlue-light/20 px-4">
       <form onSubmit={handleLogin} className="w-full max-w-sm rounded-3xl border border-brandBlue-light/30 bg-white p-8 shadow-xl shadow-brandBlue/10">
         <h1 className="mb-2 text-2xl font-bold text-navy">Admin Login</h1>
-        <p className="mb-6 text-sm text-navy/70">Use the configured admin credentials to access the internal dashboard.</p>
+        <p className="mb-6 text-sm text-navy/70">Sign in with Google if your email is approved, or use the configured admin credentials.</p>
+
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          className="mb-5 flex w-full items-center justify-center gap-3 rounded-xl border border-brandBlue-light/40 bg-white px-4 py-2.5 font-medium text-navy shadow-sm transition hover:border-brandBlue hover:bg-brandBlue-light/10"
+        >
+          <span className="flex h-5 w-5 items-center justify-center rounded-full border border-gray-300 text-xs font-bold text-brandBlue">G</span>
+          Continue with Google
+        </button>
+
+        <div className="mb-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-navy/40">
+          <span className="h-px flex-1 bg-brandBlue-light/40" />
+          <span>Password Login</span>
+          <span className="h-px flex-1 bg-brandBlue-light/40" />
+        </div>
 
         <label className="mb-4 block">
           <span className="mb-2 block text-sm font-medium text-navy/80">Username</span>
@@ -76,7 +102,6 @@ export default function Login({ csrfToken }: LoginPageProps) {
             value={username}
             onChange={(event) => setUsername(event.target.value)}
             autoComplete="username"
-            required
           />
         </label>
 
@@ -89,7 +114,6 @@ export default function Login({ csrfToken }: LoginPageProps) {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               autoComplete="current-password"
-              required
             />
             <button
               type="button"
