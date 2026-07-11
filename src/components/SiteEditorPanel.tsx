@@ -797,11 +797,11 @@ export default function SiteEditorPanel() {
                   <h2 className="text-lg font-semibold text-gray-900">Events Panel</h2>
                   <p className="mt-2 text-sm text-gray-600">Switch between the page-level copy and the event card editor from the same panel.</p>
                 </div>
-                <div className="grid w-full grid-cols-2 gap-2 rounded-xl bg-white p-1 shadow-sm sm:w-auto">
+                <div className="grid w-full min-w-0 grid-cols-2 gap-2 rounded-xl bg-white p-1 shadow-sm sm:w-auto">
                   <button
                     type="button"
                     onClick={() => setActiveEventsPanelTab('page')}
-                    className={`rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap transition ${
+                    className={`min-w-0 rounded-lg px-3 py-2 text-center text-sm font-medium leading-tight transition ${
                       activeEventsPanelTab === 'page' ? 'bg-slate-950 text-white' : 'text-slate-600 hover:text-slate-950'
                     }`}
                   >
@@ -810,7 +810,7 @@ export default function SiteEditorPanel() {
                   <button
                     type="button"
                     onClick={() => setActiveEventsPanelTab('cards')}
-                    className={`rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap transition ${
+                    className={`min-w-0 rounded-lg px-3 py-2 text-center text-sm font-medium leading-tight transition ${
                       activeEventsPanelTab === 'cards' ? 'bg-slate-950 text-white' : 'text-slate-600 hover:text-slate-950'
                     }`}
                   >
@@ -891,7 +891,7 @@ export default function SiteEditorPanel() {
                             isExpanded ? 'rounded-2xl pb-4 pt-4' : 'min-h-[64px] cursor-pointer'
                           } ${stackedCardZIndex(index, isExpanded)}`}
                         >
-                          <div className="flex items-center justify-between gap-3">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
                             <button
                               type="button"
                               onClick={() => {
@@ -902,14 +902,14 @@ export default function SiteEditorPanel() {
                               }}
                               className="min-w-0 flex-1 text-left"
                             >
-                              <div className="flex items-center gap-3">
-                                <span className="text-base font-semibold text-gray-900">{card.title || `Card ${index + 1}`}</span>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="break-words text-base font-semibold text-gray-900">{card.title || `Card ${index + 1}`}</span>
                                 {isSelected ? <span className="rounded-full bg-slate-950 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white">Live</span> : null}
                               </div>
                               {isExpanded ? <p className="mt-1 text-xs text-gray-500">Viewer linked. Collapse this card to condense the stack.</p> : null}
                             </button>
 
-                            <div className="flex items-center gap-2">
+                            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
                               {isExpanded ? (
                                 <button
                                   type="button"
@@ -1532,6 +1532,228 @@ export default function SiteEditorPanel() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-lg font-semibold text-gray-900">About Section</h2>
               <p className="text-sm text-gray-600">These fields map to the homepage about block. The image collage remains layout-owned for now.</p>
+            </div>
+
+            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-base font-semibold text-gray-900">Homepage Banner</h3>
+                  <p className="mt-1 text-sm text-gray-600">Edit the hero copy, CTA labels, and support card text shown at the top of the homepage.</p>
+                </div>
+              </div>
+
+              <div className="mt-5 grid gap-4 lg:grid-cols-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Heading Lead
+                  <textarea
+                    value={draft.homeHeroHeadingLead}
+                    onChange={(event) => updateDraft('homeHeroHeadingLead', event.target.value)}
+                    rows={3}
+                    className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-slate-950"
+                  />
+                </label>
+
+                <label className="block text-sm font-medium text-gray-700">
+                  Heading Highlight
+                  <textarea
+                    value={draft.homeHeroHeadingHighlight}
+                    onChange={(event) => updateDraft('homeHeroHeadingHighlight', event.target.value)}
+                    rows={3}
+                    className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-slate-950"
+                  />
+                </label>
+
+                <label className="block text-sm font-medium text-gray-700">
+                  Subheading
+                  <textarea
+                    value={draft.homeHeroSubheading}
+                    onChange={(event) => updateDraft('homeHeroSubheading', event.target.value)}
+                    rows={3}
+                    className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-slate-950"
+                  />
+                </label>
+
+                <label className="block text-sm font-medium text-gray-700">
+                  Tagline
+                  <input
+                    type="text"
+                    value={draft.homeHeroTagline}
+                    onChange={(event) => updateDraft('homeHeroTagline', event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-slate-950"
+                  />
+                </label>
+              </div>
+
+              <div className="mt-4 grid gap-4 lg:grid-cols-4">
+                <label className="block text-sm font-medium text-gray-700">
+                  Primary CTA Label
+                  <input
+                    type="text"
+                    value={draft.homeHeroPrimaryCtaLabel}
+                    onChange={(event) => updateDraft('homeHeroPrimaryCtaLabel', event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-slate-950"
+                  />
+                </label>
+
+                <label className="block text-sm font-medium text-gray-700">
+                  Primary CTA URL
+                  <input
+                    type="text"
+                    value={draft.homeHeroPrimaryCtaHref}
+                    onChange={(event) => updateDraft('homeHeroPrimaryCtaHref', event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-slate-950"
+                  />
+                </label>
+
+                <label className="block text-sm font-medium text-gray-700">
+                  Secondary CTA Label
+                  <input
+                    type="text"
+                    value={draft.homeHeroSecondaryCtaLabel}
+                    onChange={(event) => updateDraft('homeHeroSecondaryCtaLabel', event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-slate-950"
+                  />
+                </label>
+
+                <label className="block text-sm font-medium text-gray-700">
+                  Secondary CTA URL
+                  <input
+                    type="text"
+                    value={draft.homeHeroSecondaryCtaHref}
+                    onChange={(event) => updateDraft('homeHeroSecondaryCtaHref', event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-slate-950"
+                  />
+                </label>
+              </div>
+
+              <div className="mt-4 grid gap-4 lg:grid-cols-4">
+                <label className="block text-sm font-medium text-gray-700 lg:col-span-2">
+                  Booking Text Before Link
+                  <textarea
+                    value={draft.homeHeroBookingTextBeforeLink}
+                    onChange={(event) => updateDraft('homeHeroBookingTextBeforeLink', event.target.value)}
+                    rows={3}
+                    className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-slate-950"
+                  />
+                </label>
+
+                <label className="block text-sm font-medium text-gray-700">
+                  Booking Link Label
+                  <input
+                    type="text"
+                    value={draft.homeHeroBookingLinkLabel}
+                    onChange={(event) => updateDraft('homeHeroBookingLinkLabel', event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-slate-950"
+                  />
+                </label>
+
+                <label className="block text-sm font-medium text-gray-700">
+                  Booking Link URL
+                  <input
+                    type="text"
+                    value={draft.homeHeroBookingLinkHref}
+                    onChange={(event) => updateDraft('homeHeroBookingLinkHref', event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-slate-950"
+                  />
+                </label>
+
+                <label className="block text-sm font-medium text-gray-700 lg:col-span-2">
+                  Booking Text After Link
+                  <input
+                    type="text"
+                    value={draft.homeHeroBookingTextAfterLink}
+                    onChange={(event) => updateDraft('homeHeroBookingTextAfterLink', event.target.value)}
+                    className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-slate-950"
+                  />
+                </label>
+              </div>
+
+              <div className="mt-4 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                <h4 className="text-sm font-semibold text-gray-900">Support Card</h4>
+                <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Eyebrow
+                    <input
+                      type="text"
+                      value={draft.homeHeroPromoEyebrow}
+                      onChange={(event) => updateDraft('homeHeroPromoEyebrow', event.target.value)}
+                      className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-slate-950"
+                    />
+                  </label>
+
+                  <label className="block text-sm font-medium text-gray-700">
+                    Title
+                    <input
+                      type="text"
+                      value={draft.homeHeroPromoTitle}
+                      onChange={(event) => updateDraft('homeHeroPromoTitle', event.target.value)}
+                      className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-slate-950"
+                    />
+                  </label>
+
+                  <label className="block text-sm font-medium text-gray-700 lg:col-span-2">
+                    Description
+                    <textarea
+                      value={draft.homeHeroPromoDescription}
+                      onChange={(event) => updateDraft('homeHeroPromoDescription', event.target.value)}
+                      rows={3}
+                      className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-slate-950"
+                    />
+                  </label>
+                </div>
+
+                <div className="mt-4 grid gap-4 lg:grid-cols-4">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Primary Card CTA Label
+                    <input
+                      type="text"
+                      value={draft.homeHeroPromoPrimaryCtaLabel}
+                      onChange={(event) => updateDraft('homeHeroPromoPrimaryCtaLabel', event.target.value)}
+                      className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-slate-950"
+                    />
+                  </label>
+
+                  <label className="block text-sm font-medium text-gray-700">
+                    Primary Card CTA URL
+                    <input
+                      type="text"
+                      value={draft.homeHeroPromoPrimaryCtaHref}
+                      onChange={(event) => updateDraft('homeHeroPromoPrimaryCtaHref', event.target.value)}
+                      className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-slate-950"
+                    />
+                  </label>
+
+                  <label className="block text-sm font-medium text-gray-700">
+                    Secondary Card CTA Label
+                    <input
+                      type="text"
+                      value={draft.homeHeroPromoSecondaryCtaLabel}
+                      onChange={(event) => updateDraft('homeHeroPromoSecondaryCtaLabel', event.target.value)}
+                      className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-slate-950"
+                    />
+                  </label>
+
+                  <label className="block text-sm font-medium text-gray-700">
+                    Secondary Card CTA URL
+                    <input
+                      type="text"
+                      value={draft.homeHeroPromoSecondaryCtaHref}
+                      onChange={(event) => updateDraft('homeHeroPromoSecondaryCtaHref', event.target.value)}
+                      className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-slate-950"
+                    />
+                  </label>
+                </div>
+
+                <label className="mt-4 block text-sm font-medium text-gray-700">
+                  Footnote
+                  <textarea
+                    value={draft.homeHeroPromoFootnote}
+                    onChange={(event) => updateDraft('homeHeroPromoFootnote', event.target.value)}
+                    rows={3}
+                    className="mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-slate-950"
+                  />
+                </label>
+              </div>
             </div>
 
             <div className="grid gap-4 lg:grid-cols-4">

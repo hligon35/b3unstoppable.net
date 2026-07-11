@@ -35,6 +35,26 @@ export type SiteDraft = SiteImageSelections & {
   brandOrangeDark: string;
   brandOrangeLight: string;
   navy: string;
+  homeHeroHeadingLead: string;
+  homeHeroHeadingHighlight: string;
+  homeHeroSubheading: string;
+  homeHeroTagline: string;
+  homeHeroPrimaryCtaLabel: string;
+  homeHeroPrimaryCtaHref: string;
+  homeHeroSecondaryCtaLabel: string;
+  homeHeroSecondaryCtaHref: string;
+  homeHeroBookingTextBeforeLink: string;
+  homeHeroBookingLinkLabel: string;
+  homeHeroBookingLinkHref: string;
+  homeHeroBookingTextAfterLink: string;
+  homeHeroPromoEyebrow: string;
+  homeHeroPromoTitle: string;
+  homeHeroPromoDescription: string;
+  homeHeroPromoPrimaryCtaLabel: string;
+  homeHeroPromoPrimaryCtaHref: string;
+  homeHeroPromoSecondaryCtaLabel: string;
+  homeHeroPromoSecondaryCtaHref: string;
+  homeHeroPromoFootnote: string;
   aboutHeading: string;
   aboutParagraphOne: string;
   aboutParagraphTwo: string;
@@ -82,6 +102,26 @@ export const defaultSiteDraft: SiteDraft = {
   brandOrangeDark: '#A64400',
   brandOrangeLight: '#E6762A',
   navy: '#0A1A2A',
+  homeHeroHeadingLead: "You don't have to stay where life left you -",
+  homeHeroHeadingHighlight: 'you can rise, rebuild, and become unstoppable.',
+  homeHeroSubheading: 'Transformational Speaker | Author | U.S. Army Veteran | Creator of the B3U Podcast',
+  homeHeroTagline: 'Breaking Cycles. Building Legacies.',
+  homeHeroPrimaryCtaLabel: 'Listen to The B3U Podcast',
+  homeHeroPrimaryCtaHref: '/podcast',
+  homeHeroSecondaryCtaLabel: 'Book Bree for Your Event',
+  homeHeroSecondaryCtaHref: '/contact',
+  homeHeroBookingTextBeforeLink: 'Dr. Bree Charles is now available for speaking engagements, workshops, and events.',
+  homeHeroBookingLinkLabel: 'Inquire about booking',
+  homeHeroBookingLinkHref: '/contact',
+  homeHeroBookingTextAfterLink: ' today!',
+  homeHeroPromoEyebrow: 'Stay connected',
+  homeHeroPromoTitle: 'New B3U experiences are on the way.',
+  homeHeroPromoDescription: 'Join The Take Back Monthly for first access to speaking dates, community gatherings, fresh podcast drops, and new release news.',
+  homeHeroPromoPrimaryCtaLabel: 'Subscribe for Updates',
+  homeHeroPromoPrimaryCtaHref: '/#newsletter',
+  homeHeroPromoSecondaryCtaLabel: 'Explore the Book',
+  homeHeroPromoSecondaryCtaHref: '/shop',
+  homeHeroPromoFootnote: "Watch this space for the next B3U live experience and keep the momentum going with Bree's latest book and weekly updates.",
   aboutHeading: 'About Dr. Bree Charles',
   aboutParagraphOne:
     "Transformational speaker, author, U.S. Army veteran, and creator of the B3U Podcast. Bree has turned her pain into purpose, proving that brokenness doesn't mean defeat it means rebirth.",
@@ -204,6 +244,26 @@ export function mergeSiteDraft(value: unknown): SiteDraft {
     brandOrangeDark: sanitizeString(candidate.brandOrangeDark, defaultSiteDraft.brandOrangeDark),
     brandOrangeLight: sanitizeString(candidate.brandOrangeLight, defaultSiteDraft.brandOrangeLight),
     navy: sanitizeString(candidate.navy, defaultSiteDraft.navy),
+    homeHeroHeadingLead: sanitizeString(candidate.homeHeroHeadingLead, defaultSiteDraft.homeHeroHeadingLead),
+    homeHeroHeadingHighlight: sanitizeString(candidate.homeHeroHeadingHighlight, defaultSiteDraft.homeHeroHeadingHighlight),
+    homeHeroSubheading: sanitizeString(candidate.homeHeroSubheading, defaultSiteDraft.homeHeroSubheading),
+    homeHeroTagline: sanitizeString(candidate.homeHeroTagline, defaultSiteDraft.homeHeroTagline),
+    homeHeroPrimaryCtaLabel: sanitizeString(candidate.homeHeroPrimaryCtaLabel, defaultSiteDraft.homeHeroPrimaryCtaLabel),
+    homeHeroPrimaryCtaHref: sanitizeString(candidate.homeHeroPrimaryCtaHref, defaultSiteDraft.homeHeroPrimaryCtaHref),
+    homeHeroSecondaryCtaLabel: sanitizeString(candidate.homeHeroSecondaryCtaLabel, defaultSiteDraft.homeHeroSecondaryCtaLabel),
+    homeHeroSecondaryCtaHref: sanitizeString(candidate.homeHeroSecondaryCtaHref, defaultSiteDraft.homeHeroSecondaryCtaHref),
+    homeHeroBookingTextBeforeLink: sanitizeString(candidate.homeHeroBookingTextBeforeLink, defaultSiteDraft.homeHeroBookingTextBeforeLink),
+    homeHeroBookingLinkLabel: sanitizeString(candidate.homeHeroBookingLinkLabel, defaultSiteDraft.homeHeroBookingLinkLabel),
+    homeHeroBookingLinkHref: sanitizeString(candidate.homeHeroBookingLinkHref, defaultSiteDraft.homeHeroBookingLinkHref),
+    homeHeroBookingTextAfterLink: sanitizeString(candidate.homeHeroBookingTextAfterLink, defaultSiteDraft.homeHeroBookingTextAfterLink),
+    homeHeroPromoEyebrow: sanitizeString(candidate.homeHeroPromoEyebrow, defaultSiteDraft.homeHeroPromoEyebrow),
+    homeHeroPromoTitle: sanitizeString(candidate.homeHeroPromoTitle, defaultSiteDraft.homeHeroPromoTitle),
+    homeHeroPromoDescription: sanitizeString(candidate.homeHeroPromoDescription, defaultSiteDraft.homeHeroPromoDescription),
+    homeHeroPromoPrimaryCtaLabel: sanitizeString(candidate.homeHeroPromoPrimaryCtaLabel, defaultSiteDraft.homeHeroPromoPrimaryCtaLabel),
+    homeHeroPromoPrimaryCtaHref: sanitizeString(candidate.homeHeroPromoPrimaryCtaHref, defaultSiteDraft.homeHeroPromoPrimaryCtaHref),
+    homeHeroPromoSecondaryCtaLabel: sanitizeString(candidate.homeHeroPromoSecondaryCtaLabel, defaultSiteDraft.homeHeroPromoSecondaryCtaLabel),
+    homeHeroPromoSecondaryCtaHref: sanitizeString(candidate.homeHeroPromoSecondaryCtaHref, defaultSiteDraft.homeHeroPromoSecondaryCtaHref),
+    homeHeroPromoFootnote: sanitizeString(candidate.homeHeroPromoFootnote, defaultSiteDraft.homeHeroPromoFootnote),
     aboutHeading: sanitizeString(candidate.aboutHeading, defaultSiteDraft.aboutHeading),
     aboutParagraphOne: sanitizeString(candidate.aboutParagraphOne, defaultSiteDraft.aboutParagraphOne),
     aboutParagraphTwo: sanitizeString(candidate.aboutParagraphTwo, defaultSiteDraft.aboutParagraphTwo),

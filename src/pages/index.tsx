@@ -116,7 +116,7 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
       description="Empowerment, speaking, and community with Dr. Bree Charles. B3U (Burn, Break, Become Unstoppable) is based in Richmond, VA and serves surrounding areas across Central Virginia."
       structuredData={pageStructuredData}
     >
-      <Hero />
+      <Hero draft={draft} />
       <section id="about" className="section-padding bg-white">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>

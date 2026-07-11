@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { siteName, siteUrl } from '@/lib/siteMetadata';
 import Navbar from './Navbar';
 import Footer from './Footer';
+import SummitPopup from './SummitPopup';
 
 type LayoutProps = {
   children: ReactNode;
@@ -21,6 +22,7 @@ const OG_IMAGE_URL = `${siteUrl}/og.png`;
 export default function Layout({ children, title, description, structuredData }: LayoutProps) {
   const { pathname, asPath } = useRouter();
   const isHomePage = pathname === '/';
+  const isRestrictedPage = /^\/(admin|login|forgot-password|reset-password|newsletter-builder|debug)(?:\/|$)/.test(pathname);
   const mainClassName = isHomePage ? '' : 'pt-44';
 
   const canonicalUrl = useMemo(() => {
@@ -159,6 +161,7 @@ export default function Layout({ children, title, description, structuredData }:
         ))}
       </Head>
       <Navbar />
+      {!isRestrictedPage ? <SummitPopup /> : null}
       <main className={mainClassName}>
         {children}
       </main>

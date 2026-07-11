@@ -614,7 +614,6 @@ export default function NewsletterBuilder() {
   const [editingNewsletterId, setEditingNewsletterId] = useState<number | null>(null);
   const [notice, setNotice] = useState('');
   const [noticeTone, setNoticeTone] = useState<'info' | 'success' | 'error'>('info');
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [subscriberSubmitting, setSubscriberSubmitting] = useState(false);
 
@@ -712,8 +711,6 @@ export default function NewsletterBuilder() {
       } catch (error) {
         setNotice(error instanceof Error ? error.message : 'Failed to load subscribers.');
         setNoticeTone('error');
-      } finally {
-        setLoading(false);
       }
     }
 
@@ -726,17 +723,6 @@ export default function NewsletterBuilder() {
 
   function updateWeekly<K extends keyof WeeklyNewsletterDraft>(key: K, value: WeeklyNewsletterDraft[K]) {
     setWeeklyDraft((current) => ({ ...current, [key]: value }));
-  }
-
-  function handleSubscriberDropdownChange(event: React.ChangeEvent<HTMLSelectElement>) {
-    const email = event.target.value;
-
-    if (!email) {
-      return;
-    }
-
-    setSelectedSubscriberEmails((current) => (current.includes(email) ? current : [...current, email]));
-    event.target.value = '';
   }
 
   function handleClearSubscriberSelection() {
@@ -1016,22 +1002,6 @@ export default function NewsletterBuilder() {
                     onChange={(event) => updateWeekly('scheduledFor', event.target.value)}
                   />
                 </label>
-
-                <label className="block min-w-0">
-                  <span className="sr-only">Subscribers</span>
-                  <select
-                    defaultValue=""
-                    onChange={handleSubscriberDropdownChange}
-                    title="Subscribers"
-                    className="h-9 w-full rounded-lg border border-white/20 bg-white px-2 text-xs text-slate-950 shadow-sm outline-none transition focus:border-brandOrange focus:ring-2 focus:ring-brandOrange/30"
-                  >
-                    <option value="">{loading ? 'Loading subscribers...' : selectedSubscriberEmails.length ? `${selectedSubscriberEmails.length} selected - add another` : 'Select subscriber'}</option>
-                    {!loading && !subscribers.length ? <option value="" disabled>No subscribers available</option> : null}
-                    {subscribers.map((subscriber) => (
-                      <option key={subscriber.id} value={subscriber.email}>{subscriber.email}</option>
-                    ))}
-                  </select>
-                </label>
               </div>
 
               <div className="mt-2 flex flex-wrap items-center justify-end gap-1.5">
@@ -1122,26 +1092,30 @@ export default function NewsletterBuilder() {
                   <span className="text-xs text-slate-200">{selectedSubscriberEmails.length} of {subscribers.length} selected</span>
                 </div>
 
-                <div className="mt-3 max-h-48 space-y-2 overflow-y-auto pr-1">
+                <div className="mt-3 max-h-48 overflow-y-auto pr-1">
                   {subscribers.length ? (
-                    subscribers.map((subscriber) => {
-                      const checked = selectedSubscriberEmails.includes(subscriber.email);
+                    <ul className="divide-y divide-white/10 overflow-hidden rounded-xl border border-white/10 bg-white/10">
+                      {subscribers.map((subscriber) => {
+                        const checked = selectedSubscriberEmails.includes(subscriber.email);
 
-                      return (
-                        <label key={subscriber.id} className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-white transition hover:bg-white/15">
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => handleToggleSubscriber(subscriber.email)}
-                            className="mt-1 h-4 w-4 rounded border-white/30 text-brandOrange focus:ring-brandOrange"
-                          />
-                          <span className="min-w-0">
-                            <span className="block truncate text-sm font-medium">{subscriber.email}</span>
-                            <span className="block text-xs text-slate-300">Joined {new Date(subscriber.created_at).toLocaleString()}</span>
-                          </span>
-                        </label>
-                      );
-                    })
+                        return (
+                          <li key={subscriber.id}>
+                            <label className="flex cursor-pointer items-center gap-3 px-3 py-2 text-white transition hover:bg-white/10">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => handleToggleSubscriber(subscriber.email)}
+                                className="h-4 w-4 rounded border-white/30 text-brandOrange focus:ring-brandOrange"
+                              />
+                              <span className="min-w-0 flex-1">
+                                <span className="block truncate text-sm font-medium">{subscriber.email}</span>
+                                <span className="block text-xs text-slate-300">Joined {new Date(subscriber.created_at).toLocaleString()}</span>
+                              </span>
+                            </label>
+                          </li>
+                        );
+                      })}
+                    </ul>
                   ) : (
                     <p className="text-sm text-slate-200">No subscribers are available yet.</p>
                   )}
