@@ -37,7 +37,7 @@
     "NEXT_PUBLIC_DEBUG_SLOW_PAGE_MS": "2500",
     "NEXT_PUBLIC_FORMS_API": "/api/forms",
     "NEXT_PUBLIC_MONITORING_ENABLED": "true",
-    "NEXT_PUBLIC_SITE_URL": "https://b3unstoppable.net",
+    "NEXT_PUBLIC_SITE_URL": "https://www.b3unstoppable.net",
     "NEXT_PUBLIC_TURNSTILE_SITE_KEY": "0x4AAAAAADVi2GuNzKz2VjeZ"
   },
   // END MANAGED VARS
