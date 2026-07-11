@@ -48,6 +48,7 @@ const TEMPLATE_STORAGE_KEY = 'b3u-newsletter-template-draft';
 const WEEKLY_STORAGE_KEY = 'b3u-weekly-newsletter-draft';
 const LEGACY_MONTHLY_STORAGE_KEY = 'b3u-monthly-newsletter-draft';
 const WEEKDAY_OPTIONS: Weekday[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const NEWSLETTER_SECTION_MARKER_PREFIX = '[[B3U:';
 
 const defaultTemplate: NewsletterTemplateDraft = {
   templateName: 'The Take Back Weekly',
@@ -190,21 +191,50 @@ function formatClosingBlock(closingLine: string) {
   ].join('\n\n');
 }
 
+function serializeNewsletterSection(key: string, value: string) {
+  return `${NEWSLETTER_SECTION_MARKER_PREFIX}${key}]]\n${value.trim()}`;
+}
+
+function buildStructuredSection(heading: string, body: string, genericLabel: string) {
+  if (normalizeHeadingLabel(heading) !== normalizeHeadingLabel(genericLabel)) {
+    return { heading, body };
+  }
+
+  const paragraphs = body
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+  const [firstParagraph, ...rest] = paragraphs;
+
+  if (!firstParagraph || !looksLikePromotableHeading(firstParagraph)) {
+    return { heading, body };
+  }
+
+  return { heading: firstParagraph, body: rest.join('\n\n') };
+}
+
 function buildNewsletterBody(template: NewsletterTemplateDraft, weekly: WeeklyNewsletterDraft) {
   const comingWeekBody = formatComingWeekItems(getComingWeekItems(weekly));
+  const featuredSection = buildStructuredSection(weekly.featuredStoryTitle || 'Featured Story', weekly.featuredStoryBody, 'Featured Story');
+  const bookSection = buildStructuredSection(weekly.bookSpotlightTitle || 'Book Spotlight', weekly.bookSpotlightBody, 'Book Spotlight');
+  const comingSectionBody = [comingWeekBody, weekly.comingThisWeekBody.trim()].filter(Boolean).join('\n\n');
   const sections = [
-    template.headline,
-    `${template.byline} | ${getTemplateDate(template)}`,
-    template.tagline,
-    weekly.mainTitle,
-    weekly.openingLetter,
-    formatClosingBlock(weekly.closingLine),
-    weekly.featuredStoryTitle ? `${weekly.featuredStoryTitle}\n${weekly.featuredStoryBody}` : weekly.featuredStoryBody,
-    weekly.bookSpotlightTitle ? `${weekly.bookSpotlightTitle}\n${weekly.bookSpotlightBody}` : weekly.bookSpotlightBody,
-    weekly.comingThisWeekTitle ? `${weekly.comingThisWeekTitle}\n${comingWeekBody}\n\n${weekly.comingThisWeekBody}` : `${comingWeekBody}\n\n${weekly.comingThisWeekBody}`,
-    weekly.affirmationTitle ? `${weekly.affirmationTitle}\n${weekly.affirmationText}` : weekly.affirmationText,
-    weekly.bottomEncouragement,
-    template.footerTagline,
+    serializeNewsletterSection('header-title', template.headline),
+    serializeNewsletterSection('meta-line', `${template.byline} | ${getTemplateDate(template)}`),
+    serializeNewsletterSection('tagline', template.tagline),
+    serializeNewsletterSection('main-title', weekly.mainTitle),
+    serializeNewsletterSection('opening-body', weekly.openingLetter),
+    serializeNewsletterSection('closing-signature', formatClosingBlock(weekly.closingLine)),
+    serializeNewsletterSection('featured-title', featuredSection.heading),
+    serializeNewsletterSection('featured-body', featuredSection.body),
+    serializeNewsletterSection('book-title', bookSection.heading),
+    serializeNewsletterSection('book-body', bookSection.body),
+    serializeNewsletterSection('coming-title', weekly.comingThisWeekTitle || 'What’s Coming Next Week'),
+    serializeNewsletterSection('coming-body', comingSectionBody),
+    serializeNewsletterSection('affirmation-title', weekly.affirmationTitle || 'THIS WEEK’S AFFIRMATION'),
+    serializeNewsletterSection('affirmation-body', weekly.affirmationText),
+    serializeNewsletterSection('bottom-encouragement', weekly.bottomEncouragement),
+    serializeNewsletterSection('footer-tagline', template.footerTagline),
   ];
 
   return sections.map((section) => section.trim()).filter(Boolean).join('\n\n');
@@ -238,21 +268,7 @@ function looksLikePromotableHeading(value: string) {
 }
 
 function resolvePreviewSection(heading: string, body: string, genericLabel: string) {
-  if (normalizeHeadingLabel(heading) !== normalizeHeadingLabel(genericLabel)) {
-    return { heading, body };
-  }
-
-  const paragraphs = body
-    .split(/\n{2,}/)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean);
-  const [firstParagraph, ...rest] = paragraphs;
-
-  if (!firstParagraph || !looksLikePromotableHeading(firstParagraph)) {
-    return { heading, body };
-  }
-
-  return { heading: firstParagraph, body: rest.join('\n\n') };
+  return buildStructuredSection(heading, body, genericLabel);
 }
 
 function SectionHeading({ stepLabel, children }: { stepLabel?: string; children: React.ReactNode }) {
