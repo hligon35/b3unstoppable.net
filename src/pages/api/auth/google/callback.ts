@@ -80,7 +80,12 @@ function getSafeRedirectTarget(value?: string) {
   return value;
 }
 
+function getOAuthCleanupCookies() {
+  return [clearCookie(STATE_COOKIE), clearCookie(REDIRECT_COOKIE)];
+}
+
 function redirectToLogin(res: NextApiResponse, message: string) {
+  res.setHeader('Set-Cookie', getOAuthCleanupCookies());
   return res.redirect(`/login?error=${encodeURIComponent(message)}`);
 }
 
@@ -139,8 +144,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const code = typeof req.query.code === 'string' ? req.query.code : '';
   const redirectTarget = getSafeRedirectTarget(cookies[REDIRECT_COOKIE]);
 
-  res.setHeader('Set-Cookie', [clearCookie(STATE_COOKIE), clearCookie(REDIRECT_COOKIE)]);
-
   if (!expectedState || !incomingState || expectedState !== incomingState) {
     return redirectToLogin(res, 'Google login expired. Please try again.');
   }
@@ -168,7 +171,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return redirectToLogin(res, 'This Google account is not approved for admin access.');
     }
 
-    res.setHeader('Set-Cookie', createAdminSessionCookie());
+    res.setHeader('Set-Cookie', [...getOAuthCleanupCookies(), createAdminSessionCookie()]);
     return res.redirect(redirectTarget);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Google login failed.';
