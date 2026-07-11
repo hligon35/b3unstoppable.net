@@ -32,8 +32,10 @@ type WeeklyNewsletterDraft = {
   closingLine: string;
   closingLetter?: string;
   featuredStoryTitle: string;
+  featuredStorySubheading: string;
   featuredStoryBody: string;
   bookSpotlightTitle: string;
+  bookSpotlightSubheading: string;
   bookSpotlightBody: string;
   comingThisWeekTitle: string;
   comingThisWeekBody: string;
@@ -44,11 +46,26 @@ type WeeklyNewsletterDraft = {
   scheduledFor: string;
 };
 
+type NewsletterQueueItem = {
+  id: number;
+  subject: string;
+  bodyText: string;
+  recipientEmails: string[];
+  recipientCount: number;
+  scheduledFor: string;
+  status: string;
+  lastError: string | null;
+  createdAt: string;
+  updatedAt: string;
+  sentAt: string | null;
+};
+
 const TEMPLATE_STORAGE_KEY = 'b3u-newsletter-template-draft';
 const WEEKLY_STORAGE_KEY = 'b3u-weekly-newsletter-draft';
 const LEGACY_MONTHLY_STORAGE_KEY = 'b3u-monthly-newsletter-draft';
 const WEEKDAY_OPTIONS: Weekday[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const NEWSLETTER_SECTION_MARKER_PREFIX = '[[B3U:';
+const NEWSLETTER_SECTION_MARKER_PATTERN = /^\[\[B3U:([A-Za-z0-9-_]+)\]\]$/;
 
 const defaultTemplate: NewsletterTemplateDraft = {
   templateName: 'The Take Back Weekly',
@@ -65,8 +82,10 @@ const defaultWeekly: WeeklyNewsletterDraft = {
   openingLetter: '',
   closingLine: 'With gratitude,',
   featuredStoryTitle: 'Featured Story',
+  featuredStorySubheading: '',
   featuredStoryBody: '',
   bookSpotlightTitle: 'Book Spotlight',
+  bookSpotlightSubheading: '',
   bookSpotlightBody: '',
   comingThisWeekTitle: 'What’s Coming Next Week',
   comingThisWeekBody: '',
@@ -79,6 +98,22 @@ const defaultWeekly: WeeklyNewsletterDraft = {
 
 function formatDateTimeInput(date = new Date(Date.now() + 60 * 60 * 1000)) {
   const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
+  return localDate.toISOString().slice(0, 16);
+}
+
+function formatDateTimeDisplay(value: string) {
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString();
+}
+
+function toDateTimeInputFromUtc(value: string) {
+  const parsed = new Date(value);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return formatDateTimeInput();
+  }
+
+  const localDate = new Date(parsed.getTime() - parsed.getTimezoneOffset() * 60_000);
   return localDate.toISOString().slice(0, 16);
 }
 
@@ -195,9 +230,13 @@ function serializeNewsletterSection(key: string, value: string) {
   return `${NEWSLETTER_SECTION_MARKER_PREFIX}${key}]]\n${value.trim()}`;
 }
 
-function buildStructuredSection(heading: string, body: string, genericLabel: string) {
+function buildStructuredSection(heading: string, subheading: string, body: string, genericLabel: string) {
+  if (subheading.trim()) {
+    return { heading, subheading, body };
+  }
+
   if (normalizeHeadingLabel(heading) !== normalizeHeadingLabel(genericLabel)) {
-    return { heading, body };
+    return { heading, subheading: '', body };
   }
 
   const paragraphs = body
@@ -207,16 +246,16 @@ function buildStructuredSection(heading: string, body: string, genericLabel: str
   const [firstParagraph, ...rest] = paragraphs;
 
   if (!firstParagraph || !looksLikePromotableHeading(firstParagraph)) {
-    return { heading, body };
+    return { heading, subheading: '', body };
   }
 
-  return { heading: firstParagraph, body: rest.join('\n\n') };
+  return { heading, subheading: firstParagraph, body: rest.join('\n\n') };
 }
 
 function buildNewsletterBody(template: NewsletterTemplateDraft, weekly: WeeklyNewsletterDraft) {
   const comingWeekBody = formatComingWeekItems(getComingWeekItems(weekly));
-  const featuredSection = buildStructuredSection(weekly.featuredStoryTitle || 'Featured Story', weekly.featuredStoryBody, 'Featured Story');
-  const bookSection = buildStructuredSection(weekly.bookSpotlightTitle || 'Book Spotlight', weekly.bookSpotlightBody, 'Book Spotlight');
+  const featuredSection = buildStructuredSection(weekly.featuredStoryTitle || 'Featured Story', weekly.featuredStorySubheading, weekly.featuredStoryBody, 'Featured Story');
+  const bookSection = buildStructuredSection(weekly.bookSpotlightTitle || 'Book Spotlight', weekly.bookSpotlightSubheading, weekly.bookSpotlightBody, 'Book Spotlight');
   const comingSectionBody = [comingWeekBody, weekly.comingThisWeekBody.trim()].filter(Boolean).join('\n\n');
   const sections = [
     serializeNewsletterSection('header-title', template.headline),
@@ -226,8 +265,10 @@ function buildNewsletterBody(template: NewsletterTemplateDraft, weekly: WeeklyNe
     serializeNewsletterSection('opening-body', weekly.openingLetter),
     serializeNewsletterSection('closing-signature', formatClosingBlock(weekly.closingLine)),
     serializeNewsletterSection('featured-title', featuredSection.heading),
+    serializeNewsletterSection('featured-subheading', featuredSection.subheading),
     serializeNewsletterSection('featured-body', featuredSection.body),
     serializeNewsletterSection('book-title', bookSection.heading),
+    serializeNewsletterSection('book-subheading', bookSection.subheading),
     serializeNewsletterSection('book-body', bookSection.body),
     serializeNewsletterSection('coming-title', weekly.comingThisWeekTitle || 'What’s Coming Next Week'),
     serializeNewsletterSection('coming-body', comingSectionBody),
@@ -242,6 +283,134 @@ function buildNewsletterBody(template: NewsletterTemplateDraft, weekly: WeeklyNe
 
 function buildLetterEmailHtml(template: NewsletterTemplateDraft, weekly: WeeklyNewsletterDraft) {
   return buildNewsletterBody(template, weekly);
+}
+
+function parseStructuredNewsletterBody(bodyText: string) {
+  const lines = bodyText.replace(/\r\n/g, '\n').split('\n');
+  const sections = new Map<string, string>();
+  let currentKey: string | null = null;
+  let buffer: string[] = [];
+
+  function flushSection() {
+    if (!currentKey) {
+      return;
+    }
+
+    sections.set(currentKey, buffer.join('\n').trim());
+    buffer = [];
+  }
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    const markerMatch = line.match(NEWSLETTER_SECTION_MARKER_PATTERN);
+
+    if (markerMatch) {
+      flushSection();
+      currentKey = markerMatch[1].toLowerCase();
+      continue;
+    }
+
+    if (!currentKey) {
+      if (line) {
+        return null;
+      }
+
+      continue;
+    }
+
+    buffer.push(rawLine);
+  }
+
+  flushSection();
+
+  return sections.size ? sections : null;
+}
+
+function parseMetaLine(metaLine: string) {
+  const parts = metaLine.split('|').map((part) => part.trim()).filter(Boolean);
+
+  if (!parts.length) {
+    return {
+      byline: defaultTemplate.byline,
+      issueDate: defaultTemplate.issueDate,
+    };
+  }
+
+  return {
+    byline: parts[0] || defaultTemplate.byline,
+    issueDate: parts.slice(1).join(' | ') || defaultTemplate.issueDate,
+  };
+}
+
+function parseClosingLine(signatureText: string) {
+  return signatureText
+    .split(/\n{2,}/)
+    .map((part) => part.trim())
+    .find(Boolean) || defaultWeekly.closingLine;
+}
+
+function parseComingWeekBody(bodyText: string) {
+  const items: ComingWeekItem[] = [];
+  const proseLines: string[] = [];
+
+  bodyText.split('\n').forEach((rawLine) => {
+    const line = rawLine.trim();
+    const dayMatch = line.match(/^([A-Za-z]+):\s*(.*)$/);
+
+    if (dayMatch && WEEKDAY_OPTIONS.includes(dayMatch[1] as Weekday)) {
+      items.push({ day: dayMatch[1] as Weekday, text: dayMatch[2] || '' });
+      return;
+    }
+
+    proseLines.push(rawLine);
+  });
+
+  return {
+    items,
+    body: proseLines.join('\n').trim(),
+  };
+}
+
+function parseQueuedNewsletterDrafts(bodyText: string) {
+  const sections = parseStructuredNewsletterBody(bodyText);
+
+  if (!sections) {
+    return null;
+  }
+
+  const metaLine = parseMetaLine(sections.get('meta-line') || '');
+  const comingWeek = parseComingWeekBody(sections.get('coming-body') || '');
+
+  return {
+    templateDraft: {
+      ...defaultTemplate,
+      headline: sections.get('header-title') || defaultTemplate.headline,
+      byline: metaLine.byline,
+      issueDate: metaLine.issueDate,
+      tagline: sections.get('tagline') || defaultTemplate.tagline,
+      footerTagline: sections.get('footer-tagline') || defaultTemplate.footerTagline,
+    },
+    weeklyDraft: {
+      ...defaultWeekly,
+      mainTitle: sections.get('main-title') || defaultWeekly.mainTitle,
+      openingLetter: sections.get('opening-body') || '',
+      closingLine: parseClosingLine(sections.get('closing-signature') || ''),
+      featuredStoryTitle: sections.get('featured-title') || defaultWeekly.featuredStoryTitle,
+      featuredStorySubheading: sections.get('featured-subheading') || '',
+      featuredStoryBody: sections.get('featured-body') || '',
+      bookSpotlightTitle: sections.get('book-title') || defaultWeekly.bookSpotlightTitle,
+      bookSpotlightSubheading: sections.get('book-subheading') || '',
+      bookSpotlightBody: sections.get('book-body') || '',
+      comingThisWeekTitle: sections.get('coming-title') || defaultWeekly.comingThisWeekTitle,
+      comingThisWeekItems: comingWeek.items,
+      comingThisWeekBody: comingWeek.body,
+      affirmationTitle: sections.get('affirmation-title') || defaultWeekly.affirmationTitle,
+      affirmationText: sections.get('affirmation-body') || '',
+      bottomEncouragement: sections.get('bottom-encouragement') || defaultWeekly.bottomEncouragement,
+      scheduledFor: defaultWeekly.scheduledFor,
+      subject: defaultWeekly.subject,
+    },
+  };
 }
 
 function normalizeHeadingLabel(value: string) {
@@ -267,8 +436,8 @@ function looksLikePromotableHeading(value: string) {
   return !/[.!?]$/.test(collapsed);
 }
 
-function resolvePreviewSection(heading: string, body: string, genericLabel: string) {
-  return buildStructuredSection(heading, body, genericLabel);
+function resolvePreviewSection(heading: string, subheading: string, body: string, genericLabel: string) {
+  return buildStructuredSection(heading, subheading, body, genericLabel);
 }
 
 function SectionHeading({ stepLabel, children }: { stepLabel?: string; children: React.ReactNode }) {
@@ -317,26 +486,57 @@ function renderClosingBlock(closingLine: string) {
   );
 }
 
-function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft: WeeklyNewsletterDraft) {
+function renderSectionBody(bodyText: string, emptyState: string, subheading?: string) {
+  return (
+    <>
+      {subheading ? <p className="font-bold text-[#17182b]">{subheading}</p> : null}
+      {bodyText ? paragraphize(bodyText) : <p className="text-slate-400">{emptyState}</p>}
+    </>
+  );
+}
+
+function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft: WeeklyNewsletterDraft, adminEmbed = false) {
   const comingWeekItems = getComingWeekItems(weeklyDraft);
-  const featuredSection = resolvePreviewSection(weeklyDraft.featuredStoryTitle || 'Featured Story', weeklyDraft.featuredStoryBody, 'Featured Story');
-  const bookSection = resolvePreviewSection(weeklyDraft.bookSpotlightTitle || 'Book Spotlight', weeklyDraft.bookSpotlightBody, 'Book Spotlight');
+  const featuredSection = resolvePreviewSection(weeklyDraft.featuredStoryTitle || 'Featured Story', weeklyDraft.featuredStorySubheading, weeklyDraft.featuredStoryBody, 'Featured Story');
+  const bookSection = resolvePreviewSection(weeklyDraft.bookSpotlightTitle || 'Book Spotlight', weeklyDraft.bookSpotlightSubheading, weeklyDraft.bookSpotlightBody, 'Book Spotlight');
+
+  const outerClassName = adminEmbed
+    ? 'mx-auto w-full max-w-[760px] overflow-hidden bg-white ring-1 ring-black/5 sm:max-w-[1140px] sm:shadow-2xl'
+    : 'mx-auto max-w-[1140px] overflow-hidden bg-white shadow-2xl ring-1 ring-black/5';
+  const previewHeaderClassName = adminEmbed
+    ? 'border-b-[4px] border-[#d0ad4b] bg-[#17182b] px-[18px] py-6 text-white sm:px-[60px] sm:py-7'
+    : 'border-b-[4px] border-[#d0ad4b] bg-[#17182b] px-9 py-7 text-white sm:px-[60px]';
+  const previewHeaderGridClassName = adminEmbed
+    ? 'grid grid-cols-[74px_1fr] items-start gap-4 sm:grid-cols-[110px_1fr] sm:gap-8'
+    : 'grid grid-cols-[110px_1fr] items-start gap-8';
+  const previewLogoClassName = adminEmbed
+    ? 'h-[56px] w-[74px] object-contain sm:h-[68px] sm:w-[92px]'
+    : 'h-[68px] w-[92px] object-contain';
+  const previewTitleClassName = adminEmbed
+    ? 'text-[26px] font-medium uppercase leading-none tracking-[0.04em] sm:text-[42px]'
+    : 'text-[34px] font-medium uppercase leading-none tracking-[0.04em] sm:text-[42px]';
+  const previewMainClassName = adminEmbed
+    ? 'bg-white px-[18px] py-7 text-[#3d3d45] sm:px-[78px] sm:py-8'
+    : 'bg-white px-14 py-8 text-[#3d3d45] sm:px-[78px]';
+  const previewFooterClassName = adminEmbed
+    ? 'bg-[#17182b] px-[18px] py-4 text-center text-[12px] font-semibold leading-5 text-white sm:px-[60px] sm:py-5'
+    : 'bg-[#17182b] px-8 py-5 text-center text-[12px] font-semibold leading-5 text-white sm:px-[60px]';
 
   return (
-    <div className="mx-auto max-w-[1140px] overflow-hidden bg-white shadow-2xl ring-1 ring-black/5">
-      <header className="border-b-[4px] border-[#d0ad4b] bg-[#17182b] px-9 py-7 text-white sm:px-[60px]">
-        <div className="grid grid-cols-[110px_1fr] items-start gap-8">
+    <div className={outerClassName}>
+      <header className={previewHeaderClassName}>
+        <div className={previewHeaderGridClassName}>
           <div className="pt-1">
             <Image
               src="/images/logos/B3U3D.png"
               alt="B3U logo"
               width={92}
               height={92}
-              className="h-[68px] w-[92px] object-contain"
+              className={previewLogoClassName}
             />
           </div>
           <div className="text-right">
-            <h2 className="text-[34px] font-medium uppercase leading-none tracking-[0.04em] sm:text-[42px]">{templateDraft.headline}</h2>
+            <h2 className={previewTitleClassName}>{templateDraft.headline}</h2>
             <p className="mt-4 text-[14px] font-semibold text-[#d4a536]">
               {templateDraft.byline} <span className="text-white/70">|</span> {getTemplateDate(templateDraft)}
             </p>
@@ -344,7 +544,7 @@ function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft
         </div>
       </header>
 
-      <main className="bg-white px-14 py-8 text-[#3d3d45] sm:px-[78px]">
+      <main className={previewMainClassName}>
         <p className="mb-10 text-center text-[18px] leading-7 text-[#d4a536]">{templateDraft.tagline}</p>
 
         <SectionHeading stepLabel="01. Opening letter">{weeklyDraft.mainTitle}</SectionHeading>
@@ -359,14 +559,14 @@ function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft
 
         <SectionHeading stepLabel="02. Featured story">{featuredSection.heading}</SectionHeading>
         <div className="mt-6 space-y-5 text-[14px] leading-[1.55] tracking-[0.01em]">
-          {featuredSection.body ? paragraphize(featuredSection.body) : <p className="text-slate-400">Featured story body will appear here.</p>}
+          {renderSectionBody(featuredSection.body, 'Featured story body will appear here.', featuredSection.subheading)}
         </div>
 
         <GoldRule />
 
         <SectionHeading stepLabel="03. Book spotlight">{bookSection.heading}</SectionHeading>
         <div className="mt-6 space-y-5 text-[14px] leading-[1.55] tracking-[0.01em]">
-          {bookSection.body ? paragraphize(bookSection.body) : <p className="text-slate-400">Book spotlight body will appear here.</p>}
+          {renderSectionBody(bookSection.body, 'Book spotlight body will appear here.', bookSection.subheading)}
         </div>
 
         <GoldRule />
@@ -391,7 +591,7 @@ function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft
         </div>
       </main>
 
-      <footer className="bg-[#17182b] px-8 py-5 text-center text-[12px] font-semibold leading-5 text-white sm:px-[60px]">
+      <footer className={previewFooterClassName}>
         <p>{templateDraft.footerTagline}</p>
       </footer>
     </div>
@@ -400,12 +600,18 @@ function renderLetterPreview(templateDraft: NewsletterTemplateDraft, weeklyDraft
 
 export default function NewsletterBuilder() {
   const router = useRouter();
+  const embedMode = router.query.embed;
+  const isAdminEmbed = embedMode === 'admin' || (Array.isArray(embedMode) && embedMode.includes('admin'));
   const [templateDraft, setTemplateDraft] = useState<NewsletterTemplateDraft>(defaultTemplate);
   const [weeklyDraft, setWeeklyDraft] = useState<WeeklyNewsletterDraft>(defaultWeekly);
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [selectedSubscriberEmails, setSelectedSubscriberEmails] = useState<string[]>([]);
+  const [newsletterQueue, setNewsletterQueue] = useState<NewsletterQueueItem[]>([]);
   const [newSubscriberEmail, setNewSubscriberEmail] = useState('');
   const [showAddSubscriber, setShowAddSubscriber] = useState(false);
+  const [queueModalOpen, setQueueModalOpen] = useState(false);
+  const [queueLoading, setQueueLoading] = useState(false);
+  const [editingNewsletterId, setEditingNewsletterId] = useState<number | null>(null);
   const [notice, setNotice] = useState('');
   const [noticeTone, setNoticeTone] = useState<'info' | 'success' | 'error'>('info');
   const [loading, setLoading] = useState(true);
@@ -437,6 +643,7 @@ export default function NewsletterBuilder() {
             mainTitle: parsedLegacyDraft.issueLabel || savedWeeklyDraft.mainTitle,
             openingLetter: parsedLegacyDraft.openingMessage || savedWeeklyDraft.openingLetter,
             featuredStoryTitle: parsedLegacyDraft.featureTitle || savedWeeklyDraft.featuredStoryTitle,
+            featuredStorySubheading: savedWeeklyDraft.featuredStorySubheading,
             featuredStoryBody: parsedLegacyDraft.featureBody || savedWeeklyDraft.featuredStoryBody,
             comingThisWeekTitle: parsedLegacyDraft.updatesTitle || savedWeeklyDraft.comingThisWeekTitle,
             comingThisWeekItems: normalizeComingWeekItems(null, parsedLegacyDraft.updatesBody || ''),
@@ -480,10 +687,28 @@ export default function NewsletterBuilder() {
     return data ?? [];
   }, [router]);
 
+  const refreshNewsletterQueue = useCallback(async () => {
+    const response = await fetch('/api/newsletters');
+
+    if (response.status === 401) {
+      await router.replace('/login');
+      return [] as NewsletterQueueItem[];
+    }
+
+    if (!response.ok) {
+      const body = await response.json().catch(() => null);
+      throw new Error(body?.details || body?.error || `Newsletter API returned ${response.status}`);
+    }
+
+    const data = (await response.json()) as NewsletterQueueItem[];
+    setNewsletterQueue(data ?? []);
+    return data ?? [];
+  }, [router]);
+
   useEffect(() => {
     async function loadSubscribers() {
       try {
-        await refreshSubscribers();
+        await Promise.all([refreshSubscribers(), refreshNewsletterQueue()]);
       } catch (error) {
         setNotice(error instanceof Error ? error.message : 'Failed to load subscribers.');
         setNoticeTone('error');
@@ -493,7 +718,7 @@ export default function NewsletterBuilder() {
     }
 
     void loadSubscribers();
-  }, [refreshSubscribers]);
+  }, [refreshSubscribers, refreshNewsletterQueue]);
 
   function updateTemplate<K extends keyof NewsletterTemplateDraft>(key: K, value: NewsletterTemplateDraft[K]) {
     setTemplateDraft((current) => ({ ...current, [key]: value }));
@@ -516,6 +741,18 @@ export default function NewsletterBuilder() {
 
   function handleClearSubscriberSelection() {
     setSelectedSubscriberEmails([]);
+  }
+
+  function handleToggleSubscriber(email: string) {
+    setSelectedSubscriberEmails((current) => (
+      current.includes(email)
+        ? current.filter((item) => item !== email)
+        : [...current, email]
+    ));
+  }
+
+  function handleToggleAllSubscribers(checked: boolean) {
+    setSelectedSubscriberEmails(checked ? subscribers.map((subscriber) => subscriber.email) : []);
   }
 
   function handleComingWeekDayToggle(day: Weekday) {
@@ -580,6 +817,88 @@ export default function NewsletterBuilder() {
     }
   }
 
+  function handleEditQueuedNewsletter(item: NewsletterQueueItem) {
+    const parsed = parseQueuedNewsletterDrafts(item.bodyText);
+
+    if (parsed) {
+      setTemplateDraft(parsed.templateDraft);
+      setWeeklyDraft({
+        ...parsed.weeklyDraft,
+        subject: item.subject,
+        scheduledFor: toDateTimeInputFromUtc(item.scheduledFor),
+      });
+      setNotice(`Editing queued newsletter #${item.id}.`);
+      setNoticeTone('info');
+    } else {
+      setWeeklyDraft((current) => ({
+        ...current,
+        subject: item.subject,
+        scheduledFor: toDateTimeInputFromUtc(item.scheduledFor),
+      }));
+      setNotice('Loaded the queued newsletter schedule and recipients, but this older item could not fully populate the structured builder fields.');
+      setNoticeTone('info');
+    }
+
+    setEditingNewsletterId(item.id);
+    setSelectedSubscriberEmails(item.recipientEmails);
+    setQueueModalOpen(false);
+  }
+
+  function handleCancelEditing() {
+    setEditingNewsletterId(null);
+    setNotice('Stopped editing the queued newsletter.');
+    setNoticeTone('info');
+  }
+
+  async function handleDeleteQueuedNewsletter(item: NewsletterQueueItem) {
+    const confirmed = window.confirm(`Delete newsletter "${item.subject}" from the queue?`);
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/newsletters?id=${encodeURIComponent(String(item.id))}`, {
+        method: 'DELETE',
+      });
+      const body = await response.json().catch(() => null);
+
+      if (response.status === 401) {
+        await router.replace('/login');
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(body?.error || `Newsletter API returned ${response.status}`);
+      }
+
+      if (editingNewsletterId === item.id) {
+        setEditingNewsletterId(null);
+      }
+
+      setNotice('Newsletter deleted from the queue.');
+      setNoticeTone('success');
+      await refreshNewsletterQueue();
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : 'Failed to delete queued newsletter.');
+      setNoticeTone('error');
+    }
+  }
+
+  async function handleOpenQueueModal() {
+    setQueueModalOpen(true);
+    setQueueLoading(true);
+
+    try {
+      await refreshNewsletterQueue();
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : 'Failed to load queued newsletters.');
+      setNoticeTone('error');
+    } finally {
+      setQueueLoading(false);
+    }
+  }
+
   async function queueNewsletter(scheduledForIso: string, sendImmediately = false) {
     if (!selectedSubscriberEmails.length) {
       setNotice('Select at least one subscriber first.');
@@ -592,9 +911,10 @@ export default function NewsletterBuilder() {
 
     try {
       const response = await fetch('/api/newsletters', {
-        method: 'POST',
+        method: editingNewsletterId && !sendImmediately ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          id: editingNewsletterId,
           subject: weeklyDraft.subject.trim(),
           bodyText: buildLetterEmailHtml(templateDraft, weeklyDraft),
           scheduledFor: scheduledForIso,
@@ -622,10 +942,14 @@ export default function NewsletterBuilder() {
 
         setNotice(`Newsletter sent now. ${processBody?.sent ?? 0} sent, ${processBody?.failed ?? 0} failed.`);
       } else {
-        setNotice('Newsletter scheduled successfully.');
+        setNotice(editingNewsletterId ? 'Queued newsletter updated successfully.' : 'Newsletter scheduled successfully.');
       }
 
       setNoticeTone('success');
+      if (editingNewsletterId && !sendImmediately) {
+        setEditingNewsletterId(null);
+      }
+      await refreshNewsletterQueue();
     } catch (error) {
       setNotice(error instanceof Error ? error.message : 'Failed to send or schedule newsletter.');
       setNoticeTone('error');
@@ -651,11 +975,27 @@ export default function NewsletterBuilder() {
   }
 
   const comingWeekItems = getComingWeekItems(weeklyDraft);
+  const allSubscribersSelected = subscribers.length > 0 && selectedSubscriberEmails.length === subscribers.length;
+  const sortedNewsletterQueue = [...newsletterQueue].sort((first, second) => new Date(first.scheduledFor).getTime() - new Date(second.scheduledFor).getTime());
+  const groupedNewsletterQueue = sortedNewsletterQueue.reduce<Array<{ dayLabel: string; items: NewsletterQueueItem[] }>>((groups, item) => {
+    const parsedDate = new Date(item.scheduledFor);
+    const dayLabel = Number.isNaN(parsedDate.getTime())
+      ? 'Unknown date'
+      : parsedDate.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    const existingGroup = groups.find((group) => group.dayLabel === dayLabel);
+
+    if (existingGroup) {
+      existingGroup.items.push(item);
+      return groups;
+    }
+
+    return [...groups, { dayLabel, items: [item] }];
+  }, []);
 
   return (
-    <main className="min-h-screen bg-slate-100 px-6 py-6 text-slate-950 sm:px-8 lg:px-12">
+    <main className={`min-h-screen bg-slate-100 py-6 text-slate-950 sm:px-8 lg:px-12 ${isAdminEmbed ? 'px-[18px]' : 'px-6'}`}>
       <div className="mx-auto max-w-[1800px] space-y-5">
-        <div className="rounded-3xl bg-slate-950 px-5 py-4 text-white shadow-sm sm:px-6">
+        <div className={`rounded-3xl bg-slate-950 px-5 text-white shadow-sm sm:px-6 ${isAdminEmbed ? 'py-3 sm:py-4' : 'py-4'}`}>
           <div className="grid gap-4 lg:grid-cols-[minmax(260px,1fr)_minmax(500px,auto)] lg:items-center">
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-orange-200">B3U Admin</p>
@@ -664,7 +1004,7 @@ export default function NewsletterBuilder() {
             </div>
 
             <div className="w-full max-w-[680px] justify-self-end rounded-2xl border border-white/10 bg-white/10 p-3 shadow-inner">
-              <div className="grid grid-cols-2 gap-2">
+              <div className={`grid gap-2 ${isAdminEmbed ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'}`}>
                 <label className="block min-w-0">
                   <span className="sr-only">Send date and time</span>
                   <input
@@ -715,6 +1055,15 @@ export default function NewsletterBuilder() {
                 </button>
                 <button
                   type="button"
+                  onClick={() => void handleOpenQueueModal()}
+                  title="Scheduled list"
+                  aria-label="Open scheduled newsletters list"
+                  className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-white/25 bg-white/10 px-2.5 text-xs font-semibold text-white transition hover:bg-white/20"
+                >
+                  <span aria-hidden="true">≡</span><span className="hidden md:inline">Scheduled list</span>
+                </button>
+                <button
+                  type="button"
                   onClick={handleSendNewsletterNow}
                   disabled={submitting}
                   title="Send now"
@@ -727,12 +1076,21 @@ export default function NewsletterBuilder() {
                   type="button"
                   onClick={handleScheduleNewsletter}
                   disabled={submitting}
-                  title="Schedule newsletter"
-                  aria-label="Schedule newsletter"
+                  title={editingNewsletterId ? 'Save queued newsletter' : 'Schedule newsletter'}
+                  aria-label={editingNewsletterId ? 'Save queued newsletter' : 'Schedule newsletter'}
                   className="inline-flex h-8 items-center justify-center gap-1 rounded-lg bg-brandBlue px-2.5 text-xs font-semibold text-white transition hover:bg-brandBlue-dark disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  <span aria-hidden="true">◷</span><span className="hidden md:inline">Schedule</span>
+                  <span aria-hidden="true">{editingNewsletterId ? '✓' : '◷'}</span><span className="hidden md:inline">{editingNewsletterId ? 'Save' : 'Schedule'}</span>
                 </button>
+                {editingNewsletterId ? (
+                  <button
+                    type="button"
+                    onClick={handleCancelEditing}
+                    className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-white/25 bg-white/10 px-2.5 text-xs font-semibold text-white transition hover:bg-white/20"
+                  >
+                    <span aria-hidden="true">↺</span><span className="hidden md:inline">Cancel edit</span>
+                  </button>
+                ) : null}
               </div>
 
               {showAddSubscriber ? (
@@ -749,6 +1107,46 @@ export default function NewsletterBuilder() {
                   </button>
                 </div>
               ) : null}
+
+              <div className="mt-3 rounded-2xl border border-white/15 bg-white/10 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <label className="flex items-center gap-2 text-sm font-medium text-white">
+                    <input
+                      type="checkbox"
+                      checked={allSubscribersSelected}
+                      onChange={(event) => handleToggleAllSubscribers(event.target.checked)}
+                      className="h-4 w-4 rounded border-white/30 text-brandOrange focus:ring-brandOrange"
+                    />
+                    <span>Select all subscribers</span>
+                  </label>
+                  <span className="text-xs text-slate-200">{selectedSubscriberEmails.length} of {subscribers.length} selected</span>
+                </div>
+
+                <div className="mt-3 max-h-48 space-y-2 overflow-y-auto pr-1">
+                  {subscribers.length ? (
+                    subscribers.map((subscriber) => {
+                      const checked = selectedSubscriberEmails.includes(subscriber.email);
+
+                      return (
+                        <label key={subscriber.id} className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-white transition hover:bg-white/15">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => handleToggleSubscriber(subscriber.email)}
+                            className="mt-1 h-4 w-4 rounded border-white/30 text-brandOrange focus:ring-brandOrange"
+                          />
+                          <span className="min-w-0">
+                            <span className="block truncate text-sm font-medium">{subscriber.email}</span>
+                            <span className="block text-xs text-slate-300">Joined {new Date(subscriber.created_at).toLocaleString()}</span>
+                          </span>
+                        </label>
+                      );
+                    })
+                  ) : (
+                    <p className="text-sm text-slate-200">No subscribers are available yet.</p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -760,7 +1158,7 @@ export default function NewsletterBuilder() {
         ) : null}
 
         <div className="grid gap-6 2xl:grid-cols-[0.82fr_1.18fr]">
-          <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+          <section className="min-w-0">
             <h2 className="text-xl font-semibold text-gray-900">Newsletter Content</h2>
             <p className="mt-2 text-sm text-gray-600">The editor now follows the same top-to-bottom order as the letter preview.</p>
 
@@ -836,11 +1234,15 @@ export default function NewsletterBuilder() {
                 <p className="mt-1 text-sm text-gray-600">This appears right after the opening letter and signature.</p>
                 <div className="mt-4 space-y-4">
                   <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-gray-700">Section heading in the letter</span>
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Section heading</span>
                     <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.featuredStoryTitle} onChange={(event) => updateWeekly('featuredStoryTitle', event.target.value)} />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-gray-700">Story copy</span>
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Section sub heading</span>
+                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.featuredStorySubheading} onChange={(event) => updateWeekly('featuredStorySubheading', event.target.value)} />
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Section text</span>
                     <textarea className="min-h-[170px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.featuredStoryBody} onChange={(event) => updateWeekly('featuredStoryBody', event.target.value)} />
                   </label>
                 </div>
@@ -852,11 +1254,15 @@ export default function NewsletterBuilder() {
                 <p className="mt-1 text-sm text-gray-600">This section follows the featured story in the final letter.</p>
                 <div className="mt-4 space-y-4">
                   <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-gray-700">Section heading in the letter</span>
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Section heading</span>
                     <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.bookSpotlightTitle} onChange={(event) => updateWeekly('bookSpotlightTitle', event.target.value)} />
                   </label>
                   <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-gray-700">Book spotlight copy</span>
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Section sub heading</span>
+                    <input className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.bookSpotlightSubheading} onChange={(event) => updateWeekly('bookSpotlightSubheading', event.target.value)} />
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-700">Section text</span>
                     <textarea className="min-h-[150px] w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20" value={weeklyDraft.bookSpotlightBody} onChange={(event) => updateWeekly('bookSpotlightBody', event.target.value)} />
                   </label>
                 </div>
@@ -942,13 +1348,80 @@ export default function NewsletterBuilder() {
             </div>
           </section>
 
-          <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+          <section className="min-w-0 2xl:sticky 2xl:top-6 2xl:self-start">
             <h2 className="text-xl font-semibold text-gray-900">Letter Preview</h2>
-            <div className="mt-5 overflow-hidden rounded-[2rem] border border-[#d7e5f0] bg-slate-100 p-4 shadow-sm">
-              {renderLetterPreview(templateDraft, weeklyDraft)}
-            </div>
+            {isAdminEmbed ? (
+              <div className="mt-5 sm:overflow-hidden sm:rounded-[2rem] sm:border sm:border-[#d7e5f0] sm:bg-slate-100 sm:p-4 sm:shadow-sm">
+                {renderLetterPreview(templateDraft, weeklyDraft, true)}
+              </div>
+            ) : (
+              <div className="mt-5 overflow-hidden rounded-[2rem] border border-[#d7e5f0] bg-slate-100 p-3 sm:p-4 shadow-sm">
+                {renderLetterPreview(templateDraft, weeklyDraft)}
+              </div>
+            )}
           </section>
         </div>
+
+        {queueModalOpen ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4">
+            <div className="flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+              <div className="flex items-center justify-between gap-3 border-b border-gray-200 px-5 py-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Scheduled newsletters</h2>
+                  <p className="mt-1 text-sm text-gray-500">Review queued items by send date and time.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setQueueModalOpen(false)}
+                  className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:border-gray-400 hover:text-gray-900"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto px-5 py-5">
+                {queueLoading ? <p className="text-sm text-gray-500">Loading scheduled newsletters...</p> : null}
+                {!queueLoading && !groupedNewsletterQueue.length ? <p className="text-sm text-gray-500">No queued newsletters are scheduled yet.</p> : null}
+                {!queueLoading ? (
+                  <div className="space-y-6">
+                    {groupedNewsletterQueue.map((group) => (
+                      <div key={group.dayLabel} className="space-y-3">
+                        <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">{group.dayLabel}</h3>
+                        <div className="space-y-3">
+                          {group.items.map((item) => (
+                            <div key={item.id} className="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-slate-50 px-4 py-4 sm:flex-row sm:items-start sm:justify-between">
+                              <div className="min-w-0">
+                                <p className="text-base font-semibold text-gray-900">{item.subject}</p>
+                                <p className="mt-1 text-sm text-gray-600">{formatDateTimeDisplay(item.scheduledFor)}</p>
+                                <p className="mt-1 text-xs text-gray-500">{item.recipientCount} recipient{item.recipientCount === 1 ? '' : 's'} · {item.status}</p>
+                              </div>
+                              <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                                <button
+                                  type="button"
+                                  onClick={() => handleEditQueuedNewsletter(item)}
+                                  className="rounded-full border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-700 transition hover:border-brandBlue hover:text-brandBlue"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => void handleDeleteQueuedNewsletter(item)}
+                                  className="rounded-full border border-brandOrange/20 bg-brandOrange/10 px-3 py-1 text-xs font-semibold text-navy transition hover:bg-brandOrange/15"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </main>
   );

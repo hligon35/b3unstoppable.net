@@ -42,10 +42,10 @@ function ensureBuilderEmbed() {
 
   const embed = document.createElement('section');
   embed.id = BUILDER_EMBED_ID;
-  embed.className = 'scroll-mt-24 overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm';
+  embed.className = 'scroll-mt-24';
   embed.innerHTML = `
     <iframe
-      src="/newsletter-builder"
+      src="/newsletter-builder?embed=admin"
       title="Weekly Newsletter Builder"
       class="h-[calc(100vh-5rem)] min-h-[1100px] w-full border-0 bg-slate-100"
     ></iframe>

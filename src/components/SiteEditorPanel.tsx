@@ -723,10 +723,10 @@ export default function SiteEditorPanel() {
   }
 
   return (
-    <section id="site-editor" className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+    <section id="site-editor" className="overflow-x-hidden rounded-3xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
       <div className="border-b border-gray-200 pb-6">
         <nav>
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-slate-100 p-3">
+          <div className="flex flex-col items-stretch justify-between gap-3 rounded-2xl bg-slate-100 p-3 sm:flex-row sm:items-center">
             <div className="flex min-w-0 flex-wrap items-center gap-2 rounded-xl bg-white p-1 shadow-sm">
               {editorTabs.map((tab) => {
                 const isActive = tab.id === activeTab;
@@ -735,7 +735,7 @@ export default function SiteEditorPanel() {
                     key={tab.id}
                     type="button"
                     onClick={() => setActiveTab(tab.id)}
-                    className={`rounded-lg px-3 py-2 text-left text-sm font-medium transition ${
+                    className={`rounded-lg px-3 py-2 text-left text-sm font-medium whitespace-nowrap transition ${
                       isActive ? 'bg-slate-950 text-white shadow-sm' : 'text-slate-600 hover:text-slate-950'
                     }`}
                   >
@@ -745,7 +745,7 @@ export default function SiteEditorPanel() {
               })}
             </div>
 
-            <div className="flex flex-1 flex-wrap items-center justify-center gap-3 text-sm text-slate-600">
+            <div className="flex flex-1 flex-wrap items-center justify-start gap-3 text-sm text-slate-600 sm:justify-center">
               <div className="flex items-center gap-2 rounded-full bg-white px-3 py-2 shadow-sm">
                 <span className={`h-2.5 w-2.5 rounded-full ${saveMessage === 'Unsaved changes' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
                 <span className="font-medium text-slate-950">{draft.status}</span>
@@ -756,7 +756,7 @@ export default function SiteEditorPanel() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={() => void handlePublish()}
@@ -792,16 +792,16 @@ export default function SiteEditorPanel() {
         {activeTab === 'events' && selectedEventCard ? (
           <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
             <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5">
-              <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">Events Panel</h2>
                   <p className="mt-2 text-sm text-gray-600">Switch between the page-level copy and the event card editor from the same panel.</p>
                 </div>
-                <div className="grid grid-cols-2 gap-2 rounded-xl bg-white p-1 shadow-sm">
+                <div className="grid w-full grid-cols-2 gap-2 rounded-xl bg-white p-1 shadow-sm sm:w-auto">
                   <button
                     type="button"
                     onClick={() => setActiveEventsPanelTab('page')}
-                    className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                    className={`rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap transition ${
                       activeEventsPanelTab === 'page' ? 'bg-slate-950 text-white' : 'text-slate-600 hover:text-slate-950'
                     }`}
                   >
@@ -810,7 +810,7 @@ export default function SiteEditorPanel() {
                   <button
                     type="button"
                     onClick={() => setActiveEventsPanelTab('cards')}
-                    className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                    className={`rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap transition ${
                       activeEventsPanelTab === 'cards' ? 'bg-slate-950 text-white' : 'text-slate-600 hover:text-slate-950'
                     }`}
                   >
@@ -843,7 +843,7 @@ export default function SiteEditorPanel() {
                 </div>
               ) : (
                 <div className="mt-5 space-y-4">
-                  <div className="flex items-center justify-between gap-4">
+                  <div className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:items-center">
                     <div>
                       <h3 className="text-base font-semibold text-gray-900">Event Cards</h3>
                       <p className="mt-1 text-sm text-gray-600">Collapsed cards stack in one column. Select a card to link it to the viewer.</p>
@@ -851,7 +851,7 @@ export default function SiteEditorPanel() {
                     <button
                       type="button"
                       onClick={addEventCard}
-                      className="rounded-xl bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+                      className="w-full rounded-xl bg-slate-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 sm:w-auto"
                     >
                       Add Card
                     </button>
@@ -1200,16 +1200,16 @@ export default function SiteEditorPanel() {
         {activeTab === 'shop' && selectedShopProduct ? (
           <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
             <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5">
-              <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">Shop Panel</h2>
                   <p className="mt-2 text-sm text-gray-600">Switch between page copy and product controls from the same editing panel.</p>
                 </div>
-                <div className="grid grid-cols-2 gap-2 rounded-xl bg-white p-1 shadow-sm">
+                <div className="grid w-full grid-cols-2 gap-2 rounded-xl bg-white p-1 shadow-sm sm:w-auto">
                   <button
                     type="button"
                     onClick={() => setActiveShopPanelTab('page')}
-                    className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                    className={`rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap transition ${
                       activeShopPanelTab === 'page' ? 'bg-slate-950 text-white' : 'text-slate-600 hover:text-slate-950'
                     }`}
                   >
@@ -1218,7 +1218,7 @@ export default function SiteEditorPanel() {
                   <button
                     type="button"
                     onClick={() => setActiveShopPanelTab('products')}
-                    className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                    className={`rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap transition ${
                       activeShopPanelTab === 'products' ? 'bg-slate-950 text-white' : 'text-slate-600 hover:text-slate-950'
                     }`}
                   >
@@ -1730,18 +1730,18 @@ export default function SiteEditorPanel() {
         {activeTab === 'images' ? (
           <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
             <div className="rounded-2xl border border-gray-200 bg-gray-50 p-5">
-              <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
                 <div>
                   <h2 className="text-lg font-semibold text-gray-900">Image Library</h2>
                   <p className="mt-2 text-sm text-gray-600">Upload replacement images for each page slot, then save to apply them across the site. Reset restores the built-in default asset.</p>
                 </div>
-                <div className="grid grid-cols-2 gap-2 rounded-xl bg-white p-1 shadow-sm lg:grid-cols-4">
+                <div className="grid w-full grid-cols-2 gap-2 rounded-xl bg-white p-1 shadow-sm sm:w-auto lg:grid-cols-4">
                   {siteImagePages.map((page) => (
                     <button
                       key={page.id}
                       type="button"
                       onClick={() => setActiveImagePage(page.id)}
-                      className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                      className={`rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap transition ${
                         activeImagePage === page.id ? 'bg-slate-950 text-white' : 'text-slate-600 hover:text-slate-950'
                       }`}
                     >

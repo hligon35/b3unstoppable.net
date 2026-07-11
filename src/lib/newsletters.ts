@@ -373,8 +373,10 @@ function buildStructuredTakeBackWeeklyLetterHtml(sections: Map<string, string>) 
   const openingBody = sections.get('opening-body') || '';
   const closingSignature = sections.get('closing-signature') || '';
   const featuredTitle = sections.get('featured-title') || 'Featured Story';
+  const featuredSubheading = sections.get('featured-subheading') || '';
   const featuredBody = sections.get('featured-body') || '';
   const bookTitle = sections.get('book-title') || 'Book Spotlight';
+  const bookSubheading = sections.get('book-subheading') || '';
   const bookBody = sections.get('book-body') || '';
   const comingTitle = sections.get('coming-title') || 'What’s Coming Next Week';
   const comingBody = sections.get('coming-body') || '';
@@ -385,8 +387,8 @@ function buildStructuredTakeBackWeeklyLetterHtml(sections: Map<string, string>) 
   const htmlSections = [
     formatNewsletterBody(openingBody),
     formatClosingSignatureText(closingSignature),
-    featuredBody ? `${goldRule()}${sectionHeading(featuredTitle)}${formatNewsletterBody(featuredBody)}` : '',
-    bookBody ? `${goldRule()}${sectionHeading(bookTitle)}${formatNewsletterBody(bookBody)}` : '',
+    featuredBody || featuredSubheading ? `${goldRule()}${sectionHeading(featuredTitle)}${formatNewsletterBody(featuredBody, featuredSubheading)}` : '',
+    bookBody || bookSubheading ? `${goldRule()}${sectionHeading(bookTitle)}${formatNewsletterBody(bookBody, bookSubheading)}` : '',
     comingBody ? `${goldRule()}${sectionHeading(comingTitle)}${formatComingWeekBody(comingBody)}` : '',
     affirmationBody ? `${goldRule()}${sectionHeading(affirmationTitle)}${formatAffirmationBody(affirmationBody)}` : '',
     bottomEncouragement ? `${goldRule()}${formatBottomEncouragement(bottomEncouragement)}` : '',
@@ -713,15 +715,24 @@ function formatBottomEncouragement(bodyText: string, stepLabel?: string) {
   return `${stepLabel ? `<p style="margin:0 0 10px;text-align:center;font-size:11px;line-height:1.4;font-weight:700;letter-spacing:0.24em;text-transform:uppercase;color:#c89b2d;">${escapeHtml(stepLabel)}</p>` : ''}<p style="margin:26px 0 0;text-align:center;font-size:13px;line-height:1.6;color:#4a4a52;">${escapeHtml(collapseSoftLineBreaks(bodyText))}</p>`;
 }
 
-function formatNewsletterBody(bodyText: string) {
-  if (!bodyText.trim()) {
-    return '';
+function formatNewsletterBody(bodyText: string, subheading = '') {
+  const htmlParts: string[] = [];
+
+  if (subheading.trim()) {
+    htmlParts.push(`<p style="margin:0 0 16px;font-weight:800;color:#17182b;">${escapeHtml(collapseSoftLineBreaks(subheading))}</p>`);
   }
 
-  return bodyText
-    .split(/\n{2,}/)
-    .map((paragraph) => `<p style="margin:0 0 16px;">${escapeHtml(collapseSoftLineBreaks(paragraph))}</p>`)
-    .join('');
+  if (!bodyText.trim()) {
+    return htmlParts.join('');
+  }
+
+  htmlParts.push(
+    ...bodyText
+      .split(/\n{2,}/)
+      .map((paragraph) => `<p style="margin:0 0 16px;">${escapeHtml(collapseSoftLineBreaks(paragraph))}</p>`),
+  );
+
+  return htmlParts.join('');
 }
 
 function collapseSoftLineBreaks(value: string) {
