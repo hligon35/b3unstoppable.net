@@ -48,17 +48,22 @@ function clearCookie(name: string) {
 }
 
 function getBaseUrl(req: NextApiRequest) {
+  const forwardedHost = req.headers['x-forwarded-host'];
+  const host = (Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost) || req.headers.host || '';
+  const forwardedProto = req.headers['x-forwarded-proto'];
+  const protocol = Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto || (host.includes('localhost') ? 'http' : 'https');
+
+  if (host) {
+    return `${protocol}://${host}`;
+  }
+
   const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
 
   if (configuredUrl) {
     return configuredUrl.startsWith('http') ? configuredUrl : `https://${configuredUrl}`;
   }
 
-  const host = req.headers.host || 'localhost:3000';
-  const forwardedProto = req.headers['x-forwarded-proto'];
-  const protocol = Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto || (host.includes('localhost') ? 'http' : 'https');
-
-  return `${protocol}://${host}`;
+  return 'http://localhost:3000';
 }
 
 function getRedirectUri(req: NextApiRequest) {
