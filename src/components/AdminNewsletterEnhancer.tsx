@@ -42,7 +42,7 @@ function ensureBuilderEmbed() {
 
   const embed = document.createElement('section');
   embed.id = BUILDER_EMBED_ID;
-  embed.className = 'scroll-mt-24 overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm';
+  embed.className = 'scroll-mt-24';
   embed.innerHTML = `
     <iframe
       src="/newsletter-builder"

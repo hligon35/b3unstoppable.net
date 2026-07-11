@@ -760,7 +760,7 @@ export default function NewsletterBuilder() {
         ) : null}
 
         <div className="grid gap-6 2xl:grid-cols-[0.82fr_1.18fr]">
-          <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+          <section className="min-w-0">
             <h2 className="text-xl font-semibold text-gray-900">Newsletter Content</h2>
             <p className="mt-2 text-sm text-gray-600">The editor now follows the same top-to-bottom order as the letter preview.</p>
 
@@ -942,9 +942,9 @@ export default function NewsletterBuilder() {
             </div>
           </section>
 
-          <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+          <section className="min-w-0 2xl:sticky 2xl:top-6 2xl:self-start">
             <h2 className="text-xl font-semibold text-gray-900">Letter Preview</h2>
-            <div className="mt-5 overflow-hidden rounded-[2rem] border border-[#d7e5f0] bg-slate-100 p-4 shadow-sm">
+            <div className="mt-5 overflow-hidden rounded-[2rem] border border-[#d7e5f0] bg-slate-100 p-3 sm:p-4 shadow-sm">
               {renderLetterPreview(templateDraft, weeklyDraft)}
             </div>
           </section>
