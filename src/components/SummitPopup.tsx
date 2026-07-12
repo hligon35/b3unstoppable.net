@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 const POPUP_DISMISS_KEY = 'b3u-summit-popup-dismissed';
-const REGISTRATION_URL = 'https://us02web.zoom.us/s/82617021882?pwd=zbVM2vUSNRkNBgu6JifSBpV49iIZD8.1';
+const REGISTRATION_URL = 'https://www.eventbrite.com/e/the-big-take-back-summit-registration-1993720115535?aff=ebdssbdestsearch';
 const VIDEO_URL = '/videos/b3uevent.mp4';
 
 export default function SummitPopup() {
