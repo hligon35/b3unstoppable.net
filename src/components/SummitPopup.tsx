@@ -30,7 +30,7 @@ export default function SummitPopup() {
   }
 
   return (
-    <aside className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/55 p-3 backdrop-blur-sm sm:p-6">
+    <aside className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-950/55 p-3 backdrop-blur-sm sm:p-6">
       <div className="w-full max-w-[420px] overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-[0_25px_70px_rgba(15,23,42,0.28)] ring-1 ring-black/5">
         <div className="relative aspect-video bg-slate-950">
           <video
