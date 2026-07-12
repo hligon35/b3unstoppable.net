@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 const POPUP_DISMISS_KEY = 'b3u-summit-popup-dismissed';
 const REGISTRATION_URL = 'https://us02web.zoom.us/s/82617021882?pwd=zbVM2vUSNRkNBgu6JifSBpV49iIZD8.1';
-const VIDEO_URL = '/videos/the-big-take-back-promo.mp4';
+const VIDEO_URL = '/videos/b3uevent.mp4';
 
 export default function SummitPopup() {
   const [isVisible, setIsVisible] = useState(false);
@@ -30,8 +30,8 @@ export default function SummitPopup() {
   }
 
   return (
-    <aside className="fixed inset-x-3 bottom-3 z-[70] w-auto sm:inset-x-auto sm:right-4 sm:top-auto sm:w-[380px]">
-      <div className="overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-[0_25px_70px_rgba(15,23,42,0.28)] ring-1 ring-black/5">
+    <aside className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/55 p-3 backdrop-blur-sm sm:p-6">
+      <div className="w-full max-w-[420px] overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-[0_25px_70px_rgba(15,23,42,0.28)] ring-1 ring-black/5">
         <div className="relative aspect-video bg-slate-950">
           <video
             className="h-full w-full object-cover"
