@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { createAdminSessionCookie } from '../../../../lib/adminAuth';
+import { createAdminSessionCookie, getAdminRoleForEmail } from '../../../../lib/adminAuth';
 
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const USERINFO_URL = 'https://openidconnect.googleapis.com/v1/userinfo';
@@ -176,7 +176,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return redirectToLogin(res, 'This Google account is not approved for admin access.');
     }
 
-    res.setHeader('Set-Cookie', [...getOAuthCleanupCookies(), createAdminSessionCookie()]);
+    res.setHeader('Set-Cookie', [...getOAuthCleanupCookies(), createAdminSessionCookie(getAdminRoleForEmail(email))]);
     return res.redirect(redirectTarget);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Google login failed.';

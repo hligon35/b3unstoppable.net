@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { isAuthenticatedRequest } from '../../lib/adminAuth';
+import { getAdminRole, isAuthenticatedRequest } from '../../lib/adminAuth';
 import { fetchCloudflareAnalytics } from '../../lib/cloudflareAnalytics';
 
 const LAST_7_DAYS_QUERY = `
@@ -27,8 +27,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  if (!isAuthenticatedRequest(req)) {
-    return res.status(401).json({ error: 'Unauthorized' });
+  if (!isAuthenticatedRequest(req, 'full')) {
+    return res.status(getAdminRole(req.headers.cookie) ? 403 : 401).json({ error: 'Unauthorized' });
   }
 
   try {

@@ -242,6 +242,10 @@ export async function insertSubscriber(email: string) {
   return execute('INSERT OR IGNORE INTO subscribers (email) VALUES (?)', [email]);
 }
 
+export async function deleteSubscriber(id: number) {
+  return executeChanges('DELETE FROM subscribers WHERE id = ?', [id]);
+}
+
 export async function getSubscribers() {
   return queryAll<SubscriberRow>('SELECT id, email, created_at FROM subscribers ORDER BY created_at DESC');
 }

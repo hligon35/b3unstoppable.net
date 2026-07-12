@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { withApiMonitoring } from '../../../utils/debug/server';
 
-import { isAuthenticatedRequest } from '../../lib/adminAuth';
+import { getAdminRole, isAuthenticatedRequest } from '../../lib/adminAuth';
 import { mergeSiteDraft } from '../../lib/siteEditorContent';
 import { defaultSiteDraft } from '../../lib/siteEditorContent';
 import { getPublishedSiteDraft, savePublishedSiteDraft } from '../../lib/siteEditorContent.server';
@@ -26,8 +26,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   }
 
   if (req.method === 'PUT') {
-    if (!isAuthenticatedRequest(req)) {
-      return res.status(401).json({ error: 'Unauthorized' });
+    if (!isAuthenticatedRequest(req, 'full')) {
+      return res.status(getAdminRole(req.headers.cookie) ? 403 : 401).json({ error: 'Unauthorized' });
     }
 
     const nextDraft = mergeSiteDraft(req.body?.draft);

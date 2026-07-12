@@ -1,6 +1,9 @@
 import type { NextApiRequest } from 'next';
 
 const ADMIN_COOKIE_NAME = 'admin_auth';
+const NEWSLETTER_ONLY_EMAILS = new Set(['cohost@b3unstoppable.net']);
+
+export type AdminRole = 'full' | 'newsletter';
 
 function parseCookieHeader(cookieHeader?: string) {
   if (!cookieHeader) {
@@ -22,19 +25,53 @@ function parseCookieHeader(cookieHeader?: string) {
   }, {});
 }
 
+function normalizeAdminRole(value?: string): AdminRole | null {
+  if (value === 'newsletter') {
+    return 'newsletter';
+  }
+
+  if (value === 'full' || value === 'true') {
+    return 'full';
+  }
+
+  return null;
+}
+
+function roleRank(role: AdminRole) {
+  return role === 'full' ? 2 : 1;
+}
+
 export function hasAdminSession(cookieHeader?: string) {
-  return parseCookieHeader(cookieHeader)[ADMIN_COOKIE_NAME] === 'true';
+  return normalizeAdminRole(parseCookieHeader(cookieHeader)[ADMIN_COOKIE_NAME]) !== null;
 }
 
-export function isAuthenticatedRequest(req: NextApiRequest) {
-  return hasAdminSession(req.headers.cookie);
+export function getAdminRole(cookieHeader?: string): AdminRole | null {
+  return normalizeAdminRole(parseCookieHeader(cookieHeader)[ADMIN_COOKIE_NAME]);
 }
 
-export function createAdminSessionCookie() {
+export function hasRequiredAdminRole(cookieHeader: string | undefined, requiredRole: AdminRole = 'newsletter') {
+  const currentRole = getAdminRole(cookieHeader);
+
+  if (!currentRole) {
+    return false;
+  }
+
+  return roleRank(currentRole) >= roleRank(requiredRole);
+}
+
+export function isAuthenticatedRequest(req: NextApiRequest, requiredRole: AdminRole = 'newsletter') {
+  return hasRequiredAdminRole(req.headers.cookie, requiredRole);
+}
+
+export function getAdminRoleForEmail(email: string): AdminRole {
+  return NEWSLETTER_ONLY_EMAILS.has(email.trim().toLowerCase()) ? 'newsletter' : 'full';
+}
+
+export function createAdminSessionCookie(role: AdminRole = 'full') {
   const maxAge = 60 * 60 * 2;
   const secure = process.env.NODE_ENV === 'production' ? '; Secure' : '';
 
-  return `${ADMIN_COOKIE_NAME}=true; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure}`;
+  return `${ADMIN_COOKIE_NAME}=${role}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${secure}`;
 }
 
 export function clearAdminSessionCookie() {

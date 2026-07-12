@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 import { isAuthenticatedRequest } from '../../lib/adminAuth';
-import { getSubscribers, insertSubscriber } from '../../lib/db';
+import { deleteSubscriber, getSubscribers, insertSubscriber } from '../../lib/db';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
@@ -33,6 +33,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   }
 
-  res.setHeader('Allow', ['POST', 'GET']);
+  if (req.method === 'DELETE') {
+    if (!isAuthenticatedRequest(req)) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const idParam = Array.isArray(req.query.id) ? req.query.id[0] : req.query.id;
+    const id = Number(idParam);
+
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(400).json({ error: 'A valid subscriber id is required.' });
+    }
+
+    try {
+      const deleted = await deleteSubscriber(id);
+
+      if (!deleted) {
+        return res.status(404).json({ error: 'Subscriber not found.' });
+      }
+
+      return res.status(200).json({ message: 'Subscriber deleted successfully.' });
+    } catch (error) {
+      console.error('Failed to delete subscriber', error);
+      return res.status(500).json({ error: 'Failed to delete subscriber', details: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  }
+
+  res.setHeader('Allow', ['POST', 'GET', 'DELETE']);
   return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
 }

@@ -1,9 +1,11 @@
+import type { GetServerSideProps } from 'next';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
 import CloudflareAnalyticsPanel from '@/components/CloudflareAnalyticsPanel';
 import SiteEditorPanel from '@/components/SiteEditorPanel';
+import { getAdminRole, hasAdminSession, type AdminRole } from '@/lib/adminAuth';
 
 type NavItem = {
   id: string;
@@ -303,8 +305,14 @@ function StatSection({
   );
 }
 
-export default function Admin() {
+type AdminPageProps = {
+  adminRole: AdminRole;
+};
+
+export default function Admin({ adminRole }: AdminPageProps) {
   const router = useRouter();
+  const isNewsletterOnly = adminRole === 'newsletter';
+  const availableNavItems = isNewsletterOnly ? navItems.filter((item) => item.id === 'newsletter' || item.id === 'help') : navItems;
   const [selectedHelpSection, setSelectedHelpSection] = useState(helpSections[0]?.title ?? '');
   const [localTimeZone, setLocalTimeZone] = useState('');
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
@@ -312,6 +320,7 @@ export default function Admin() {
   const [subscriberNotice, setSubscriberNotice] = useState('');
   const [subscriberNoticeTone, setSubscriberNoticeTone] = useState<'success' | 'error' | 'info'>('info');
   const [subscriberSubmitting, setSubscriberSubmitting] = useState(false);
+  const [subscriberDeletingId, setSubscriberDeletingId] = useState<number | null>(null);
   const [subscriberFormContext, setSubscriberFormContext] = useState<'dashboard' | 'newsletter' | null>(null);
   const [analytics, setAnalytics] = useState<AnalyticsItem[]>([]);
   const [totalViews, setTotalViews] = useState(0);
@@ -332,34 +341,37 @@ export default function Admin() {
   const [error, setError] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [drawerCollapsed, setDrawerCollapsed] = useState(false);
-  const [activeView, setActiveView] = useState<NavItem['id']>('web-traffic');
+  const [activeView, setActiveView] = useState<NavItem['id']>(isNewsletterOnly ? 'newsletter' : 'web-traffic');
 
   useEffect(() => {
     setLocalTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone || 'your local timezone');
   }, []);
 
   useEffect(() => {
+    if (isNewsletterOnly && activeView !== 'newsletter' && activeView !== 'help') {
+      setActiveView('newsletter');
+    }
+  }, [activeView, isNewsletterOnly]);
+
+  useEffect(() => {
     async function loadDashboard() {
       try {
-        const [subscribersResponse, analyticsResponse, newsletterResponse] = await Promise.all([
+        const [subscribersResponse, newsletterResponse] = await Promise.all([
           fetch('/api/subscribers'),
-          fetch('/api/analytics'),
           fetch('/api/newsletters'),
         ]);
 
-        if (subscribersResponse.status === 401 || analyticsResponse.status === 401 || newsletterResponse.status === 401) {
+        if (subscribersResponse.status === 401 || newsletterResponse.status === 401) {
           router.replace('/login');
           return;
         }
 
-        if (!subscribersResponse.ok || !analyticsResponse.ok || !newsletterResponse.ok) {
+        if (!subscribersResponse.ok || !newsletterResponse.ok) {
           const subscribersBody = subscribersResponse.ok ? null : await subscribersResponse.json().catch(() => null);
-          const analyticsBody = analyticsResponse.ok ? null : await analyticsResponse.json().catch(() => null);
           const newsletterBody = newsletterResponse.ok ? null : await newsletterResponse.json().catch(() => null);
 
           const details = [
             !subscribersResponse.ok ? subscribersBody?.details || subscribersBody?.error || `Subscribers API returned ${subscribersResponse.status}` : null,
-            !analyticsResponse.ok ? analyticsBody?.details || analyticsBody?.error || `Analytics API returned ${analyticsResponse.status}` : null,
             !newsletterResponse.ok ? newsletterBody?.details || newsletterBody?.error || `Newsletter API returned ${newsletterResponse.status}` : null,
           ].filter(Boolean);
 
@@ -367,16 +379,38 @@ export default function Admin() {
         }
 
         const subscribersData = (await subscribersResponse.json()) as Subscriber[];
-        const analyticsData = (await analyticsResponse.json()) as DashboardResponse;
         const newsletterData = (await newsletterResponse.json()) as NewsletterQueueItem[];
 
         setSubscribers(subscribersData);
+        setNewsletterQueue(newsletterData ?? []);
+
+        if (isNewsletterOnly) {
+          setAnalytics([]);
+          setTotalViews(0);
+          setTopReferrers([]);
+          setTopBrowsers([]);
+          setDeviceTypes([]);
+          return;
+        }
+
+        const analyticsResponse = await fetch('/api/analytics');
+
+        if (analyticsResponse.status === 401) {
+          router.replace('/login');
+          return;
+        }
+
+        if (!analyticsResponse.ok) {
+          const analyticsBody = await analyticsResponse.json().catch(() => null);
+          throw new Error(analyticsBody?.details || analyticsBody?.error || `Analytics API returned ${analyticsResponse.status}`);
+        }
+
+        const analyticsData = (await analyticsResponse.json()) as DashboardResponse;
         setAnalytics(analyticsData.analytics ?? []);
         setTotalViews(analyticsData.total ?? 0);
         setTopReferrers(analyticsData.topReferrers ?? []);
         setTopBrowsers(analyticsData.topBrowsers ?? []);
         setDeviceTypes(analyticsData.deviceTypes ?? []);
-        setNewsletterQueue(newsletterData ?? []);
       } catch (loadError) {
         setError(loadError instanceof Error ? loadError.message : 'Failed to load dashboard');
       } finally {
@@ -385,7 +419,7 @@ export default function Admin() {
     }
 
     void loadDashboard();
-  }, [router]);
+  }, [isNewsletterOnly, router]);
 
   async function handleLogout() {
     await fetch('/api/login', { method: 'DELETE' });
@@ -424,6 +458,43 @@ export default function Admin() {
     const data = (await response.json()) as Subscriber[];
     setSubscribers(data ?? []);
     return data ?? [];
+  }
+
+  async function handleDeleteSubscriber(subscriber: Subscriber) {
+    const confirmed = window.confirm(`Delete subscriber "${subscriber.email}"?`);
+
+    if (!confirmed) {
+      return;
+    }
+
+    setSubscriberNotice('');
+    setSubscriberDeletingId(subscriber.id);
+
+    try {
+      const response = await fetch(`/api/subscribers?id=${encodeURIComponent(String(subscriber.id))}`, {
+        method: 'DELETE',
+      });
+      const body = await response.json().catch(() => null);
+
+      if (response.status === 401) {
+        await router.replace('/login');
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(body?.details || body?.error || `Subscribers API returned ${response.status}`);
+      }
+
+      setSelectedSubscriberEmails((current) => current.filter((email) => email !== subscriber.email));
+      await refreshSubscribers();
+      setSubscriberNotice('Subscriber deleted successfully.');
+      setSubscriberNoticeTone('success');
+    } catch (deleteSubscriberError) {
+      setSubscriberNotice(deleteSubscriberError instanceof Error ? deleteSubscriberError.message : 'Failed to delete subscriber.');
+      setSubscriberNoticeTone('error');
+    } finally {
+      setSubscriberDeletingId(null);
+    }
   }
 
   async function refreshNewsletterQueue() {
@@ -697,7 +768,7 @@ export default function Admin() {
       </div>
 
       <nav className={`flex-1 space-y-2 overflow-y-auto ${drawerCollapsed ? 'px-2 py-4' : 'px-3 py-4'}`}>
-        {navItems.map((item) => {
+        {availableNavItems.map((item) => {
           const isActive = activeView === item.id;
 
           return (
@@ -795,7 +866,7 @@ export default function Admin() {
 
                     <nav className="p-3" aria-label="Admin mobile navigation">
                       <div className="space-y-2">
-                        {navItems.map((item) => {
+                        {availableNavItems.map((item) => {
                           const isActive = activeView === item.id;
 
                           return (
@@ -885,7 +956,7 @@ export default function Admin() {
               </div>
             ) : null}
 
-            {!loading && activeView === 'web-traffic' ? (
+            {!loading && !isNewsletterOnly && activeView === 'web-traffic' ? (
               <div id="web-traffic" className="space-y-6 scroll-mt-24">
                 <div className="grid gap-6 lg:grid-cols-3">
                   <StatSection
@@ -950,9 +1021,19 @@ export default function Admin() {
                     <div className="max-h-96 space-y-3 overflow-y-auto">
                       {subscribers.length ? (
                         subscribers.map((subscriber) => (
-                          <div key={subscriber.id} className="border-b border-gray-100 pb-3">
-                            <div className="font-medium text-gray-900">{subscriber.email}</div>
-                            <div className="text-sm text-gray-500">{new Date(subscriber.created_at).toLocaleString()}</div>
+                          <div key={subscriber.id} className="flex items-start justify-between gap-3 border-b border-gray-100 pb-3">
+                            <div className="min-w-0">
+                              <div className="truncate font-medium text-gray-900">{subscriber.email}</div>
+                              <div className="text-sm text-gray-500">{new Date(subscriber.created_at).toLocaleString()}</div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => void handleDeleteSubscriber(subscriber)}
+                              className="shrink-0 rounded-full border border-brandOrange/30 px-3 py-1 text-xs font-semibold text-brandOrange transition hover:bg-brandOrange hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                              disabled={subscriberDeletingId === subscriber.id}
+                            >
+                              {subscriberDeletingId === subscriber.id ? 'Deleting...' : 'Delete'}
+                            </button>
                           </div>
                         ))
                       ) : (
@@ -1192,18 +1273,28 @@ export default function Admin() {
                           const checked = selectedSubscriberEmails.includes(subscriber.email);
 
                           return (
-                            <label key={subscriber.id} className="flex cursor-pointer items-start gap-3 rounded-2xl border border-gray-200 px-4 py-3 transition hover:border-brandBlue/30 hover:bg-brandBlue-light/10">
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={() => handleToggleSubscriber(subscriber.email)}
-                                className="mt-1 h-4 w-4 rounded border-gray-300 text-brandBlue focus:ring-brandBlue"
-                              />
-                              <span className="min-w-0">
-                                <span className="block truncate text-sm font-medium text-gray-900">{subscriber.email}</span>
-                                <span className="block text-xs text-gray-500">Joined {new Date(subscriber.created_at).toLocaleString()}</span>
-                              </span>
-                            </label>
+                            <div key={subscriber.id} className="flex items-start gap-3 rounded-2xl border border-gray-200 px-4 py-3 transition hover:border-brandBlue/30 hover:bg-brandBlue-light/10">
+                              <label className="flex min-w-0 flex-1 cursor-pointer items-start gap-3">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => handleToggleSubscriber(subscriber.email)}
+                                  className="mt-1 h-4 w-4 rounded border-gray-300 text-brandBlue focus:ring-brandBlue"
+                                />
+                                <span className="min-w-0">
+                                  <span className="block truncate text-sm font-medium text-gray-900">{subscriber.email}</span>
+                                  <span className="block text-xs text-gray-500">Joined {new Date(subscriber.created_at).toLocaleString()}</span>
+                                </span>
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => void handleDeleteSubscriber(subscriber)}
+                                className="shrink-0 rounded-full border border-brandOrange/30 px-3 py-1 text-xs font-semibold text-brandOrange transition hover:bg-brandOrange hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                                disabled={subscriberDeletingId === subscriber.id}
+                              >
+                                {subscriberDeletingId === subscriber.id ? 'Deleting...' : 'Delete'}
+                              </button>
+                            </div>
                           );
                         })
                       ) : (
@@ -1273,10 +1364,27 @@ export default function Admin() {
               </div>
             ) : null}
 
-            {!loading && activeView === 'site-editor' ? <SiteEditorPanel /> : null}
+            {!loading && !isNewsletterOnly && activeView === 'site-editor' ? <SiteEditorPanel /> : null}
           </div>
         </main>
       </div>
     </div>
   );
 }
+
+export const getServerSideProps: GetServerSideProps<AdminPageProps> = async ({ req }) => {
+  if (!hasAdminSession(req.headers.cookie)) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      },
+    };
+  }
+
+  return {
+    props: {
+      adminRole: getAdminRole(req.headers.cookie) ?? 'full',
+    },
+  };
+};

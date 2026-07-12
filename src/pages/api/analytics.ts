@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { isAuthenticatedRequest } from '../../lib/adminAuth';
+import { getAdminRole, isAuthenticatedRequest } from '../../lib/adminAuth';
 import { getAnalytics, getDeviceTypes, getTopBrowsers, getTopReferrers, getTotalViews, insertPageView } from '../../lib/db';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -30,8 +30,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (req.method === 'GET') {
-    if (!isAuthenticatedRequest(req)) {
-      return res.status(401).json({ error: 'Unauthorized' });
+    if (!isAuthenticatedRequest(req, 'full')) {
+      return res.status(getAdminRole(req.headers.cookie) ? 403 : 401).json({ error: 'Unauthorized' });
     }
 
     try {
