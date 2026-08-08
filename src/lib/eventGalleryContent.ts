@@ -76,7 +76,7 @@ export const eventGalleryContent: EventGalleryContent = {
       description:
         'Fresh gatherings, speaking dates, and community experiences are being planned now. Stay close to Bree, the podcast, and the movement so you hear about the next release first.',
       detailTitle: 'Be first to know',
-      detailLineOne: 'Join The Take Back Monthly for announcements and reminders.',
+      detailLineOne: 'Join The Take Back Weekly for announcements and reminders.',
       detailLineTwo: 'Watch the book and podcast channels for new momentum-building content.',
       detailLineThree: 'Check back soon for the next B3U live experience.',
       primaryActionLabel: 'Subscribe for Updates',

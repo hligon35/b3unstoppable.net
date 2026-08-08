@@ -438,7 +438,7 @@ async function sendViaSendGrid(route: Extract<Route, 'contact' | 'newsletter' | 
       subject: `[Newsletter] New subscription: ${payload.email}`,
       html: brandedEmailTemplate({
         eyebrow: 'Newsletter Signup',
-        title: 'A new subscriber joined The Take Back Monthly',
+        title: 'A new subscriber joined The Take Back Weekly',
         lead: 'B3U has a new newsletter subscription.',
         body: detailList([['Subscriber', escapeHtml(payload.email)]]),
       }),
@@ -452,7 +452,7 @@ async function sendViaSendGrid(route: Extract<Route, 'contact' | 'newsletter' | 
       subject: 'You are subscribed - B3U',
       html: brandedEmailTemplate({
         eyebrow: 'Welcome To B3U',
-        title: 'You are subscribed to The Take Back Monthly',
+        title: 'You are subscribed to The Take Back Weekly',
         lead: 'You are officially on the list for new episodes, community updates, and encouragement from B3U.',
         body: '<p style="margin:0 0 16px;">Expect thoughtful updates built around the B3U mission: Burn, Break, Become Unstoppable.</p><p style="margin:0;">We are glad you are here.</p>',
       }),

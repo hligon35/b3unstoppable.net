@@ -43,9 +43,9 @@ export default function Navbar() {
       <Link
         href="/#newsletter"
         className="block border-b border-white/10 bg-brandOrange px-4 py-2 text-center text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-brandOrange-dark"
-        aria-label="Join The Take Back Monthly for updates"
+        aria-label="Join The Take Back Weekly for updates"
       >
-        <span>The Big Take Back is on sale now • Join The Take Back Monthly for new events, podcast drops, and Bree updates</span>
+        <span>The Big Take Back is on sale now • Join The Take Back Weekly for new events, podcast drops, and Bree updates</span>
       </Link>
       <nav className={`max-w-7xl mx-auto px-6 py-2 md:px-10 md:py-3 ${textClass}`}>
         <div className="flex items-center justify-between gap-4 md:gap-5 lg:gap-8">

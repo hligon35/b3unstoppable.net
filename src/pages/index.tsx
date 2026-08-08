@@ -256,7 +256,7 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brandOrange">Stay tuned</p>
               <h3 className="mt-2 text-2xl font-bold">The next B3U experience is being prepared now.</h3>
               <p className="mt-2 text-navy/70">Stay in Bree&apos;s orbit for new speaking dates, live gatherings, podcast releases, and community updates that keep the movement growing.</p>
-              <p className="mt-3 text-sm font-semibold text-navy">Join The Take Back Monthly for first notice.</p>
+              <p className="mt-3 text-sm font-semibold text-navy">Join The Take Back Weekly for first notice.</p>
               <p className="text-sm text-navy/70">You&apos;ll hear about new drops, appearances, and community moments before they pass you by.</p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">

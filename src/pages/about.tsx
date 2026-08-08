@@ -192,7 +192,7 @@ export default function AboutPage({ initialSiteDraft, initialSiteUpdatedAt }: Ab
           </div>
           
           <div className="max-w-md mx-auto">
-            <h3 className="text-lg font-semibold mb-4">Join "The Take Back Monthly" Newsletter</h3>
+            <h3 className="text-lg font-semibold mb-4">Join "The Take Back Weekly" Newsletter</h3>
             <p className="text-sm text-navy/70 mb-4">Get Bree&apos;s latest podcast drops, event announcements, and book updates through the live signup on the homepage.</p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/#newsletter" className="btn-primary">Subscribe on the Homepage</Link>

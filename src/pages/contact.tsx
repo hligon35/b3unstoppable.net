@@ -188,7 +188,7 @@ export default function ContactPage() {
                 <p className="text-navy/80 mb-4">Whether you're looking to share your story, book a speaking engagement, or explore collaboration opportunities, every message matters. We read each one personally and typically respond within 24-48 hours.</p>
                 <p className="text-sm text-brandOrange font-semibold">Breaking Cycles. Building Legacies.</p>
                 <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-                  <Link href="/#newsletter" className="btn-outline text-center">Join The Take Back Monthly</Link>
+                  <Link href="/#newsletter" className="btn-outline text-center">Join The Take Back Weekly</Link>
                   <Link href="/shop" className="btn-primary text-center">Explore the Book</Link>
                 </div>
               </div>

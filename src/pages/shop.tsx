@@ -150,7 +150,7 @@ export default function ShopPage({ initialSiteDraft, initialSiteUpdatedAt }: Sho
                   {draft.shopContactDescription}
                 </p>
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                  <Link href="/#newsletter" className="btn-outline flex-1 text-center">Join The Take Back Monthly</Link>
+                  <Link href="/#newsletter" className="btn-outline flex-1 text-center">Join The Take Back Weekly</Link>
                   <Link href="/contact" className="btn-primary flex-1 text-center">Contact B3U about the book</Link>
                 </div>
               </div>

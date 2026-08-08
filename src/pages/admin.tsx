@@ -1155,7 +1155,7 @@ export default function Admin({ adminRole }: AdminPageProps) {
                           value={newsletterSubject}
                           onChange={(event) => setNewsletterSubject(event.target.value)}
                           className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-brandBlue focus:ring-2 focus:ring-brandBlue/20"
-                          placeholder="The Take Back Monthly: your subject line"
+                          placeholder="The Take Back Weekly: your subject line"
                           maxLength={160}
                           required
                         />
