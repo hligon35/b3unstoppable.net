@@ -90,6 +90,63 @@ type BlogPostRow = {
   updated_at: string;
 };
 
+type BlogCommentRow = {
+  id: number;
+  post_id: number;
+  parent_comment_id: number | null;
+  status: string;
+  is_email_verified: number;
+  author_name: string;
+  author_email: string;
+  author_website: string | null;
+  body: string;
+  ip_hash: string;
+  user_agent_hash: string;
+  created_at: string;
+  updated_at: string;
+  approved_at: string | null;
+  moderated_at: string | null;
+};
+
+type BlogCommentVerificationRow = {
+  id: number;
+  comment_id: number;
+  token_hash: string;
+  expires_at: string;
+  used_at: string | null;
+  created_at: string;
+};
+
+type BlogCommentReportRow = {
+  id: number;
+  comment_id: number;
+  reason: string;
+  details: string | null;
+  reporter_email: string | null;
+  reporter_ip_hash: string;
+  status: string;
+  created_at: string;
+  resolved_at: string | null;
+  resolved_by: string | null;
+};
+
+type BlogCommentReactionRow = {
+  id: number;
+  comment_id: number;
+  reaction_type: string;
+  fingerprint_hash: string;
+  created_at: string;
+};
+
+type BlogCommentModerationEventRow = {
+  id: number;
+  comment_id: number;
+  admin_username: string;
+  action: string;
+  note: string | null;
+  created_at: string;
+};
+
 type D1PreparedStatement = {
   bind: (...values: unknown[]) => D1PreparedStatement;
   all<T = unknown>(): Promise<D1LikeResult<T>>;
@@ -192,6 +249,71 @@ const DASHBOARD_SCHEMA_STATEMENTS = [
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`,
+  `CREATE TABLE IF NOT EXISTS blog_comments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    post_id INTEGER NOT NULL,
+    parent_comment_id INTEGER,
+    status TEXT NOT NULL DEFAULT 'pending_verification' CHECK (status IN ('pending_verification', 'pending_moderation', 'approved', 'rejected', 'hidden', 'deleted')),
+    is_email_verified INTEGER NOT NULL DEFAULT 0,
+    author_name TEXT NOT NULL,
+    author_email TEXT NOT NULL,
+    author_website TEXT,
+    body TEXT NOT NULL,
+    ip_hash TEXT NOT NULL,
+    user_agent_hash TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    approved_at DATETIME,
+    moderated_at DATETIME,
+    FOREIGN KEY (post_id) REFERENCES blog_posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (parent_comment_id) REFERENCES blog_comments(id) ON DELETE CASCADE,
+    CHECK (parent_comment_id IS NULL OR parent_comment_id > 0)
+  )`,
+  `CREATE TABLE IF NOT EXISTS blog_comment_verifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    comment_id INTEGER NOT NULL,
+    token_hash TEXT NOT NULL UNIQUE,
+    expires_at DATETIME NOT NULL,
+    used_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (comment_id) REFERENCES blog_comments(id) ON DELETE CASCADE
+  )`,
+  `CREATE TABLE IF NOT EXISTS blog_comment_reports (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    comment_id INTEGER NOT NULL,
+    reason TEXT NOT NULL,
+    details TEXT,
+    reporter_email TEXT,
+    reporter_ip_hash TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'resolved', 'dismissed')),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    resolved_at DATETIME,
+    resolved_by TEXT,
+    FOREIGN KEY (comment_id) REFERENCES blog_comments(id) ON DELETE CASCADE
+  )`,
+  `CREATE TABLE IF NOT EXISTS blog_comment_reactions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    comment_id INTEGER NOT NULL,
+    reaction_type TEXT NOT NULL CHECK (reaction_type IN ('support', 'insight', 'fire')),
+    fingerprint_hash TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (comment_id) REFERENCES blog_comments(id) ON DELETE CASCADE,
+    UNIQUE(comment_id, reaction_type, fingerprint_hash)
+  )`,
+  `CREATE TABLE IF NOT EXISTS blog_comment_moderation_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    comment_id INTEGER NOT NULL,
+    admin_username TEXT NOT NULL,
+    action TEXT NOT NULL,
+    note TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (comment_id) REFERENCES blog_comments(id) ON DELETE CASCADE
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_blog_comments_post_status_created ON blog_comments(post_id, status, created_at DESC)`,
+  `CREATE INDEX IF NOT EXISTS idx_blog_comments_parent ON blog_comments(parent_comment_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_blog_comment_verifications_comment ON blog_comment_verifications(comment_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_blog_comment_reports_comment_status ON blog_comment_reports(comment_id, status, created_at DESC)`,
+  `CREATE INDEX IF NOT EXISTS idx_blog_comment_reactions_comment_type ON blog_comment_reactions(comment_id, reaction_type)`
 ];
 
 const DASHBOARD_SCHEMA_SQL = `${DASHBOARD_SCHEMA_STATEMENTS.join(';\n\n')};`;
@@ -880,4 +1002,313 @@ export async function updateBlogPostRow(params: {
 export async function deleteBlogPostRow(id: number) {
   const changes = await executeChanges('DELETE FROM blog_posts WHERE id = ?', [id]);
   return changes > 0;
+}
+
+export async function createBlogCommentRow(params: {
+  postId: number;
+  parentCommentId: number | null;
+  authorName: string;
+  authorEmail: string;
+  authorWebsite: string | null;
+  body: string;
+  ipHash: string;
+  userAgentHash: string;
+}) {
+  await execute(
+    `INSERT INTO blog_comments (
+      post_id,
+      parent_comment_id,
+      status,
+      is_email_verified,
+      author_name,
+      author_email,
+      author_website,
+      body,
+      ip_hash,
+      user_agent_hash,
+      updated_at
+    ) VALUES (?, ?, 'pending_verification', 0, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+    [
+      params.postId,
+      params.parentCommentId,
+      params.authorName,
+      params.authorEmail,
+      params.authorWebsite,
+      params.body,
+      params.ipHash,
+      params.userAgentHash,
+    ],
+  );
+
+  return queryFirst<BlogCommentRow>(
+    `SELECT id, post_id, parent_comment_id, status, is_email_verified, author_name, author_email, author_website, body, ip_hash, user_agent_hash,
+            created_at, updated_at, approved_at, moderated_at
+     FROM blog_comments
+     WHERE id = (SELECT MAX(id) FROM blog_comments)`,
+  );
+}
+
+export async function getBlogCommentRowById(id: number) {
+  return queryFirst<BlogCommentRow>(
+    `SELECT id, post_id, parent_comment_id, status, is_email_verified, author_name, author_email, author_website, body, ip_hash, user_agent_hash,
+            created_at, updated_at, approved_at, moderated_at
+     FROM blog_comments
+     WHERE id = ?`,
+    [id],
+  );
+}
+
+export async function listBlogCommentRowsByPostId(postId: number, statuses: string[] = ['approved']) {
+  const validStatuses = statuses.filter(Boolean);
+
+  if (!validStatuses.length) {
+    return [] as BlogCommentRow[];
+  }
+
+  const placeholders = validStatuses.map(() => '?').join(', ');
+
+  return queryAll<BlogCommentRow>(
+    `SELECT id, post_id, parent_comment_id, status, is_email_verified, author_name, author_email, author_website, body, ip_hash, user_agent_hash,
+            created_at, updated_at, approved_at, moderated_at
+     FROM blog_comments
+     WHERE post_id = ? AND status IN (${placeholders})
+     ORDER BY created_at ASC, id ASC`,
+    [postId, ...validStatuses],
+  );
+}
+
+export async function updateBlogCommentStatus(params: {
+  id: number;
+  status: string;
+  markApproved: boolean;
+}) {
+  const approvedAtSql = params.markApproved ? ', approved_at = CURRENT_TIMESTAMP' : '';
+  const changes = await executeChanges(
+    `UPDATE blog_comments
+     SET status = ?, moderated_at = CURRENT_TIMESTAMP${approvedAtSql}, updated_at = CURRENT_TIMESTAMP
+     WHERE id = ?`,
+    [params.status, params.id],
+  );
+
+  return changes > 0;
+}
+
+export async function markBlogCommentEmailVerified(id: number) {
+  const changes = await executeChanges(
+    `UPDATE blog_comments
+     SET is_email_verified = 1,
+         status = CASE WHEN status = 'pending_verification' THEN 'pending_moderation' ELSE status END,
+         updated_at = CURRENT_TIMESTAMP
+     WHERE id = ?`,
+    [id],
+  );
+
+  return changes > 0;
+}
+
+export async function createBlogCommentVerificationRow(params: {
+  commentId: number;
+  tokenHash: string;
+  expiresAt: string;
+}) {
+  await execute(
+    `INSERT INTO blog_comment_verifications (comment_id, token_hash, expires_at)
+     VALUES (?, ?, ?)`,
+    [params.commentId, params.tokenHash, params.expiresAt],
+  );
+
+  return queryFirst<BlogCommentVerificationRow>(
+    `SELECT id, comment_id, token_hash, expires_at, used_at, created_at
+     FROM blog_comment_verifications
+     WHERE token_hash = ?`,
+    [params.tokenHash],
+  );
+}
+
+export async function getBlogCommentVerificationByTokenHash(tokenHash: string) {
+  return queryFirst<BlogCommentVerificationRow>(
+    `SELECT id, comment_id, token_hash, expires_at, used_at, created_at
+     FROM blog_comment_verifications
+     WHERE token_hash = ?`,
+    [tokenHash],
+  );
+}
+
+export async function markBlogCommentVerificationUsed(id: number) {
+  const changes = await executeChanges(
+    'UPDATE blog_comment_verifications SET used_at = CURRENT_TIMESTAMP WHERE id = ? AND used_at IS NULL',
+    [id],
+  );
+
+  return changes > 0;
+}
+
+export async function createBlogCommentReportRow(params: {
+  commentId: number;
+  reason: string;
+  details: string | null;
+  reporterEmail: string | null;
+  reporterIpHash: string;
+}) {
+  await execute(
+    `INSERT INTO blog_comment_reports (
+      comment_id,
+      reason,
+      details,
+      reporter_email,
+      reporter_ip_hash,
+      status
+    ) VALUES (?, ?, ?, ?, ?, 'open')`,
+    [params.commentId, params.reason, params.details, params.reporterEmail, params.reporterIpHash],
+  );
+
+  return queryFirst<BlogCommentReportRow>(
+    `SELECT id, comment_id, reason, details, reporter_email, reporter_ip_hash, status, created_at, resolved_at, resolved_by
+     FROM blog_comment_reports
+     WHERE id = (SELECT MAX(id) FROM blog_comment_reports)`,
+  );
+}
+
+export async function listBlogCommentReportRowsByStatus(status: 'open' | 'resolved' | 'dismissed' | 'all' = 'open', limit = 200) {
+  if (status === 'all') {
+    return queryAll<BlogCommentReportRow>(
+      `SELECT id, comment_id, reason, details, reporter_email, reporter_ip_hash, status, created_at, resolved_at, resolved_by
+       FROM blog_comment_reports
+       ORDER BY created_at DESC, id DESC
+       LIMIT ?`,
+      [limit],
+    );
+  }
+
+  return queryAll<BlogCommentReportRow>(
+    `SELECT id, comment_id, reason, details, reporter_email, reporter_ip_hash, status, created_at, resolved_at, resolved_by
+     FROM blog_comment_reports
+     WHERE status = ?
+     ORDER BY created_at DESC, id DESC
+     LIMIT ?`,
+    [status, limit],
+  );
+}
+
+export async function updateBlogCommentReportStatus(params: {
+  id: number;
+  status: 'open' | 'resolved' | 'dismissed';
+  resolvedBy: string | null;
+}) {
+  const changes = await executeChanges(
+    `UPDATE blog_comment_reports
+     SET status = ?,
+         resolved_at = CASE WHEN ? IN ('resolved', 'dismissed') THEN CURRENT_TIMESTAMP ELSE NULL END,
+         resolved_by = CASE WHEN ? IN ('resolved', 'dismissed') THEN ? ELSE NULL END
+     WHERE id = ?`,
+    [params.status, params.status, params.status, params.resolvedBy, params.id],
+  );
+
+  return changes > 0;
+}
+
+export async function addBlogCommentReactionRow(params: {
+  commentId: number;
+  reactionType: string;
+  fingerprintHash: string;
+}) {
+  await execute(
+    `INSERT OR IGNORE INTO blog_comment_reactions (comment_id, reaction_type, fingerprint_hash)
+     VALUES (?, ?, ?)`,
+    [params.commentId, params.reactionType, params.fingerprintHash],
+  );
+}
+
+export async function removeBlogCommentReactionRow(params: {
+  commentId: number;
+  reactionType: string;
+  fingerprintHash: string;
+}) {
+  const changes = await executeChanges(
+    `DELETE FROM blog_comment_reactions
+     WHERE comment_id = ? AND reaction_type = ? AND fingerprint_hash = ?`,
+    [params.commentId, params.reactionType, params.fingerprintHash],
+  );
+
+  return changes > 0;
+}
+
+export async function listBlogCommentReactionRowsByCommentIds(commentIds: number[]) {
+  if (!commentIds.length) {
+    return [] as BlogCommentReactionRow[];
+  }
+
+  const placeholders = commentIds.map(() => '?').join(', ');
+
+  return queryAll<BlogCommentReactionRow>(
+    `SELECT id, comment_id, reaction_type, fingerprint_hash, created_at
+     FROM blog_comment_reactions
+     WHERE comment_id IN (${placeholders})`,
+    commentIds,
+  );
+}
+
+export async function getBlogCommentReactionForFingerprint(params: {
+  commentId: number;
+  reactionType: string;
+  fingerprintHash: string;
+}) {
+  return queryFirst<BlogCommentReactionRow>(
+    `SELECT id, comment_id, reaction_type, fingerprint_hash, created_at
+     FROM blog_comment_reactions
+     WHERE comment_id = ? AND reaction_type = ? AND fingerprint_hash = ?`,
+    [params.commentId, params.reactionType, params.fingerprintHash],
+  );
+}
+
+export async function createBlogCommentModerationEventRow(params: {
+  commentId: number;
+  adminUsername: string;
+  action: string;
+  note: string | null;
+}) {
+  await execute(
+    `INSERT INTO blog_comment_moderation_events (comment_id, admin_username, action, note)
+     VALUES (?, ?, ?, ?)`,
+    [params.commentId, params.adminUsername, params.action, params.note],
+  );
+
+  return queryFirst<BlogCommentModerationEventRow>(
+    `SELECT id, comment_id, admin_username, action, note, created_at
+     FROM blog_comment_moderation_events
+     WHERE id = (SELECT MAX(id) FROM blog_comment_moderation_events)`,
+  );
+}
+
+export async function listBlogCommentRowsForModeration(params?: {
+  status?: string;
+  postId?: number;
+  limit?: number;
+}) {
+  const filters: string[] = [];
+  const bindings: unknown[] = [];
+
+  if (params?.status && params.status !== 'all') {
+    filters.push('status = ?');
+    bindings.push(params.status);
+  }
+
+  if (params?.postId) {
+    filters.push('post_id = ?');
+    bindings.push(params.postId);
+  }
+
+  const whereClause = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
+  const limit = Math.max(1, Math.min(300, params?.limit ?? 150));
+  bindings.push(limit);
+
+  return queryAll<BlogCommentRow>(
+    `SELECT id, post_id, parent_comment_id, status, is_email_verified, author_name, author_email, author_website, body, ip_hash, user_agent_hash,
+            created_at, updated_at, approved_at, moderated_at
+     FROM blog_comments
+     ${whereClause}
+     ORDER BY created_at DESC, id DESC
+     LIMIT ?`,
+    bindings,
+  );
 }

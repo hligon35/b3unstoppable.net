@@ -108,12 +108,11 @@ export default function EventGalleryPage({ initialSiteDraft, initialSiteUpdatedA
                     sizes="(max-width: 768px) 100vw, 50vw"
                   />
                 </div>
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                <div className="mt-3">
                   <div>
                     <p className="text-sm font-semibold text-white">The Big Take Back Men&apos;s Summit</p>
                     <p className="text-xs text-white/75">Saturday, August 22nd at 10am EST</p>
                   </div>
-                  <a href="https://b3unstoppable.net" target="_blank" rel="noopener noreferrer" className="btn-primary whitespace-nowrap">Register Now</a>
                 </div>
               </article>
 
@@ -127,12 +126,11 @@ export default function EventGalleryPage({ initialSiteDraft, initialSiteUpdatedA
                     sizes="(max-width: 768px) 100vw, 50vw"
                   />
                 </div>
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+                <div className="mt-3">
                   <div>
                     <p className="text-sm font-semibold text-white">UnWine &amp; Break It</p>
                     <p className="text-xs text-white/75">Sunday, August 30 • Revolution Winery</p>
                   </div>
-                  <a href="https://b3unstoppable.net" target="_blank" rel="noopener noreferrer" className="btn-primary whitespace-nowrap">Reserve a Spot</a>
                 </div>
               </article>
             </div>

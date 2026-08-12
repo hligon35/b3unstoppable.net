@@ -141,12 +141,11 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
                   sizes="(max-width: 1024px) 100vw, 66vw"
                 />
               </div>
-              <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mt-4">
                 <div>
                   <p className="text-lg font-semibold">The Big Take Back Men&apos;s Summit</p>
                   <p className="text-sm text-white/75">Saturday, August 22nd @ 10am EST • Free Virtual Event</p>
                 </div>
-                <a href="https://b3unstoppable.net" target="_blank" rel="noopener noreferrer" className="btn-primary whitespace-nowrap">Register Today</a>
               </div>
             </article>
 
@@ -160,12 +159,11 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
                   sizes="(max-width: 1024px) 100vw, 33vw"
                 />
               </div>
-              <div className="mt-4 flex flex-col gap-3">
+              <div className="mt-4">
                 <div>
                   <p className="text-lg font-semibold">UnWine &amp; Break It</p>
                   <p className="text-sm text-white/75">Sunday, August 30 • 12:00 PM - 5:00 PM • Revolution Winery</p>
                 </div>
-                <a href="https://b3unstoppable.net" target="_blank" rel="noopener noreferrer" className="btn-primary self-start whitespace-nowrap">Reserve Your Seat</a>
               </div>
             </article>
           </div>

@@ -1131,7 +1131,7 @@ export default function NewsletterBuilder() {
           </div>
         ) : null}
 
-        <div className="grid gap-6 2xl:grid-cols-[0.82fr_1.18fr]">
+        <div className="grid gap-6 2xl:grid-cols-[0.72fr_1.28fr]">
           <section className="min-w-0">
             <h2 className="text-xl font-semibold text-gray-900">Newsletter Content</h2>
             <p className="mt-2 text-sm text-gray-600">The editor now follows the same top-to-bottom order as the letter preview.</p>

@@ -1,6 +1,7 @@
 import type { GetServerSideProps } from 'next';
 
 import Layout from '@/components/Layout';
+import BlogCommentsSection from '@/components/blog/BlogCommentsSection';
 import JournalArticleLayout from '@/components/blog/JournalArticleLayout';
 import { getReadingTimeMinutes, type BlogPost } from '@/lib/blogs';
 import { getBlogBySlug } from '@/lib/blogs.server';
@@ -51,7 +52,10 @@ export default function JournalArticlePage({ post }: JournalArticlePageProps) {
   return (
     <Layout title={title} description={description} canonicalUrlOverride={canonicalUrl} structuredData={structuredData}>
       <section className="bg-white px-4 py-10 sm:px-6 lg:px-10">
-        <JournalArticleLayout article={post} readingTimeMinutes={readingTimeMinutes} previewViewport="desktop" />
+        <div className="mx-auto max-w-[1120px]">
+          <JournalArticleLayout article={post} readingTimeMinutes={readingTimeMinutes} previewViewport="desktop" />
+          <BlogCommentsSection postSlug={post.slug} />
+        </div>
       </section>
     </Layout>
   );

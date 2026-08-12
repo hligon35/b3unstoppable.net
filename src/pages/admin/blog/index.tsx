@@ -208,9 +208,14 @@ export default function AdminBlogIndex({ adminRole }: AdminBlogIndexProps) {
                 {draftCount} draft{draftCount === 1 ? '' : 's'} · {totalCount} total
               </span>
             </div>
-            <Link href="/admin/blog/new" className="inline-flex min-h-11 items-center rounded-xl bg-brandBlue px-4 py-2 text-sm font-semibold text-white transition hover:bg-brandBlue-dark">
-              New Blog
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              <Link href="/admin/blog/moderation" className="inline-flex min-h-11 items-center rounded-xl border border-brandBlue/40 px-4 py-2 text-sm font-semibold text-brandBlue transition hover:border-brandBlue hover:text-brandBlue-dark">
+                Moderation
+              </Link>
+              <Link href="/admin/blog/new" className="inline-flex min-h-11 items-center rounded-xl bg-brandBlue px-4 py-2 text-sm font-semibold text-white transition hover:bg-brandBlue-dark">
+                New Blog
+              </Link>
+            </div>
           </div>
 
           <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto]">

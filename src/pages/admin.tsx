@@ -880,8 +880,8 @@ export default function Admin({ adminRole }: AdminPageProps) {
         {navContent}
       </aside>
 
-      <main className={`min-w-0 p-4 md:p-8 ${drawerCollapsed ? 'lg:ml-24' : 'lg:ml-80'}`}>
-        <div className="mx-auto w-full max-w-7xl">
+      <main className={`min-w-0 px-2 py-4 md:px-3 md:py-8 ${drawerCollapsed ? 'lg:ml-24' : 'lg:ml-80'}`}>
+        <div className="mx-auto w-full max-w-[100rem]">
             <div className="mb-6 flex items-start justify-between gap-4 lg:hidden">
               <div className="min-w-0 pr-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">B3U Admin</p>

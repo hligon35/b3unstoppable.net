@@ -530,7 +530,7 @@ export default function BlogEditorScreen({ backHref, mode, initialPost, existing
 
       {errors.slugChangeWarning ? <div className="rounded-2xl border border-brandOrange/25 bg-brandOrange/10 px-4 py-3 text-sm text-navy">{errors.slugChangeWarning}</div> : null}
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,55%)_minmax(0,45%)]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,47%)_minmax(0,53%)] 2xl:grid-cols-[minmax(0,44%)_minmax(0,56%)]">
         <div className={`space-y-6 ${previewTab === 'preview' ? 'hidden xl:block' : ''}`}>
           <section className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
             <h2 className="text-lg font-semibold text-slate-900">Story details</h2>
