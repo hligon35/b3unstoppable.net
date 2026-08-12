@@ -10,6 +10,7 @@ type LayoutProps = {
   children: ReactNode;
   title?: string;
   description?: string;
+  canonicalUrlOverride?: string;
   structuredData?: Record<string, unknown> | Array<Record<string, unknown>>;
 };
 
@@ -19,17 +20,21 @@ const DEFAULT_DESCRIPTION =
 
 const OG_IMAGE_URL = `${siteUrl}/og.png`;
 
-export default function Layout({ children, title, description, structuredData }: LayoutProps) {
+export default function Layout({ children, title, description, canonicalUrlOverride, structuredData }: LayoutProps) {
   const { pathname, asPath } = useRouter();
   const isHomePage = pathname === '/';
   const isRestrictedPage = /^\/(admin|login|forgot-password|reset-password|newsletter-builder|debug)(?:\/|$)/.test(pathname);
   const mainClassName = isHomePage ? '' : 'pt-44';
 
   const canonicalUrl = useMemo(() => {
+    if (canonicalUrlOverride?.trim()) {
+      return canonicalUrlOverride.trim();
+    }
+
     const rawPath = (asPath || pathname || '/').split('?')[0].split('#')[0] || '/';
     const normalizedPath = rawPath === '/' ? '/' : rawPath.replace(/\/$/, '') + '/';
     return `${siteUrl}${normalizedPath}`;
-  }, [asPath, pathname]);
+  }, [asPath, canonicalUrlOverride, pathname]);
 
   const pageTitle = title?.trim() ? title.trim() : DEFAULT_TITLE;
   const pageDescription = description?.trim() ? description.trim() : DEFAULT_DESCRIPTION;

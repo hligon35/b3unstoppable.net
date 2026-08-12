@@ -1,4 +1,6 @@
 import Layout from '@/components/Layout';
+import { useRouter } from 'next/router';
+import { useMemo } from 'react';
 import { usePublishedSiteDraft } from '@/lib/siteEditorContent';
 
 type Episode = {
@@ -18,6 +20,7 @@ type PodcastProps = {
 };
 
 export default function PodcastPage({ episodes }: PodcastProps) {
+  const router = useRouter();
   const { draft } = usePublishedSiteDraft({ preferLocalDraft: false });
   // Fallback hardcoded episodes if needed (used only when no data)
   const fallbackEpisodes: Episode[] = [
@@ -132,21 +135,39 @@ export default function PodcastPage({ episodes }: PodcastProps) {
   ];
 
   const list = episodes && episodes.length ? episodes : fallbackEpisodes;
+  const selectedEpisodeId = typeof router.query.episode === 'string' ? router.query.episode : '';
+  const shouldAttemptAutoplay = router.query.autoplay === '1' || router.query.autoplay === 'true';
 
-  const makeEmbedUrl = (ep: Episode) => {
+  const orderedList = useMemo(() => {
+    if (!selectedEpisodeId) {
+      return list;
+    }
+
+    const selectedEpisode = list.find((episode) => episode.id === selectedEpisodeId);
+
+    if (!selectedEpisode) {
+      return list;
+    }
+
+    return [selectedEpisode, ...list.filter((episode) => episode.id !== selectedEpisodeId)];
+  }, [list, selectedEpisodeId]);
+
+  const makeEmbedUrl = (ep: Episode, autoplay = false) => {
     const brand = draft.brandOrange.replace('#', '').toUpperCase() || 'CC5500';
+    const autoplayQuery = autoplay ? '&autoplay=true&auto_start=true' : '';
+
     if (ep.audioUrl && ep.audioUrl.includes('/episodes/')) {
       // Convert the mp3 URL into an embeddable page URL
       // e.g., https://www.buzzsprout.com/2467135/episodes/17967667-title.mp3
       //   -> https://www.buzzsprout.com/2467135/episodes/17967667-title?client_source=small_player&player=small&iframe=true&color=CC5500
       const base = ep.audioUrl.replace(/\.mp3$/i, '');
-      return `${base}?client_source=small_player&player=small&iframe=true&color=${brand}`;
+      return `${base}?client_source=small_player&player=small&iframe=true&color=${brand}${autoplayQuery}`;
     }
     if (ep.link && ep.link.includes('/episodes/')) {
-      return `${ep.link}?client_source=small_player&player=small&iframe=true&color=${brand}`;
+      return `${ep.link}?client_source=small_player&player=small&iframe=true&color=${brand}${autoplayQuery}`;
     }
     // Fallback to show page small player (artist). This won’t be episode-specific.
-    return `https://www.buzzsprout.com/2467135?client_source=small_player&player=small&iframe=true&color=${brand}`;
+    return `https://www.buzzsprout.com/2467135?client_source=small_player&player=small&iframe=true&color=${brand}${autoplayQuery}`;
   };
 
   return (
@@ -163,11 +184,11 @@ export default function PodcastPage({ episodes }: PodcastProps) {
           
         </div>
         <div className="grid md:grid-cols-3 gap-8">
-          {list.map(ep => (
+          {orderedList.map(ep => (
             <div key={ep.id} className="card">
               <div className="overflow-hidden rounded-md border border-black/5 shadow-sm bg-white">
                 <iframe
-                  src={makeEmbedUrl(ep)}
+                  src={makeEmbedUrl(ep, shouldAttemptAutoplay && selectedEpisodeId === ep.id)}
                   title={`Play ${ep.title}`}
                   loading="lazy"
                   width="100%"

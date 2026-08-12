@@ -117,6 +117,60 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
       structuredData={pageStructuredData}
     >
       <Hero draft={draft} />
+      <section id="featured-events" className="section-padding bg-[linear-gradient(120deg,#081628_0%,#0a2238_48%,#123756_100%)] text-white">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brandOrange-light">Featured Events</p>
+              <h2 className="mt-3 text-3xl font-bold md:text-4xl">Be in the Room Where Transformation Happens</h2>
+              <p className="mt-3 max-w-3xl text-white/80">These are live opportunities to connect with Dr. Bree Charles and the B3U community. Register now, then invite someone who needs this breakthrough.</p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/event-gallery" className="btn-primary">View All Events</Link>
+            </div>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+            <article className="overflow-hidden rounded-3xl border border-white/15 bg-black/20 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+              <div className="relative aspect-[16/9] overflow-hidden rounded-2xl">
+                <Image
+                  src="/images/events/unwine-break-it-2026.png"
+                  alt="The Big Take Back Men's Summit flyer"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 66vw"
+                />
+              </div>
+              <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-lg font-semibold">The Big Take Back Men&apos;s Summit</p>
+                  <p className="text-sm text-white/75">Saturday, August 22nd @ 10am EST • Free Virtual Event</p>
+                </div>
+                <a href="https://b3unstoppable.net" target="_blank" rel="noopener noreferrer" className="btn-primary whitespace-nowrap">Register Today</a>
+              </div>
+            </article>
+
+            <article className="overflow-hidden rounded-3xl border border-white/15 bg-black/20 p-4 shadow-[0_20px_60px_rgba(0,0,0,0.35)]">
+              <div className="relative aspect-[3/4] overflow-hidden rounded-2xl">
+                <Image
+                  src="/images/events/mens-summit-2026.png"
+                  alt="UnWine and Break It event flyer"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 33vw"
+                />
+              </div>
+              <div className="mt-4 flex flex-col gap-3">
+                <div>
+                  <p className="text-lg font-semibold">UnWine &amp; Break It</p>
+                  <p className="text-sm text-white/75">Sunday, August 30 • 12:00 PM - 5:00 PM • Revolution Winery</p>
+                </div>
+                <a href="https://b3unstoppable.net" target="_blank" rel="noopener noreferrer" className="btn-primary self-start whitespace-nowrap">Reserve Your Seat</a>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
       <section id="about" className="section-padding bg-white">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>

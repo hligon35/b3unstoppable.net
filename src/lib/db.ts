@@ -54,6 +54,42 @@ type ScheduledNewsletterRow = {
   sent_at: string | null;
 };
 
+type BlogPostRow = {
+  id: number;
+  title: string;
+  slug: string;
+  deck: string;
+  author: string;
+  category: string;
+  tags_json: string;
+  status: string;
+  publish_at: string | null;
+  featured_image_url: string | null;
+  featured_image_alt: string;
+  featured_image_caption: string | null;
+  social_image_url: string | null;
+  content_markdown: string;
+  opening_story: string;
+  burn_title: string;
+  burn_body: string;
+  break_title: string;
+  break_body: string;
+  become_title: string;
+  become_body: string;
+  pull_quote: string;
+  reflection_question: string;
+  cta_label: string;
+  cta_url: string;
+  related_podcast_title: string;
+  related_podcast_url: string;
+  seo_title: string;
+  seo_description: string;
+  canonical_url: string;
+  social_caption: string;
+  created_at: string;
+  updated_at: string;
+};
+
 type D1PreparedStatement = {
   bind: (...values: unknown[]) => D1PreparedStatement;
   all<T = unknown>(): Promise<D1LikeResult<T>>;
@@ -120,6 +156,41 @@ const DASHBOARD_SCHEMA_STATEMENTS = [
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     sent_at DATETIME
+  )`,
+  `CREATE TABLE IF NOT EXISTS blog_posts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    deck TEXT NOT NULL DEFAULT '',
+    author TEXT NOT NULL DEFAULT '',
+    category TEXT NOT NULL DEFAULT '',
+    tags_json TEXT NOT NULL DEFAULT '[]',
+    status TEXT NOT NULL DEFAULT 'draft',
+    publish_at DATETIME,
+    featured_image_url TEXT,
+    featured_image_alt TEXT NOT NULL DEFAULT '',
+    featured_image_caption TEXT,
+    social_image_url TEXT,
+    content_markdown TEXT NOT NULL DEFAULT '',
+    opening_story TEXT NOT NULL DEFAULT '',
+    burn_title TEXT NOT NULL DEFAULT '',
+    burn_body TEXT NOT NULL DEFAULT '',
+    break_title TEXT NOT NULL DEFAULT '',
+    break_body TEXT NOT NULL DEFAULT '',
+    become_title TEXT NOT NULL DEFAULT '',
+    become_body TEXT NOT NULL DEFAULT '',
+    pull_quote TEXT NOT NULL DEFAULT '',
+    reflection_question TEXT NOT NULL DEFAULT '',
+    cta_label TEXT NOT NULL DEFAULT '',
+    cta_url TEXT NOT NULL DEFAULT '',
+    related_podcast_title TEXT NOT NULL DEFAULT '',
+    related_podcast_url TEXT NOT NULL DEFAULT '',
+    seo_title TEXT NOT NULL DEFAULT '',
+    seo_description TEXT NOT NULL DEFAULT '',
+    canonical_url TEXT NOT NULL DEFAULT '',
+    social_caption TEXT NOT NULL DEFAULT '',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`,
 ];
 
@@ -514,5 +585,299 @@ export async function deleteScheduledNewsletterRecord(id: number) {
     [id],
   );
 
+  return changes > 0;
+}
+
+export async function listBlogPostRows(params?: {
+  query?: string;
+  status?: string;
+  category?: string;
+  limit?: number;
+}) {
+  const searchQuery = params?.query?.trim();
+  const status = params?.status?.trim();
+  const category = params?.category?.trim();
+  const filters: string[] = [];
+  const bindings: unknown[] = [];
+
+  if (searchQuery) {
+    filters.push('title LIKE ?');
+    bindings.push(`%${searchQuery}%`);
+  }
+
+  if (status && status !== 'all') {
+    filters.push('status = ?');
+    bindings.push(status);
+  }
+
+  if (category && category !== 'all') {
+    filters.push('category = ?');
+    bindings.push(category);
+  }
+
+  const whereClause = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
+  const limit = Math.max(1, Math.min(200, params?.limit ?? 100));
+
+  bindings.push(limit);
+
+  return queryAll<BlogPostRow>(
+    `SELECT id, title, slug, deck, author, category, tags_json, status, publish_at, featured_image_url, featured_image_alt, featured_image_caption, social_image_url,
+            content_markdown, opening_story, burn_title, burn_body, break_title, break_body, become_title, become_body, pull_quote, reflection_question,
+            cta_label, cta_url, related_podcast_title, related_podcast_url, seo_title, seo_description, canonical_url, social_caption, created_at, updated_at
+     FROM blog_posts
+     ${whereClause}
+     ORDER BY updated_at DESC, id DESC
+     LIMIT ?`,
+    bindings,
+  );
+}
+
+export async function listBlogPostCategories() {
+  return queryAll<{ category: string }>(
+    `SELECT DISTINCT category
+     FROM blog_posts
+     WHERE category IS NOT NULL AND category != ''
+     ORDER BY category COLLATE NOCASE ASC`,
+  );
+}
+
+export async function getBlogPostRowById(id: number) {
+  return queryFirst<BlogPostRow>(
+    `SELECT id, title, slug, deck, author, category, tags_json, status, publish_at, featured_image_url, featured_image_alt, featured_image_caption, social_image_url,
+            content_markdown, opening_story, burn_title, burn_body, break_title, break_body, become_title, become_body, pull_quote, reflection_question,
+            cta_label, cta_url, related_podcast_title, related_podcast_url, seo_title, seo_description, canonical_url, social_caption, created_at, updated_at
+     FROM blog_posts
+     WHERE id = ?`,
+    [id],
+  );
+}
+
+export async function getBlogPostRowBySlug(slug: string) {
+  return queryFirst<BlogPostRow>(
+    `SELECT id, title, slug, deck, author, category, tags_json, status, publish_at, featured_image_url, featured_image_alt, featured_image_caption, social_image_url,
+            content_markdown, opening_story, burn_title, burn_body, break_title, break_body, become_title, become_body, pull_quote, reflection_question,
+            cta_label, cta_url, related_podcast_title, related_podcast_url, seo_title, seo_description, canonical_url, social_caption, created_at, updated_at
+     FROM blog_posts
+     WHERE slug = ?`,
+    [slug],
+  );
+}
+
+export async function createBlogPostRow(params: {
+  title: string;
+  slug: string;
+  deck: string;
+  author: string;
+  category: string;
+  tagsJson: string;
+  status: string;
+  publishAt: string | null;
+  featuredImageUrl: string | null;
+  featuredImageAlt: string;
+  featuredImageCaption: string | null;
+  socialImageUrl: string | null;
+  contentMarkdown: string;
+  openingStory: string;
+  burnTitle: string;
+  burnBody: string;
+  breakTitle: string;
+  breakBody: string;
+  becomeTitle: string;
+  becomeBody: string;
+  pullQuote: string;
+  reflectionQuestion: string;
+  ctaLabel: string;
+  ctaUrl: string;
+  relatedPodcastTitle: string;
+  relatedPodcastUrl: string;
+  seoTitle: string;
+  seoDescription: string;
+  canonicalUrl: string;
+  socialCaption: string;
+}) {
+  await execute(
+    `INSERT INTO blog_posts (
+      title,
+      slug,
+      deck,
+      author,
+      category,
+      tags_json,
+      status,
+      publish_at,
+      featured_image_url,
+      featured_image_alt,
+      featured_image_caption,
+      social_image_url,
+      content_markdown,
+      opening_story,
+      burn_title,
+      burn_body,
+      break_title,
+      break_body,
+      become_title,
+      become_body,
+      pull_quote,
+      reflection_question,
+      cta_label,
+      cta_url,
+      related_podcast_title,
+      related_podcast_url,
+      seo_title,
+      seo_description,
+      canonical_url,
+      social_caption,
+      updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+    [
+      params.title,
+      params.slug,
+      params.deck,
+      params.author,
+      params.category,
+      params.tagsJson,
+      params.status,
+      params.publishAt,
+      params.featuredImageUrl,
+      params.featuredImageAlt,
+      params.featuredImageCaption,
+      params.socialImageUrl,
+      params.contentMarkdown,
+      params.openingStory,
+      params.burnTitle,
+      params.burnBody,
+      params.breakTitle,
+      params.breakBody,
+      params.becomeTitle,
+      params.becomeBody,
+      params.pullQuote,
+      params.reflectionQuestion,
+      params.ctaLabel,
+      params.ctaUrl,
+      params.relatedPodcastTitle,
+      params.relatedPodcastUrl,
+      params.seoTitle,
+      params.seoDescription,
+      params.canonicalUrl,
+      params.socialCaption,
+    ],
+  );
+
+  return queryFirst<BlogPostRow>(
+    `SELECT id, title, slug, deck, author, category, tags_json, status, publish_at, featured_image_url, featured_image_alt, featured_image_caption, social_image_url,
+            content_markdown, opening_story, burn_title, burn_body, break_title, break_body, become_title, become_body, pull_quote, reflection_question,
+            cta_label, cta_url, related_podcast_title, related_podcast_url, seo_title, seo_description, canonical_url, social_caption, created_at, updated_at
+     FROM blog_posts
+     WHERE id = (SELECT MAX(id) FROM blog_posts)`,
+  );
+}
+
+export async function updateBlogPostRow(params: {
+  id: number;
+  title: string;
+  slug: string;
+  deck: string;
+  author: string;
+  category: string;
+  tagsJson: string;
+  status: string;
+  publishAt: string | null;
+  featuredImageUrl: string | null;
+  featuredImageAlt: string;
+  featuredImageCaption: string | null;
+  socialImageUrl: string | null;
+  contentMarkdown: string;
+  openingStory: string;
+  burnTitle: string;
+  burnBody: string;
+  breakTitle: string;
+  breakBody: string;
+  becomeTitle: string;
+  becomeBody: string;
+  pullQuote: string;
+  reflectionQuestion: string;
+  ctaLabel: string;
+  ctaUrl: string;
+  relatedPodcastTitle: string;
+  relatedPodcastUrl: string;
+  seoTitle: string;
+  seoDescription: string;
+  canonicalUrl: string;
+  socialCaption: string;
+}) {
+  const changes = await executeChanges(
+    `UPDATE blog_posts
+     SET title = ?,
+         slug = ?,
+         deck = ?,
+         author = ?,
+         category = ?,
+         tags_json = ?,
+         status = ?,
+         publish_at = ?,
+         featured_image_url = ?,
+         featured_image_alt = ?,
+         featured_image_caption = ?,
+         social_image_url = ?,
+         content_markdown = ?,
+         opening_story = ?,
+         burn_title = ?,
+         burn_body = ?,
+         break_title = ?,
+         break_body = ?,
+         become_title = ?,
+         become_body = ?,
+         pull_quote = ?,
+         reflection_question = ?,
+         cta_label = ?,
+         cta_url = ?,
+         related_podcast_title = ?,
+         related_podcast_url = ?,
+         seo_title = ?,
+         seo_description = ?,
+         canonical_url = ?,
+         social_caption = ?,
+         updated_at = CURRENT_TIMESTAMP
+     WHERE id = ?`,
+    [
+      params.title,
+      params.slug,
+      params.deck,
+      params.author,
+      params.category,
+      params.tagsJson,
+      params.status,
+      params.publishAt,
+      params.featuredImageUrl,
+      params.featuredImageAlt,
+      params.featuredImageCaption,
+      params.socialImageUrl,
+      params.contentMarkdown,
+      params.openingStory,
+      params.burnTitle,
+      params.burnBody,
+      params.breakTitle,
+      params.breakBody,
+      params.becomeTitle,
+      params.becomeBody,
+      params.pullQuote,
+      params.reflectionQuestion,
+      params.ctaLabel,
+      params.ctaUrl,
+      params.relatedPodcastTitle,
+      params.relatedPodcastUrl,
+      params.seoTitle,
+      params.seoDescription,
+      params.canonicalUrl,
+      params.socialCaption,
+      params.id,
+    ],
+  );
+
+  return changes > 0;
+}
+
+export async function deleteBlogPostRow(id: number) {
+  const changes = await executeChanges('DELETE FROM blog_posts WHERE id = ?', [id]);
   return changes > 0;
 }

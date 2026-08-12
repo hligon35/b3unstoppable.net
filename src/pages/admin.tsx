@@ -2,6 +2,7 @@ import type { GetServerSideProps } from 'next';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import BlogAdminIcon from '../../B3U_Blog_Admin_Icon.png';
 
 import CloudflareAnalyticsPanel from '@/components/CloudflareAnalyticsPanel';
 import SiteEditorPanel from '@/components/SiteEditorPanel';
@@ -10,13 +11,14 @@ import { getAdminRole, hasAdminSession, type AdminRole } from '@/lib/adminAuth';
 type NavItem = {
   id: string;
   label: string;
-  icon: 'traffic' | 'editor' | 'newsletter' | 'help';
+  icon: 'traffic' | 'editor' | 'newsletter' | 'help' | 'blog';
   description: string;
 };
 
 const navItems: NavItem[] = [
   { id: 'web-traffic', label: 'Web Traffic', icon: 'traffic', description: 'Traffic, audience, and Cloudflare reporting.' },
   { id: 'newsletter', label: 'Newsletter', icon: 'newsletter', description: 'Schedule and queue subscriber newsletters.' },
+  { id: 'blog', label: 'Blog', icon: 'blog', description: 'Write and publish journal articles.' },
   { id: 'site-editor', label: 'Site Editor', icon: 'editor', description: 'Structured editing for page copy and media.' },
   { id: 'help', label: 'Help', icon: 'help', description: 'Simple instructions for every dashboard control.' },
 ];
@@ -39,6 +41,7 @@ const helpSections: HelpSection[] = [
       { control: 'Collapse / Expand', instruction: 'Use this to make the side menu smaller or bigger.' },
       { control: 'Web Traffic', instruction: 'Opens your visitor numbers and traffic reports.' },
       { control: 'Newsletter', instruction: 'Opens the newsletter builder and scheduled send list.' },
+      { control: 'Blog', instruction: 'Opens the blog list where you create, edit, and publish journal articles.' },
       { control: 'Site Editor', instruction: 'Opens the place where you change site words, colors, cards, and images.' },
       { control: 'Help', instruction: 'Come here when you want a simple explanation.' },
       { control: 'Log out', instruction: 'Signs you out and takes you back to the login page.' },
@@ -217,11 +220,26 @@ function NavIcon({ icon, active }: { icon: NavItem['icon']; active: boolean }) {
     );
   }
 
+  if (icon === 'blog') {
+    return (
+      <span className="inline-flex rounded-lg bg-white p-1 shadow-sm">
+        <Image
+          src="/icons/publish.png"
+          alt=""
+          aria-hidden="true"
+          width={20}
+          height={20}
+          className={iconClassName}
+        />
+      </span>
+    );
+  }
+
   if (icon === 'help') {
     return (
       <span className="inline-flex rounded-lg bg-white p-1 shadow-sm">
         <Image
-          src="/icons/help.png"
+          src={BlogAdminIcon}
           alt=""
           aria-hidden="true"
           width={20}
@@ -344,6 +362,27 @@ export default function Admin({ adminRole }: AdminPageProps) {
   const [activeView, setActiveView] = useState<NavItem['id']>(isNewsletterOnly ? 'newsletter' : 'web-traffic');
 
   useEffect(() => {
+    if (!router.isReady) {
+      return;
+    }
+
+    const tab = typeof router.query.tab === 'string' ? router.query.tab : null;
+
+    if (!tab) {
+      return;
+    }
+
+    if (tab === 'blog') {
+      void router.replace('/admin/blog');
+      return;
+    }
+
+    if (tab === 'newsletter' || tab === 'site-editor' || tab === 'help' || tab === 'web-traffic') {
+      setActiveView(tab);
+    }
+  }, [router, router.isReady, router.query.tab]);
+
+  useEffect(() => {
     setLocalTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone || 'your local timezone');
   }, []);
 
@@ -427,6 +466,12 @@ export default function Admin({ adminRole }: AdminPageProps) {
   }
 
   function handleNavClick(sectionId: NavItem['id']) {
+    if (sectionId === 'blog') {
+      setMobileMenuOpen(false);
+      void router.push('/admin/blog');
+      return;
+    }
+
     setActiveView(sectionId);
     setMobileMenuOpen(false);
   }
@@ -827,17 +872,16 @@ export default function Admin({ adminRole }: AdminPageProps) {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-slate-100">
-      <div className="mx-auto flex min-h-screen max-w-screen-2xl">
-        <aside
-          className={`sticky top-0 hidden h-screen flex-shrink-0 overflow-hidden bg-slate-950 transition-[width] duration-200 lg:block ${
-            drawerCollapsed ? 'w-24' : 'w-80'
-          }`}
-        >
-          {navContent}
-        </aside>
+      <aside
+        className={`fixed inset-y-0 left-0 z-30 hidden overflow-hidden bg-slate-950 transition-[width] duration-200 lg:block ${
+          drawerCollapsed ? 'w-24' : 'w-80'
+        }`}
+      >
+        {navContent}
+      </aside>
 
-        <main className="min-w-0 flex-1 p-4 md:p-8">
-          <div className="mx-auto w-full max-w-6xl">
+      <main className={`min-w-0 p-4 md:p-8 ${drawerCollapsed ? 'lg:ml-24' : 'lg:ml-80'}`}>
+        <div className="mx-auto w-full max-w-7xl">
             <div className="mb-6 flex items-start justify-between gap-4 lg:hidden">
               <div className="min-w-0 pr-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">B3U Admin</p>
@@ -1366,8 +1410,7 @@ export default function Admin({ adminRole }: AdminPageProps) {
 
             {!loading && !isNewsletterOnly && activeView === 'site-editor' ? <SiteEditorPanel /> : null}
           </div>
-        </main>
-      </div>
+      </main>
     </div>
   );
 }

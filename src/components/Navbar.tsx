@@ -10,6 +10,7 @@ const navItems = [
   { href: '/podcast', label: 'Podcast' },
   { href: '/community', label: 'Community' },
   { href: '/event-gallery', label: 'Events' },
+  { href: '/journal', label: 'Journal' },
   { href: '/shop', label: 'Shop' },
   { href: '/contact', label: 'Contact' },
 ];
