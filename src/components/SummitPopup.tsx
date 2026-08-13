@@ -34,7 +34,7 @@ export default function SummitPopup() {
       <div className="w-full max-w-[420px] overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white shadow-[0_25px_70px_rgba(15,23,42,0.28)] ring-1 ring-black/5">
         <div className="relative aspect-video bg-slate-950">
           <video
-            className="h-full w-full object-cover"
+            className="h-full w-full object-contain"
             autoPlay
             muted
             loop
@@ -51,7 +51,7 @@ export default function SummitPopup() {
           >
             ×
           </button>
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent px-4 py-4 text-white">
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/40 via-40% to-transparent px-4 pb-2 pt-6 text-white">
             <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-orange-200">Virtual Event</p>
             <h2 className="mt-1 text-lg font-bold leading-tight">The Big Take Back Summit</h2>
           </div>
