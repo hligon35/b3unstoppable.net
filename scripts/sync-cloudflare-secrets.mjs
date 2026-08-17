@@ -19,19 +19,28 @@ const SECRET_KEYS = [
   'MONITORING_FROM_EMAIL',
   'MONITORING_TO_EMAIL',
   'SENDGRID_API_KEY',
-  'SENDGRID_FROM_EMAIL',
-  'SENDGRID_FROM_NAME',
-  'SENDGRID_MARKETING_LIST_IDS',
-  'SENDGRID_REPLY_TO',
-  'SENDGRID_TO_EMAIL',
   'TURNSTILE_SECRET_KEY',
 ];
+
+const PROTECTED_SECRET_SYNC_KEYS = new Set([
+  'SENDGRID_FROM_EMAIL',
+  'SENDGRID_FROM_NAME',
+  'SENDGRID_REPLY_TO',
+  'SENDGRID_TO_EMAIL',
+  'SENDGRID_MARKETING_LIST_IDS',
+]);
 
 const [, , envFileArg = 'env.cloudflare', ...flags] = process.argv;
 const dryRun = flags.includes('--dry-run');
 
 const fileEnv = parseEnvFile(envFileArg);
 const childEnv = buildChildEnv(fileEnv);
+
+const protectedKeysInEnv = Object.keys(fileEnv).filter((key) => PROTECTED_SECRET_SYNC_KEYS.has(key));
+
+if (protectedKeysInEnv.length > 0) {
+  console.warn(`Skipping auto-secret sync for non-secret SendGrid metadata: ${protectedKeysInEnv.join(', ')}`);
+}
 
 const selectedEntries = SECRET_KEYS
   .map((key) => [key, fileEnv[key]])
