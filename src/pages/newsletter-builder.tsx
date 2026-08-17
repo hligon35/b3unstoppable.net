@@ -60,9 +60,20 @@ type NewsletterQueueItem = {
   sentAt: string | null;
 };
 
+type SavedNewsletterDraft = {
+  id: string;
+  name: string;
+  subject: string;
+  createdAt: string;
+  updatedAt: string;
+  templateDraft: NewsletterTemplateDraft;
+  weeklyDraft: WeeklyNewsletterDraft;
+};
+
 const TEMPLATE_STORAGE_KEY = 'b3u-newsletter-template-draft';
 const WEEKLY_STORAGE_KEY = 'b3u-weekly-newsletter-draft';
 const LEGACY_MONTHLY_STORAGE_KEY = 'b3u-monthly-newsletter-draft';
+const SAVED_DRAFTS_STORAGE_KEY = 'b3u-newsletter-saved-drafts';
 const WEEKDAY_OPTIONS: Weekday[] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const NEWSLETTER_SECTION_MARKER_PREFIX = '[[B3U:';
 const NEWSLETTER_SECTION_MARKER_PATTERN = /^\[\[B3U:([A-Za-z0-9-_]+)\]\]$/;
@@ -148,6 +159,37 @@ function saveStoredDraft<T>(key: string, value: T) {
   }
 
   window.localStorage.setItem(key, JSON.stringify(value));
+}
+
+function readSavedDrafts() {
+  if (typeof window === 'undefined') {
+    return [] as SavedNewsletterDraft[];
+  }
+
+  try {
+    const rawDrafts = window.localStorage.getItem(SAVED_DRAFTS_STORAGE_KEY);
+    if (!rawDrafts) {
+      return [] as SavedNewsletterDraft[];
+    }
+
+    const parsedDrafts = JSON.parse(rawDrafts);
+    return Array.isArray(parsedDrafts) ? parsedDrafts.filter((draft): draft is SavedNewsletterDraft => Boolean(draft && typeof draft === 'object' && typeof draft.id === 'string' && typeof draft.name === 'string')) : [] as SavedNewsletterDraft[];
+  } catch {
+    return [] as SavedNewsletterDraft[];
+  }
+}
+
+function writeSavedDrafts(drafts: SavedNewsletterDraft[]) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.localStorage.setItem(SAVED_DRAFTS_STORAGE_KEY, JSON.stringify(drafts.slice(0, 12)));
+}
+
+function buildSavedDraftName(subject: string) {
+  const trimmed = subject.trim();
+  return trimmed || 'Newsletter Draft';
 }
 
 function paragraphize(value = '', className = '') {
@@ -616,8 +658,13 @@ export default function NewsletterBuilder() {
   const [noticeTone, setNoticeTone] = useState<'info' | 'success' | 'error'>('info');
   const [submitting, setSubmitting] = useState(false);
   const [subscriberSubmitting, setSubscriberSubmitting] = useState(false);
+  const [savedDrafts, setSavedDrafts] = useState<SavedNewsletterDraft[]>([]);
+  const [savedDraftsModalOpen, setSavedDraftsModalOpen] = useState(false);
+  const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
 
   useEffect(() => {
+    setSavedDrafts(readSavedDrafts());
+
     const savedTemplateDraft = readStoredDraft(TEMPLATE_STORAGE_KEY, defaultTemplate);
     setTemplateDraft({
       ...savedTemplateDraft,
@@ -885,6 +932,49 @@ export default function NewsletterBuilder() {
     }
   }
 
+  function handleSaveDraft() {
+    const baseName = buildSavedDraftName(weeklyDraft.subject);
+    const draftId = activeDraftId || `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    const nextDraft: SavedNewsletterDraft = {
+      id: draftId,
+      name: baseName,
+      subject: weeklyDraft.subject.trim() || baseName,
+      createdAt: activeDraftId ? (savedDrafts.find((draft) => draft.id === activeDraftId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      templateDraft: { ...templateDraft },
+      weeklyDraft: { ...weeklyDraft },
+    };
+
+    const nextDrafts = [nextDraft, ...savedDrafts.filter((draft) => draft.id !== draftId)].slice(0, 12);
+    setSavedDrafts(nextDrafts);
+    writeSavedDrafts(nextDrafts);
+    setActiveDraftId(draftId);
+    setNotice(`Draft saved as "${nextDraft.name}".`);
+    setNoticeTone('success');
+  }
+
+  function handleLoadDraft(draft: SavedNewsletterDraft) {
+    setTemplateDraft({ ...draft.templateDraft });
+    setWeeklyDraft({ ...draft.weeklyDraft });
+    setActiveDraftId(draft.id);
+    setSavedDraftsModalOpen(false);
+    setNotice(`Loaded saved draft "${draft.name}".`);
+    setNoticeTone('success');
+  }
+
+  function handleDeleteSavedDraft(draftId: string) {
+    const nextDrafts = savedDrafts.filter((draft) => draft.id !== draftId);
+    setSavedDrafts(nextDrafts);
+    writeSavedDrafts(nextDrafts);
+
+    if (activeDraftId === draftId) {
+      setActiveDraftId(null);
+    }
+
+    setNotice('Saved draft deleted.');
+    setNoticeTone('info');
+  }
+
   async function queueNewsletter(scheduledForIso: string, sendImmediately = false) {
     if (!selectedSubscriberEmails.length) {
       setNotice('Select at least one subscriber first.');
@@ -1031,6 +1121,24 @@ export default function NewsletterBuilder() {
                   className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-white/25 bg-white/10 px-2.5 text-xs font-semibold text-white transition hover:bg-white/20"
                 >
                   <span aria-hidden="true">≡</span><span className="hidden md:inline">Scheduled list</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveDraft}
+                  title="Save draft"
+                  aria-label="Save newsletter draft"
+                  className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-white/25 bg-white/10 px-2.5 text-xs font-semibold text-white transition hover:bg-white/20"
+                >
+                  <span aria-hidden="true">💾</span><span className="hidden md:inline">Save draft</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSavedDraftsModalOpen(true)}
+                  title="Saved drafts"
+                  aria-label="Open saved drafts"
+                  className="inline-flex h-8 items-center justify-center gap-1 rounded-lg border border-white/25 bg-white/10 px-2.5 text-xs font-semibold text-white transition hover:bg-white/20"
+                >
+                  <span aria-hidden="true">⌂</span><span className="hidden md:inline">Drafts</span>
                 </button>
                 <button
                   type="button"
@@ -1335,6 +1443,59 @@ export default function NewsletterBuilder() {
             )}
           </section>
         </div>
+
+        {savedDraftsModalOpen ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4">
+            <div className="flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+              <div className="flex items-center justify-between gap-3 border-b border-gray-200 px-5 py-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">Saved drafts</h2>
+                  <p className="mt-1 text-sm text-gray-500">Load or delete your stored newsletter drafts.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSavedDraftsModalOpen(false)}
+                  className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:border-gray-400 hover:text-gray-900"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto px-5 py-5">
+                {!savedDrafts.length ? (
+                  <p className="text-sm text-gray-500">No saved drafts yet. Save the current newsletter to keep a working copy.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {savedDrafts.map((draft) => (
+                      <div key={draft.id} className="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-slate-50 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="min-w-0">
+                          <p className="truncate text-base font-semibold text-gray-900">{draft.name}</p>
+                          <p className="mt-1 text-sm text-gray-600">{draft.subject || 'Untitled newsletter'} · {new Date(draft.updatedAt).toLocaleString()}</p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                          <button
+                            type="button"
+                            onClick={() => handleLoadDraft(draft)}
+                            className="rounded-full border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-700 transition hover:border-brandBlue hover:text-brandBlue"
+                          >
+                            Load
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteSavedDraft(draft.id)}
+                            className="rounded-full border border-brandOrange/20 bg-brandOrange/10 px-3 py-1 text-xs font-semibold text-navy transition hover:bg-brandOrange/15"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         {queueModalOpen ? (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4">
