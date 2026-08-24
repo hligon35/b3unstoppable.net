@@ -98,39 +98,20 @@ export default function EventGalleryPage({ initialSiteDraft, initialSiteUpdatedA
             </div>
 
             <div className="mt-6 grid gap-6 md:grid-cols-2">
-              <article className="overflow-hidden rounded-2xl border border-white/15 bg-black/25 p-3">
-                <div className="relative aspect-[16/9] overflow-hidden rounded-xl bg-black/20">
+              <article className="mx-auto w-full max-w-[360px] overflow-hidden rounded-2xl border border-white/15 bg-black/25 p-3 md:col-span-2">
+                <div className="overflow-hidden rounded-xl bg-black/20">
                   <Image
                     src="/images/events/unwine-break-it-2026.png"
-                    alt="The Big Take Back Men's Summit promotional flyer"
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                </div>
-                <div className="mt-3">
-                  <div>
-                    <p className="text-sm font-semibold text-white">The Big Take Back Men&apos;s Summit</p>
-                    <p className="text-xs text-white/75">Saturday, August 22nd at 10am EST</p>
-                  </div>
-                </div>
-              </article>
-
-              <article className="overflow-hidden rounded-2xl border border-white/15 bg-black/25 p-3">
-                <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-black/20">
-                  <Image
-                    src="/images/events/mens-summit-2026.png"
                     alt="UnWine and Break It event flyer with Dr. Bree Charles"
-                    fill
-                    className="object-cover"
+                    width={1024}
+                    height={1536}
+                    className="h-auto w-full object-contain"
                     sizes="(max-width: 768px) 100vw, 50vw"
                   />
                 </div>
-                <div className="mt-3">
-                  <div>
-                    <p className="text-sm font-semibold text-white">UnWine &amp; Break It</p>
-                    <p className="text-xs text-white/75">Sunday, August 30 • Revolution Winery</p>
-                  </div>
+                <div className="mt-3 text-center">
+                  <p className="text-sm font-semibold text-white">UnWine &amp; Break It</p>
+                  <p className="text-xs text-white/75">Book signing and meet the author • Sunday, August 30 • Revolution Winery</p>
                 </div>
               </article>
             </div>

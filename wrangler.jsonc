@@ -37,8 +37,13 @@
     "NEXT_PUBLIC_DEBUG_SLOW_PAGE_MS": "2500",
     "NEXT_PUBLIC_FORMS_API": "/api/forms",
     "NEXT_PUBLIC_MONITORING_ENABLED": "true",
-    "NEXT_PUBLIC_SITE_URL": "https://www.b3unstoppable.net",
-    "NEXT_PUBLIC_TURNSTILE_SITE_KEY": "0x4AAAAAADVi2GuNzKz2VjeZ"
+    "NEXT_PUBLIC_SITE_URL": "https://b3unstoppable.net",
+    "NEXT_PUBLIC_TURNSTILE_SITE_KEY": "0x4AAAAAADVi2GuNzKz2VjeZ",
+    "SENDGRID_FROM_EMAIL": "newsletter@b3unstoppable.net",
+    "SENDGRID_FROM_NAME": "B3U - Burn, Break and Become Unstoppable",
+    "SENDGRID_MARKETING_LIST_IDS": "0e46746b-06e0-4531-833b-30c472c8ec6e",
+    "SENDGRID_REPLY_TO": "noreply@b3unstoppable.net",
+    "SENDGRID_TO_EMAIL": "info@b3unstoppable.net"
   },
   // END MANAGED VARS
 

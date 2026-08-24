@@ -4,7 +4,6 @@ import { useRouter } from 'next/router';
 import { siteName, siteUrl } from '@/lib/siteMetadata';
 import Navbar from './Navbar';
 import Footer from './Footer';
-import SummitPopup from './SummitPopup';
 
 type LayoutProps = {
   children: ReactNode;
@@ -166,7 +165,6 @@ export default function Layout({ children, title, description, canonicalUrlOverr
         ))}
       </Head>
       <Navbar />
-      {!isRestrictedPage ? <SummitPopup /> : null}
       <main className={mainClassName}>
         {children}
       </main>
