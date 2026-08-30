@@ -1,6 +1,7 @@
 import type { GetServerSideProps } from 'next';
 import Layout from '@/components/Layout';
 import Hero from '@/components/Hero';
+import KeynotePillarCard from '@/components/KeynotePillarCard';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo } from 'react';
@@ -13,6 +14,8 @@ import {
 } from '@/lib/siteEditorContent.server';
 
 type HomePageProps = PublishedSitePageProps;
+
+const keynotePillars = ['Identity', 'Voice', 'Purpose', 'Resilience', 'Clarity'] as const;
 
 export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: HomePageProps) {
   const { draft } = usePublishedSiteDraft({
@@ -118,11 +121,9 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
               Reclaiming Identity, Voice, and Purpose Before Burnout Takes Over
             </p>
           </div>
-          <div className="mt-10 grid gap-5 md:grid-cols-5">
-            {['Identity', 'Voice', 'Purpose', 'Resilience', 'Clarity'].map((item) => (
-              <div key={item} className="card bg-white text-center font-semibold text-navy">
-                {item}
-              </div>
+          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
+            {keynotePillars.map((pillar) => (
+              <KeynotePillarCard key={pillar} pillar={pillar} />
             ))}
           </div>
           <div className="mt-8 text-center">
