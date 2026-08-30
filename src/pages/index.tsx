@@ -142,7 +142,7 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
             Speaking-result testimonials will be featured here as organizer and audience
             feedback becomes available.
           </p>
-          <div className="mt-8 grid gap-6 md:grid-cols-2">
+          {/* <div className="mt-8 grid gap-6 md:grid-cols-2">
             <div className="card bg-brandBlue-light/10">
               <p className="font-semibold text-brandOrange">Event Organizer Feedback</p>
               <p className="mt-3 text-sm text-navy/65">
@@ -155,7 +155,7 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
                 Participant testimonials coming soon.
               </p>
             </div>
-          </div>
+          </div> */}
         </div>
       </section>
       <section className="section-padding bg-navy text-white">

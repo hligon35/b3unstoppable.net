@@ -8,25 +8,231 @@ import THOHLogo from '@/images/logos/THOHlogo.png';
 import { createWebPageStructuredData, siteUrl } from '@/lib/siteMetadata';
 import { resolveSiteImage } from '@/lib/siteEditorImages';
 import { usePublishedSiteDraft } from '@/lib/siteEditorContent';
-import { getPublishedSitePageProps, type PublishedSitePageProps } from '@/lib/siteEditorContent.server';
+import {
+  getPublishedSitePageProps,
+  type PublishedSitePageProps,
+} from '@/lib/siteEditorContent.server';
 
 type AboutPageProps = PublishedSitePageProps;
 
 export default function AboutPage({ initialSiteDraft, initialSiteUpdatedAt }: AboutPageProps) {
-  const { draft } = usePublishedSiteDraft({ initialDraft: initialSiteDraft, initialUpdatedAt: initialSiteUpdatedAt, preferLocalDraft: false });
+  const { draft } = usePublishedSiteDraft({
+    initialDraft: initialSiteDraft,
+    initialUpdatedAt: initialSiteUpdatedAt,
+    preferLocalDraft: false,
+  });
   const featureImage = resolveSiteImage(draft.aboutPageFeatureImage);
-  const aboutStructuredData = useMemo(() => createWebPageStructuredData({ pageUrl: `${siteUrl}/about/`, title: 'About Dr. Bree Charles | Transformational Speaker, Author & U.S. Army Veteran', description: 'Meet Dr. Bree Charles, founder of B3U: Burn, Break, Become Unstoppable. She helps leaders move beyond survival mode and reclaim identity, voice, and purpose.', keywords: ['About Dr. Bree Charles', 'transformational speaker', 'B3U founder', 'Burn Break Become Unstoppable', 'The Big Take Back', 'leadership speaker', 'U.S. Army veteran'] }), []);
+  const aboutStructuredData = useMemo(
+    () =>
+      createWebPageStructuredData({
+        pageUrl: `${siteUrl}/about/`,
+        title: 'About Dr. Bree Charles | Transformational Speaker, Author & U.S. Army Veteran',
+        description:
+          'Meet Dr. Bree Charles, founder of B3U: Burn, Break, Become Unstoppable. She helps leaders move beyond survival mode and reclaim identity, voice, and purpose.',
+        keywords: [
+          'About Dr. Bree Charles',
+          'transformational speaker',
+          'B3U founder',
+          'Burn Break Become Unstoppable',
+          'The Big Take Back',
+          'leadership speaker',
+          'U.S. Army veteran',
+        ],
+      }),
+    [],
+  );
 
   return (
-    <Layout title="About Dr. Bree Charles | Transformational Speaker, Author & U.S. Army Veteran" description="Meet Dr. Bree Charles, founder of B3U: Burn, Break, Become Unstoppable. She helps leaders move beyond survival mode and reclaim identity, voice, and purpose." structuredData={aboutStructuredData}>
-      <section className="section-padding bg-white"><div className="max-w-5xl mx-auto"><div className="text-center mb-12"><h1 className="text-4xl md:text-5xl font-bold mb-5">Meet <span className="text-brandOrange">Dr. Bree Charles</span></h1><p className="text-xl md:text-2xl text-navy/80 font-semibold">Helping Leaders Take Back the Person Behind the Role</p></div><div className="grid md:grid-cols-2 gap-12 items-start mb-12"><div className="order-1 md:order-2"><p className="text-lg text-navy/80 leading-relaxed mb-6">Dr. Bree Charles is a transformational speaker, U.S. Army veteran, author, and founder of B3U: Burn, Break, Become Unstoppable. She equips strong, dependable leaders to move beyond survival mode, reclaim their identity, voice, and purpose, and lead with clarity.</p><p className="text-lg text-navy/80 leading-relaxed mb-6">Her message is shaped by 16 years of active-duty military service, three deployments to Iraq, and a personal journey through trauma, domestic violence, PTSD, and life beyond the uniform. These experiences taught her both how to lead under pressure and the hidden cost of staying strong for everyone while losing yourself.</p><p className="text-lg text-navy/80 leading-relaxed mb-6">She is the author of <em>The Big Take Back: What I Left Behind</em>, a memoir and teaching journey that helps readers confront repeating patterns, reclaim what life tried to take, and rebuild with intention.</p><p className="text-lg text-navy/80 leading-relaxed mb-6">Dr. Bree&apos;s keynotes and workshops blend authentic storytelling, leadership insight, and actionable tools for corporations, government agencies, military-connected organizations, professional associations, and leadership groups. Her work addresses identity, resilience, transition, burnout, and purpose-driven leadership.</p><p className="text-lg text-navy/80 leading-relaxed">Grounded in faith, Dr. Bree believes transformation begins when people stop allowing their past, others&apos; expectations, or the roles they carry to define who they are becoming. She does more than inspire audiences. She equips them to move from defeated to determined.</p></div><div className="relative order-2 md:order-1"><Image src={featureImage.image} alt={featureImage.alt} className="w-full h-auto rounded-3xl shadow-2xl" sizes="(max-width: 768px) 100vw, 50vw" priority /><div className="absolute -bottom-6 -right-6 bg-brandOrange text-white p-6 rounded-lg shadow-lg"><p className="font-semibold text-sm">U.S. Army Veteran</p><p className="text-xs opacity-90">Transformational Speaker</p></div></div></div><div className="text-center"><Link href="/booking" className="btn-primary">Book Dr. Bree</Link></div></div></section>
-      <section className="section-padding bg-white"><div className="max-w-5xl mx-auto"><div className="grid md:grid-cols-3 gap-6 text-left"><div className="rounded-2xl bg-brandOrange p-7 text-white shadow-lg"><h3 className="text-2xl font-bold mb-3">Burn</h3><p>the beliefs and labels that keep you trapped.</p></div><div className="rounded-2xl bg-brandOrange p-7 text-white shadow-lg"><h3 className="text-2xl font-bold mb-3">Break</h3><p>the cycles that fuel burnout, silence, and disconnection.</p></div><div className="rounded-2xl bg-brandOrange p-7 text-white shadow-lg"><h3 className="text-2xl font-bold mb-3">Become</h3><p>the clear, confident, purpose-driven leader you were created to be.</p></div></div></div></section>
-      <section className="section-padding bg-white"><div className="max-w-4xl mx-auto text-center"><h2 className="text-3xl md:text-4xl font-bold mb-6">The Big Take Back: What I Left Behind</h2><p className="text-lg text-navy/80 leading-relaxed">Dr. Bree&apos;s memoir and teaching journey helps readers confront repeating patterns, reclaim what life tried to take, and rebuild with intention.</p><Link href="/shop" className="btn-outline mt-8 inline-flex">Explore the Book</Link></div></section>
-      <section className="section-padding bg-brandBlue-light/20"><div className="max-w-5xl mx-auto"><h2 className="text-3xl md:text-4xl font-bold mb-6 text-center">Speaking & Leadership Work</h2><p className="text-lg text-center text-navy/80 mb-10 max-w-3xl mx-auto">Dr. Bree&apos;s work supports national, virtual, corporate, government, military, association, university, and leadership audiences seeking practical tools for identity, resilience, transition, burnout, and purpose-driven leadership.</p><div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-10">{['Identity', 'Resilience', 'Transition', 'Burnout', 'Purpose-Driven Leadership'].map((topic) => <div key={topic} className="rounded-xl bg-white p-5 text-center shadow-sm"><p className="font-semibold text-navy">{topic}</p></div>)}</div><div className="text-center"><Link href="/speaking" className="btn-primary">Explore Speaking Programs</Link></div></div></section>
-      <section className="section-padding bg-white"><div className="max-w-4xl mx-auto"><h2 className="text-3xl md:text-4xl font-bold mb-6 text-center">Community Impact</h2><p className="text-lg text-center text-navy/80 mb-12 max-w-3xl mx-auto">Dr. Bree&apos;s leadership and service also extend into community-based initiatives designed to create practical impact.</p><div className="grid md:grid-cols-2 gap-8"><a href="https://www.melawholefoodsva.com/" target="_blank" rel="noopener noreferrer" aria-label="Visit Mela Whole Foods website" className="card bg-white p-8 text-center block hover:shadow-lg transition-shadow focus:outline-none focus:ring-2 focus:ring-brandOrange"><div className="h-20 w-20 mb-6 relative mx-auto"><Image src={MelaLogo} alt="Mela Whole Foods Logo" fill className="object-contain" /></div><h3 className="text-xl font-bold mb-4 text-brandOrange">MELA Whole Foods</h3><p className="text-navy/80">A community initiative focused on expanding access to healthy, affordable food.</p></a><a href="https://www.thehouseofhumanity.org/" target="_blank" rel="noopener noreferrer" aria-label="Visit The House of Humanity website" className="card bg-white p-8 text-center block hover:shadow-lg transition-shadow focus:outline-none focus:ring-2 focus:ring-brandOrange"><div className="h-20 w-20 mb-6 relative mx-auto"><Image src={THOHLogo} alt="House of Humanity Logo" fill className="object-contain" /></div><h3 className="text-xl font-bold mb-4 text-brandOrange">The House of Humanity</h3><p className="text-navy/80">A nonprofit initiative dedicated to housing and healing for individuals overcoming hardship.</p></a></div></div></section>
-      <section className="section-padding bg-navy text-white text-center"><div className="max-w-4xl mx-auto"><h2 className="text-3xl md:text-4xl font-bold mb-6">From Defeated to Determined</h2><p className="text-lg leading-relaxed mb-8 max-w-3xl mx-auto">Book Dr. Bree for your next keynote, workshop, leadership program, or organizational event.</p><Link href="/booking" className="btn-primary">Book Dr. Bree</Link></div></section>
+    <Layout
+      title="About Dr. Bree Charles | Transformational Speaker, Author & U.S. Army Veteran"
+      description="Meet Dr. Bree Charles, founder of B3U: Burn, Break, Become Unstoppable. She helps leaders move beyond survival mode and reclaim identity, voice, and purpose."
+      structuredData={aboutStructuredData}
+    >
+      <section className="section-padding bg-white">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl md:text-5xl font-bold mb-5">
+              Meet <span className="text-brandOrange">Dr. Bree Charles</span>
+            </h1>
+            <p className="text-xl md:text-2xl text-navy/80 font-semibold">
+              Helping Leaders Take Back the Person Behind the Role
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-12 items-start mb-12">
+            <div className="order-1 md:order-2">
+              <p className="text-lg text-navy/80 leading-relaxed mb-6">
+                Dr. Bree Charles is a transformational speaker, U.S. Army veteran, author, and
+                founder of B3U: Burn, Break, Become Unstoppable. She equips strong, dependable
+                leaders to move beyond survival mode, reclaim their identity, voice, and purpose,
+                and lead with clarity.
+              </p>
+              <p className="text-lg text-navy/80 leading-relaxed mb-6">
+                Her message is shaped by 16 years of active-duty military service, three deployments
+                to Iraq, and a personal journey through trauma, domestic violence, PTSD, and life
+                beyond the uniform. These experiences taught her both how to lead under pressure and
+                the hidden cost of staying strong for everyone while losing yourself.
+              </p>
+              <p className="text-lg text-navy/80 leading-relaxed mb-6">
+                She is the author of <em>The Big Take Back: What I Left Behind</em>, a memoir and
+                teaching journey that helps readers confront repeating patterns, reclaim what life
+                tried to take, and rebuild with intention.
+              </p>
+              <p className="text-lg text-navy/80 leading-relaxed mb-6">
+                Dr. Bree&apos;s keynotes and workshops blend authentic storytelling, leadership
+                insight, and actionable tools for corporations, government agencies,
+                military-connected organizations, professional associations, and leadership groups.
+                Her work addresses identity, resilience, transition, burnout, and purpose-driven
+                leadership.
+              </p>
+              <p className="text-lg text-navy/80 leading-relaxed">
+                Grounded in faith, Dr. Bree believes transformation begins when people stop allowing
+                their past, others&apos; expectations, or the roles they carry to define who they
+                are becoming. She does more than inspire audiences. She equips them to move from
+                defeated to determined.
+              </p>
+            </div>
+            <div className="relative order-2 md:order-1">
+              <Image
+                src={featureImage.image}
+                alt={featureImage.alt}
+                className="w-full h-auto rounded-3xl shadow-2xl"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                priority
+              />
+              <div className="absolute -bottom-6 -right-6 bg-brandOrange text-white p-6 rounded-lg shadow-lg">
+                <p className="font-semibold text-sm">U.S. Army Veteran</p>
+                <p className="text-xs opacity-90">Transformational Speaker</p>
+              </div>
+            </div>
+          </div>
+          <div className="text-center">
+            <Link href="/booking" className="btn-primary">
+              Book Dr. Bree
+            </Link>
+          </div>
+        </div>
+      </section>
+      <section className="section-padding bg-white">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 text-left">
+            <div className="rounded-2xl bg-brandOrange p-7 text-white shadow-lg">
+              <h3 className="text-2xl font-bold mb-3">Burn</h3>
+              <p>the beliefs and labels that keep you trapped.</p>
+            </div>
+            <div className="rounded-2xl bg-brandOrange p-7 text-white shadow-lg">
+              <h3 className="text-2xl font-bold mb-3">Break</h3>
+              <p>the cycles that fuel burnout, silence, and disconnection.</p>
+            </div>
+            <div className="rounded-2xl bg-brandOrange p-7 text-white shadow-lg">
+              <h3 className="text-2xl font-bold mb-3">Become</h3>
+              <p>the clear, confident, purpose-driven leader you were created to be.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className="section-padding bg-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">
+            The Big Take Back: What I Left Behind
+          </h2>
+          <p className="text-lg text-navy/80 leading-relaxed">
+            Dr. Bree&apos;s memoir and teaching journey helps readers confront repeating patterns,
+            reclaim what life tried to take, and rebuild with intention.
+          </p>
+          <Link href="/shop" className="btn-outline mt-8 inline-flex">
+            Explore the Book
+          </Link>
+        </div>
+      </section>
+      <section className="section-padding bg-brandBlue-light/20">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-center">
+            Speaking & Leadership Work
+          </h2>
+          <p className="text-lg text-center text-navy/80 mb-10 max-w-3xl mx-auto">
+            Dr. Bree&apos;s work supports national, virtual, corporate, government, military,
+            association, university, and leadership audiences seeking practical tools for identity,
+            resilience, transition, burnout, and purpose-driven leadership.
+          </p>
+          {/* <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
+            {['Identity', 'Resilience', 'Transition', 'Burnout', 'Purpose-Driven Leadership'].map(
+              (topic) => (
+                <div key={topic} className="rounded-xl bg-white p-5 text-center shadow-sm">
+                  <p className="font-semibold text-navy">{topic}</p>
+                </div>
+              ),
+            )}
+          </div>
+          <div className="text-center">
+            <Link href="/speaking" className="btn-primary">
+              Explore Speaking Programs
+            </Link>
+          </div> */}
+        </div>
+      </section>
+      <section className="section-padding bg-white">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-center">Community Impact</h2>
+          <p className="text-lg text-center text-navy/80 mb-12 max-w-3xl mx-auto">
+            Dr. Bree&apos;s leadership and service also extend into community-based initiatives
+            designed to create practical impact.
+          </p>
+          <div className="grid md:grid-cols-2 gap-8">
+            <a
+              href="https://www.melawholefoodsva.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Visit Mela Whole Foods website"
+              className="card bg-white p-8 text-center block hover:shadow-lg transition-shadow focus:outline-none focus:ring-2 focus:ring-brandOrange"
+            >
+              <div className="h-20 w-20 mb-6 relative mx-auto">
+                <Image src={MelaLogo} alt="Mela Whole Foods Logo" fill className="object-contain" />
+              </div>
+              <h3 className="text-xl font-bold mb-4 text-brandOrange">MELA Whole Foods</h3>
+              <p className="text-navy/80">
+                A community initiative focused on expanding access to healthy, affordable food.
+              </p>
+            </a>
+            <a
+              href="https://www.thehouseofhumanity.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Visit The House of Humanity website"
+              className="card bg-white p-8 text-center block hover:shadow-lg transition-shadow focus:outline-none focus:ring-2 focus:ring-brandOrange"
+            >
+              <div className="h-20 w-20 mb-6 relative mx-auto">
+                <Image
+                  src={THOHLogo}
+                  alt="House of Humanity Logo"
+                  fill
+                  className="object-contain"
+                />
+              </div>
+              <h3 className="text-xl font-bold mb-4 text-brandOrange">The House of Humanity</h3>
+              <p className="text-navy/80">
+                A nonprofit initiative dedicated to housing and healing for individuals overcoming
+                hardship.
+              </p>
+            </a>
+          </div>
+        </div>
+      </section>
+      <section className="section-padding bg-navy text-white text-center">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold mb-6">From Defeated to Determined</h2>
+          <p className="text-lg leading-relaxed mb-8 max-w-3xl mx-auto">
+            Book Dr. Bree for your next keynote, workshop, leadership program, or organizational
+            event.
+          </p>
+          <Link href="/booking" className="btn-primary">
+            Book Dr. Bree
+          </Link>
+        </div>
+      </section>
     </Layout>
   );
 }
 
-export const getServerSideProps: GetServerSideProps<AboutPageProps> = async () => ({ props: await getPublishedSitePageProps() });
+export const getServerSideProps: GetServerSideProps<AboutPageProps> = async () => ({
+  props: await getPublishedSitePageProps(),
+});

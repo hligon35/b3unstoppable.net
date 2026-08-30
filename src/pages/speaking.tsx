@@ -152,7 +152,7 @@ export default function SpeakingPage() {
         </div>
       </section>
 
-      <section className="section-padding bg-gray-50">
+      {/* <section className="section-padding bg-gray-50">
         <div className="mx-auto max-w-6xl">
           <h2 className="text-center text-3xl md:text-4xl font-bold text-navy">Speaker Media</h2>
           <div className="mt-10 grid gap-6 lg:grid-cols-3">
@@ -185,14 +185,14 @@ export default function SpeakingPage() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       <section className="section-padding bg-white">
         <div className="mx-auto max-w-5xl">
           <h2 className="text-center text-3xl md:text-4xl font-bold text-navy">
             What Event Organizers and Audiences Are Saying
           </h2>
-          <div className="mt-10 grid gap-6 md:grid-cols-2">
+          {/* <div className="mt-10 grid gap-6 md:grid-cols-2">
             <div className="card bg-brandBlue-light/10">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brandOrange">
                 Event Organizer Testimonial
@@ -207,7 +207,7 @@ export default function SpeakingPage() {
               </p>
               <p className="mt-4 text-navy/65">Audience-impact testimonials coming soon.</p>
             </div>
-          </div>
+          </div> */}
         </div>
       </section>
 
