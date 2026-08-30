@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { isAuthenticatedRequest } from '../../../lib/adminAuth';
-import { processDueNewsletters } from '../../../lib/newsletters';
+import { isAuthenticatedRequest } from '@/lib/adminAuth';
+import { processDueNewsletters } from '@/lib/newsletters';
 
 function isAuthorizedProcessRequest(req: NextApiRequest) {
   if (isAuthenticatedRequest(req)) {
