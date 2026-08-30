@@ -76,7 +76,7 @@ export default function SpeakingPage() {
         <div className="mx-auto max-w-5xl">
           <div className="grid gap-6 md:grid-cols-3 text-left">
             <div className="rounded-2xl bg-brandOrange p-7 text-white shadow-lg"><h3 className="text-2xl font-bold">Burn</h3><p className="mt-3">the beliefs and labels that keep you trapped.</p></div>
-            <div className="rounded-2xl bg-brandBlue p-7 text-white shadow-lg"><h3 className="text-2xl font-bold">Break</h3><p className="mt-3">the cycles that fuel burnout, silence, and disconnection.</p></div>
+            <div className="rounded-2xl bg-brandOrange p-7 text-white shadow-lg"><h3 className="text-2xl font-bold">Break</h3><p className="mt-3">the cycles that fuel burnout, silence, and disconnection.</p></div>
             <div className="rounded-2xl bg-brandOrange p-7 text-white shadow-lg"><h3 className="text-2xl font-bold">Become</h3><p className="mt-3">the clear, confident, purpose-driven leader you were created to be.</p></div>
           </div>
         </div>
