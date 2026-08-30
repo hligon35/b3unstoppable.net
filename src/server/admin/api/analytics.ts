@@ -1,0 +1,61 @@
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { getAdminRole, isAuthenticatedRequest } from '../../../lib/adminAuth';
+import { getAnalytics, getDeviceTypes, getTopBrowsers, getTopReferrers, getTotalViews, insertPageView } from '../../../lib/db';
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method === 'POST') {
+    const { path, referrer, userAgent, language, screenSize } = req.body ?? {};
+    const forwardedFor = req.headers['x-forwarded-for'];
+    const ip = Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor?.split(',')[0]?.trim();
+
+    if (!path || typeof path !== 'string') {
+      return res.status(400).json({ error: 'Path is required' });
+    }
+
+    try {
+      await insertPageView({
+        path,
+        referrer: typeof referrer === 'string' ? referrer : '',
+        userAgent: typeof userAgent === 'string' ? userAgent : req.headers['user-agent'],
+        language: typeof language === 'string' ? language : '',
+        screenSize: typeof screenSize === 'string' ? screenSize : '',
+        ip,
+      });
+      return res.status(200).json({ message: 'Tracked' });
+    } catch (error) {
+      console.error('Failed to track analytics', error);
+      return res.status(202).json({ message: 'Tracking skipped' });
+    }
+  }
+
+  if (req.method === 'GET') {
+    if (!isAuthenticatedRequest(req, 'full')) {
+      return res.status(getAdminRole(req.headers.cookie) ? 403 : 401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+      const [analytics, total, topReferrers, topBrowsers, deviceTypes] = await Promise.all([
+        getAnalytics(),
+        getTotalViews(),
+        getTopReferrers(),
+        getTopBrowsers(),
+        getDeviceTypes(),
+      ]);
+
+      return res.status(200).json({
+        analytics,
+        total: total.total,
+        topReferrers: topReferrers.map(({ label, count }) => ({ referrer: label, count })),
+        topBrowsers: topBrowsers.map(({ label, count }) => ({ browser: label, count })),
+        deviceTypes: deviceTypes.map(({ label, count }) => ({ device: label, count })),
+      });
+    } catch (error) {
+      console.error('Failed to fetch analytics', error);
+      return res.status(500).json({ error: 'Failed to fetch analytics', details: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  }
+
+  res.setHeader('Allow', ['POST', 'GET']);
+  return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
+}
