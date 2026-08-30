@@ -2,13 +2,8 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import HeroBg from '@/images/content/about2.jpeg';
 import Image from 'next/image';
-import type { SiteDraft } from '@/lib/siteEditorContent';
 
-type HeroProps = {
-  draft: SiteDraft;
-};
-
-export default function Hero({ draft: _draft }: HeroProps) {
+export default function Hero() {
   return (
     <section className="relative flex min-h-[90vh] items-center justify-center overflow-hidden gradient-hero pt-28 md:pt-32">
       <div className="absolute inset-0">
