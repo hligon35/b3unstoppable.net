@@ -72,13 +72,12 @@ export default function SpeakingPage() {
         </div>
       </section>
 
-      <section className="section-padding bg-brandOrange text-white">
-        <div className="mx-auto max-w-5xl text-center">
-          <h2 className="text-3xl md:text-4xl font-bold">The B3U Framework</h2>
-          <div className="mt-10 grid gap-6 md:grid-cols-3 text-left">
-            <div className="rounded-2xl border border-white/20 bg-brandBlue/80 p-7 backdrop-blur-sm"><h3 className="text-2xl font-bold">Burn</h3><p className="mt-3">the beliefs and labels that keep you trapped.</p></div>
-            <div className="rounded-2xl border border-white/20 bg-brandBlue/80 p-7 backdrop-blur-sm"><h3 className="text-2xl font-bold">Break</h3><p className="mt-3">the cycles that fuel burnout, silence, and disconnection.</p></div>
-            <div className="rounded-2xl border border-white/20 bg-brandBlue/80 p-7 backdrop-blur-sm"><h3 className="text-2xl font-bold">Become</h3><p className="mt-3">the clear, confident, purpose-driven leader you were created to be.</p></div>
+      <section className="section-padding bg-white">
+        <div className="mx-auto max-w-5xl">
+          <div className="grid gap-6 md:grid-cols-3 text-left">
+            <div className="rounded-2xl bg-brandOrange p-7 text-white shadow-lg"><h3 className="text-2xl font-bold">Burn</h3><p className="mt-3">the beliefs and labels that keep you trapped.</p></div>
+            <div className="rounded-2xl bg-brandBlue p-7 text-white shadow-lg"><h3 className="text-2xl font-bold">Break</h3><p className="mt-3">the cycles that fuel burnout, silence, and disconnection.</p></div>
+            <div className="rounded-2xl bg-brandOrange p-7 text-white shadow-lg"><h3 className="text-2xl font-bold">Become</h3><p className="mt-3">the clear, confident, purpose-driven leader you were created to be.</p></div>
           </div>
         </div>
       </section>
