@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 
 import { applyBlogEngagementRateLimit } from '@/lib/blogEngagementRateLimit';
 import { submitCommentReport } from '@/lib/blogEngagement.server';
-import { verifyTurnstileToken } from '../../../../utils/security/formsProtection';
+import { verifyTurnstileToken } from '../../../../../utils/security/formsProtection';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
