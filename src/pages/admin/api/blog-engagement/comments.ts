@@ -8,7 +8,7 @@ import {
   submitCommentForVerification,
   verifyCommentToken,
 } from '@/lib/blogEngagement.server';
-import { verifyTurnstileToken } from '../../../../utils/security/formsProtection';
+import { verifyTurnstileToken } from '../../../../../utils/security/formsProtection';
 
 function getSiteUrl(req: NextApiRequest) {
   const envSite = process.env.NEXT_PUBLIC_SITE_URL?.trim();
