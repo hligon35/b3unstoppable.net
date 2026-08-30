@@ -33,6 +33,50 @@ function escapeHtml(value: string) {
   }[char] || char));
 }
 
+function emailShell(params: {
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  content: string;
+  footer: string;
+}) {
+  return `<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+      @media only screen and (max-width: 640px) {
+        .email-shell { padding: 18px 10px !important; }
+        .email-card { border-radius: 18px !important; }
+        .email-header,
+        .email-content,
+        .email-footer { padding-left: 20px !important; padding-right: 20px !important; }
+        .email-header { padding-top: 22px !important; }
+        .email-title { font-size: 24px !important; line-height: 1.2 !important; }
+        .detail-table td { display:block !important; width:100% !important; box-sizing:border-box !important; }
+        .detail-label { padding-bottom:2px !important; }
+        .detail-value { padding-top:2px !important; padding-bottom:14px !important; }
+      }
+    </style>
+  </head>
+  <body style="margin:0;padding:0;background:#f4f8fb;color:#102437;font-family:Arial,Helvetica,sans-serif;">
+    <div class="email-shell" style="padding:32px 16px;">
+      <div class="email-card" style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #d7e5f0;border-radius:24px;overflow:hidden;box-shadow:0 18px 48px rgba(10,26,42,0.12);">
+        <div class="email-header" style="background:linear-gradient(135deg,#0A1A2A 0%,#173a58 100%);padding:28px 32px 24px;color:#ffffff;">
+          <div style="font-size:12px;letter-spacing:1.8px;text-transform:uppercase;color:#d7e5f0;font-weight:700;margin-bottom:10px;">${escapeHtml(params.eyebrow)}</div>
+          <div class="email-title" style="font-size:30px;line-height:1.1;font-weight:700;margin:0 0 8px;">${escapeHtml(params.title)}</div>
+          <div style="font-size:14px;line-height:1.6;color:#d7e5f0;">${escapeHtml(params.subtitle)}</div>
+        </div>
+        <div class="email-content" style="padding:32px;">${params.content}</div>
+        <div class="email-footer" style="padding:20px 32px 28px;border-top:1px solid #e4edf4;background:#fbfdff;color:#5a7389;font-size:13px;line-height:1.7;">
+          ${params.footer}
+        </div>
+      </div>
+    </div>
+  </body>
+</html>`;
+}
+
 async function verifyTurnstile(token: string, req: NextApiRequest) {
   const secret = process.env.TURNSTILE_SECRET_KEY;
   if (!secret) return true;
@@ -129,8 +173,39 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     ['Proposed Speaker Budget', data.speakerBudget || 'Not provided'],
   ];
 
-  const detailHtml = rows.map(([label, value]) => `<tr><td style="padding:7px 12px;font-weight:700;vertical-align:top;">${escapeHtml(label)}</td><td style="padding:7px 12px;">${escapeHtml(value)}</td></tr>`).join('');
-  const teamHtml = `<div style="font-family:Arial,sans-serif;color:#10243b;line-height:1.55"><h1>New Dr. Bree Speaking Inquiry</h1><table style="border-collapse:collapse;width:100%;max-width:760px">${detailHtml}</table><h2>Event Goals / Desired Audience Outcomes</h2><p>${escapeHtml(data.eventGoals).replace(/\n/g, '<br>')}</p><h2>Additional Information</h2><p>${escapeHtml(data.message || 'None provided').replace(/\n/g, '<br>')}</p></div>`;
+  const detailHtml = rows.map(([label, value]) => `
+    <tr>
+      <td class="detail-label" style="width:38%;padding:10px 14px;font-size:12px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:#CC5500;vertical-align:top;border-bottom:1px solid #e4edf4;">${escapeHtml(label)}</td>
+      <td class="detail-value" style="padding:10px 14px;color:#36516a;vertical-align:top;border-bottom:1px solid #e4edf4;">${escapeHtml(value)}</td>
+    </tr>`).join('');
+
+  const teamHtml = emailShell({
+    eyebrow: 'B3U Speaking Inquiry',
+    title: 'New Dr. Bree Booking Request',
+    subtitle: 'Transformational Speaker • U.S. Army Veteran • Author • Founder of B3U',
+    content: `
+      <div style="font-size:12px;letter-spacing:1.8px;text-transform:uppercase;color:#CC5500;font-weight:700;margin-bottom:12px;">Inquiry details</div>
+      <table class="detail-table" role="presentation" style="width:100%;border-collapse:separate;border-spacing:0;border:1px solid #e4edf4;border-radius:16px;overflow:hidden;margin:0 0 28px;">${detailHtml}</table>
+      <div style="font-size:12px;letter-spacing:1.8px;text-transform:uppercase;color:#CC5500;font-weight:700;margin-bottom:10px;">Event Goals / Desired Audience Outcomes</div>
+      <div style="border-left:4px solid #CC5500;background:#fff8f3;border-radius:16px;padding:18px 20px;margin:0 0 26px;color:#36516a;line-height:1.7;">${escapeHtml(data.eventGoals).replace(/\n/g, '<br>')}</div>
+      <div style="font-size:12px;letter-spacing:1.8px;text-transform:uppercase;color:#CC5500;font-weight:700;margin-bottom:10px;">Additional Information</div>
+      <div style="background:#f7fafc;border:1px solid #e4edf4;border-radius:16px;padding:18px 20px;color:#36516a;line-height:1.7;">${escapeHtml(data.message || 'None provided').replace(/\n/g, '<br>')}</div>`,
+    footer: 'Reply directly to this email to respond to the prospective event organizer.',
+  });
+
+  const confirmationHtml = emailShell({
+    eyebrow: 'B3U Speaking',
+    title: 'Thank you for considering Dr. Bree Charles',
+    subtitle: 'Helping leaders reclaim identity, voice, and purpose.',
+    content: `
+      <p style="margin:0 0 20px;font-size:16px;line-height:1.7;color:#36516a;">Thank you for considering Dr. Bree Charles for your event. Your inquiry has been received, and a member of the B3U team will respond within two business days.</p>
+      <div style="border-left:4px solid #CC5500;background:#fff8f3;border-radius:16px;padding:18px 20px;margin:0 0 24px;">
+        <div style="font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:#CC5500;font-weight:700;margin-bottom:12px;">Your inquiry</div>
+        <div style="font-size:15px;line-height:1.8;color:#36516a;"><strong style="color:#0A1A2A;">Event:</strong> ${escapeHtml(data.eventName)}<br><strong style="color:#0A1A2A;">Organization:</strong> ${escapeHtml(data.organizationName)}<br><strong style="color:#0A1A2A;">Event date:</strong> ${escapeHtml(data.eventDate)}</div>
+      </div>
+      <p style="margin:0;font-size:15px;line-height:1.7;color:#5a7389;">We appreciate the opportunity to learn more about your event and the impact you want to create for your audience.</p>`,
+    footer: '<strong style="color:#0A1A2A;">Breaking Cycles. Building Legacies.</strong><br>Burn, Break, Become Unstoppable.',
+  });
 
   try {
     await sendEmail({
@@ -144,7 +219,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       to: data.email,
       replyTo: process.env.SENDGRID_REPLY_TO || teamEmail,
       subject: 'Dr. Bree Charles speaking inquiry received',
-      html: `<div style="font-family:Arial,sans-serif;color:#10243b;line-height:1.6"><h1>Thank you for considering Dr. Bree Charles</h1><p>Your inquiry has been received, and a member of the B3U team will respond within two business days.</p><p><strong>Event:</strong> ${escapeHtml(data.eventName)}<br><strong>Organization:</strong> ${escapeHtml(data.organizationName)}<br><strong>Event date:</strong> ${escapeHtml(data.eventDate)}</p><p>Breaking Cycles. Building Legacies.</p></div>`,
+      html: confirmationHtml,
     });
 
     return res.status(200).json({ ok: true });
