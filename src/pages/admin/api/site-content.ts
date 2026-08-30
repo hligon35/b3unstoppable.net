@@ -1,10 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { withApiMonitoring } from '../../../utils/debug/server';
+import { withApiMonitoring } from '../../../../utils/debug/server';
 
-import { getAdminRole, isAuthenticatedRequest } from '../../lib/adminAuth';
-import { mergeSiteDraft } from '../../lib/siteEditorContent';
-import { defaultSiteDraft } from '../../lib/siteEditorContent';
-import { getPublishedSiteDraft, savePublishedSiteDraft } from '../../lib/siteEditorContent.server';
+import { getAdminRole, isAuthenticatedRequest } from '@/lib/adminAuth';
+import { defaultSiteDraft, mergeSiteDraft } from '@/lib/siteEditorContent';
+import { getPublishedSiteDraft, savePublishedSiteDraft } from '@/lib/siteEditorContent.server';
 
 export const config = {
   api: {
