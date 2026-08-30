@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { buildWeeklyReportHtml, sendWeeklyReportEmail } from '../../../../utils/debug/email';
-import { buildWeeklyReportSummary } from '../../../../utils/debug/weekly-report';
-import { isAuthorizedMonitoringRequest, withApiMonitoring } from '../../../../utils/debug/server';
+import { buildWeeklyReportHtml, sendWeeklyReportEmail } from '../../../../../utils/debug/email';
+import { buildWeeklyReportSummary } from '../../../../../utils/debug/weekly-report';
+import { isAuthorizedMonitoringRequest, withApiMonitoring } from '../../../../../utils/debug/server';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET' && req.method !== 'POST') {
