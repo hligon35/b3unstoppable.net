@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { createAdminSessionCookie, getAdminRoleForEmail } from '../../../../lib/adminAuth';
+import { createAdminSessionCookie, getAdminRoleForEmail } from '@/lib/adminAuth';
 
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const USERINFO_URL = 'https://openidconnect.googleapis.com/v1/userinfo';
