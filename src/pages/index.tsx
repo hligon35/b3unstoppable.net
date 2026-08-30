@@ -57,7 +57,7 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
               Transformational Speaking
             </p>
             <h2 className="mt-4 text-3xl md:text-4xl font-bold text-navy">
-              Leadership Should Not Cost You Yourself
+              Being Strong for Everyone Shouldn’t Require Losing Yourself
             </h2>
             <p className="mt-5 text-lg leading-relaxed text-navy/80">
               Strong, dependable leaders often become so consumed by performing, serving, and
