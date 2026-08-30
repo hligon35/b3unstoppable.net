@@ -75,20 +75,20 @@ export default function EventGalleryPage(_: EventGalleryPageProps) {
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brandOrange">Recent Work</p>
               <h2 className="mt-3 text-3xl font-bold text-navy">Past Appearances and Event Highlights</h2>
-              <p className="mt-4 text-navy/70">Past speaking engagements, leadership programs, book events, professional stage photographs, and verified event highlights will be archived here rather than remaining in Upcoming Events.</p>
+              <p className="mt-4 text-navy/70">Past speaking engagements, leadership programs, book events, professional stage photographs, and event highlights.</p>
             </div>
             <div className="mt-8 grid gap-6 md:grid-cols-3">
-              <div className="card bg-white min-h-[220px] flex items-center justify-center text-center"><div><p className="font-semibold text-navy">Speaking Photograph</p><p className="mt-2 text-sm text-navy/60">Professional stage-photo placeholder</p></div></div>
-              <div className="card bg-white min-h-[220px] flex items-center justify-center text-center"><div><p className="font-semibold text-navy">Event Highlight</p><p className="mt-2 text-sm text-navy/60">Recent appearance highlight placeholder</p></div></div>
-              <div className="card bg-white min-h-[220px] flex items-center justify-center text-center"><div><p className="font-semibold text-navy">Leadership Program</p><p className="mt-2 text-sm text-navy/60">Program recap placeholder</p></div></div>
+              <div className="card bg-white min-h-[220px] flex items-center justify-center text-center"><div><p className="font-semibold text-navy">Speaking Photograph</p><p className="mt-2 text-sm text-navy/60">Professional stage-photo coming soon.</p></div></div>
+              <div className="card bg-white min-h-[220px] flex items-center justify-center text-center"><div><p className="font-semibold text-navy">Event Highlight</p><p className="mt-2 text-sm text-navy/60">Recent appearance highlight coming soon.</p></div></div>
+              <div className="card bg-white min-h-[220px] flex items-center justify-center text-center"><div><p className="font-semibold text-navy">Leadership Program</p><p className="mt-2 text-sm text-navy/60">Program recap coming soon.</p></div></div>
             </div>
           </section>
 
           <section className="mb-16">
             <h2 className="text-center text-3xl md:text-4xl font-bold text-navy">What Event Organizers and Audiences Are Saying</h2>
             <div className="mt-8 grid gap-6 md:grid-cols-2">
-              <div className="card bg-white"><p className="text-sm font-semibold uppercase tracking-[0.18em] text-brandOrange">Organizer Testimonial</p><p className="mt-4 text-navy/65">Verified event-organizer feedback will be featured here.</p></div>
-              <div className="card bg-white"><p className="text-sm font-semibold uppercase tracking-[0.18em] text-brandOrange">Audience Testimonial</p><p className="mt-4 text-navy/65">Verified audience feedback from speaking engagements and leadership programs will be featured here.</p></div>
+              <div className="card bg-white"><p className="text-sm font-semibold uppercase tracking-[0.18em] text-brandOrange">Organizer Testimonial</p><p className="mt-4 text-navy/65">Event-organizer feedback coming soon.</p></div>
+              <div className="card bg-white"><p className="text-sm font-semibold uppercase tracking-[0.18em] text-brandOrange">Audience Testimonial</p><p className="mt-4 text-navy/65">Audience feedback from speaking engagements and leadership programs coming soon.</p></div>
             </div>
           </section>
         </div>

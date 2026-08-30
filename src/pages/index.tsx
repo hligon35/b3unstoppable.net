@@ -7,29 +7,293 @@ import { useMemo } from 'react';
 import { createWebPageStructuredData, siteUrl } from '@/lib/siteMetadata';
 import { resolveSiteImage } from '@/lib/siteEditorImages';
 import { usePublishedSiteDraft } from '@/lib/siteEditorContent';
-import { getPublishedSitePageProps, type PublishedSitePageProps } from '@/lib/siteEditorContent.server';
+import {
+  getPublishedSitePageProps,
+  type PublishedSitePageProps,
+} from '@/lib/siteEditorContent.server';
 
 type HomePageProps = PublishedSitePageProps;
 
 export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: HomePageProps) {
-  const { draft } = usePublishedSiteDraft({ initialDraft: initialSiteDraft, initialUpdatedAt: initialSiteUpdatedAt, preferLocalDraft: false });
+  const { draft } = usePublishedSiteDraft({
+    initialDraft: initialSiteDraft,
+    initialUpdatedAt: initialSiteUpdatedAt,
+    preferLocalDraft: false,
+  });
   const bookImage = resolveSiteImage(draft.shopBookImage);
   const aboutImage = resolveSiteImage(draft.homeAboutImageOne);
-  const pageStructuredData = useMemo(() => createWebPageStructuredData({ pageUrl: `${siteUrl}/`, title: 'Dr. Bree Charles | Transformational Speaker, U.S. Army Veteran & Founder of B3U', description: 'Dr. Bree Charles equips strong, dependable leaders to move beyond survival mode, reclaim identity, voice, and purpose, and lead with clarity through keynotes, workshops, and leadership programs.', keywords: ['Dr. Bree Charles', 'transformational speaker', 'leadership keynote speaker', 'B3U', 'corporate speaker', 'government speaker', 'military speaker', 'association speaker'] }), []);
+  const pageStructuredData = useMemo(
+    () =>
+      createWebPageStructuredData({
+        pageUrl: `${siteUrl}/`,
+        title: 'Dr. Bree Charles | Transformational Speaker, U.S. Army Veteran & Founder of B3U',
+        description:
+          'Dr. Bree Charles equips strong, dependable leaders to move beyond survival mode, reclaim identity, voice, and purpose, and lead with clarity through keynotes, workshops, and leadership programs.',
+        keywords: [
+          'Dr. Bree Charles',
+          'transformational speaker',
+          'leadership keynote speaker',
+          'B3U',
+          'corporate speaker',
+          'government speaker',
+          'military speaker',
+          'association speaker',
+        ],
+      }),
+    [],
+  );
 
   return (
-    <Layout title="Dr. Bree Charles | Transformational Speaker, U.S. Army Veteran & Founder of B3U" description="Dr. Bree Charles equips leaders to move beyond survival mode and reclaim identity, voice, and purpose through national and virtual keynotes, workshops, and leadership programs." structuredData={pageStructuredData}>
+    <Layout
+      title="Dr. Bree Charles | Transformational Speaker, U.S. Army Veteran & Founder of B3U"
+      description="Dr. Bree Charles equips leaders to move beyond survival mode and reclaim identity, voice, and purpose through national and virtual keynotes, workshops, and leadership programs."
+      structuredData={pageStructuredData}
+    >
       <Hero />
-      <section className="section-padding bg-white"><div className="mx-auto max-w-6xl grid gap-12 md:grid-cols-2 md:items-center"><div><p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">Transformational Speaking</p><h2 className="mt-4 text-3xl md:text-4xl font-bold text-navy">Leadership Should Not Cost You Yourself</h2><p className="mt-5 text-lg leading-relaxed text-navy/80">Strong, dependable leaders often become so consumed by performing, serving, and carrying responsibility that they lose themselves behind the role. Dr. Bree helps audiences recognize survival-mode leadership, reclaim their voice, reconnect with purpose, and lead with greater clarity.</p><div className="mt-8 flex flex-col gap-3 sm:flex-row"><Link href="/speaking" className="btn-primary">Explore Speaking Programs</Link><Link href="/booking" className="btn-outline">Book Dr. Bree</Link></div></div><div className="relative overflow-hidden rounded-3xl shadow-xl"><Image src={aboutImage.image} alt={aboutImage.alt} width={900} height={900} className="aspect-square w-full object-cover" /></div></div></section>
-      <section className="section-padding bg-white"><div className="mx-auto max-w-6xl"><div className="grid gap-6 md:grid-cols-3 text-left"><div className="rounded-2xl bg-brandBlue p-7 text-white shadow-lg"><h3 className="text-2xl font-bold">Burn</h3><p className="mt-3">the beliefs and labels that keep you trapped.</p></div><div className="rounded-2xl bg-brandBlue p-7 text-white shadow-lg"><h3 className="text-2xl font-bold">Break</h3><p className="mt-3">the cycles that fuel burnout, silence, and disconnection.</p></div><div className="rounded-2xl bg-brandBlue p-7 text-white shadow-lg"><h3 className="text-2xl font-bold">Become</h3><p className="mt-3">the clear, confident, purpose-driven leader you were created to be.</p></div></div></div></section>
-      <section className="section-padding bg-brandBlue-light/15"><div className="mx-auto max-w-6xl"><div className="mx-auto max-w-3xl text-center"><p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">Signature Keynote</p><h2 className="mt-4 text-3xl md:text-4xl font-bold text-navy">The Leader Behind the Role</h2><p className="mt-4 text-lg text-navy/75">Reclaiming Identity, Voice, and Purpose Before Burnout Takes Over</p></div><div className="mt-10 grid gap-5 md:grid-cols-5">{['Identity', 'Voice', 'Purpose', 'Resilience', 'Clarity'].map((item) => <div key={item} className="card bg-white text-center font-semibold text-navy">{item}</div>)}</div><div className="mt-8 text-center"><Link href="/speaking" className="btn-primary">View Keynote Details</Link></div></div></section>
-      <section className="section-padding bg-white"><div className="mx-auto max-w-5xl"><h2 className="text-center text-3xl md:text-4xl font-bold text-navy">What Event Organizers and Audiences Are Saying</h2><p className="mx-auto mt-4 max-w-3xl text-center text-navy/70">Speaking-result testimonials will be featured here as verified organizer and audience feedback becomes available. Priority will be given to audience response, participant learning, presentation value, selection rationale, and recommendations.</p><div className="mt-8 grid gap-6 md:grid-cols-2"><div className="card bg-brandBlue-light/10"><p className="font-semibold text-brandOrange">Event Organizer Feedback</p><p className="mt-3 text-sm text-navy/65">Verified speaking testimonial placeholder.</p></div><div className="card bg-brandBlue-light/10"><p className="font-semibold text-brandOrange">Audience Impact</p><p className="mt-3 text-sm text-navy/65">Verified participant testimonial placeholder.</p></div></div></div></section>
-      <section className="section-padding bg-navy text-white"><div className="mx-auto max-w-6xl"><div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between"><div><p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">Upcoming Appearance</p><h2 className="mt-3 text-3xl md:text-4xl font-bold">See Dr. Bree Live</h2><p className="mt-3 text-white/75">Upcoming speaking appearances, leadership programs, book signings, and virtual events are organized on the Events page.</p></div><Link href="/event-gallery" className="btn-primary">View Events</Link></div><div className="mt-8 grid gap-8 lg:grid-cols-2 lg:items-center"><div className="overflow-hidden rounded-3xl bg-black/20 p-4"><Image src="/images/events/unwine-break-it-2026.png" alt="UnWine and Break It book signing event" width={1024} height={1536} className="mx-auto h-auto max-h-[520px] w-auto object-contain" /></div><div><span className="inline-flex rounded-full bg-brandOrange px-3 py-1 text-xs font-semibold">Book Signing</span><h3 className="mt-5 text-2xl font-bold">UnWine &amp; Break It</h3><p className="mt-3 text-white/75">Sunday, August 30, 2026 • In person</p></div></div></div></section>
-      <section className="section-padding bg-white"><div className="mx-auto max-w-6xl grid gap-8 md:grid-cols-3"><div className="card bg-white border border-navy/10"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-brandOrange">Podcast</p><h2 className="mt-3 text-2xl font-bold text-navy">B3U: Burn, Break, Become Unstoppable</h2><p className="mt-3 text-navy/70">Listen to conversations and teaching that help people burn limiting beliefs, break destructive cycles, and become who they were created to be.</p><Link href="/podcast" className="btn-outline mt-6 inline-flex">Listen to B3U</Link></div><div className="card bg-white border border-navy/10"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-brandOrange">Journal</p><h2 className="mt-3 text-2xl font-bold text-navy">Leadership, Identity & Transformation</h2><p className="mt-3 text-navy/70">Read Dr. Bree&apos;s insights on resilience, transition, burnout, identity, voice, and purpose-driven leadership.</p><Link href="/journal" className="btn-outline mt-6 inline-flex">Read the Journal</Link></div><div className="card bg-white border border-navy/10"><p className="text-xs font-semibold uppercase tracking-[0.2em] text-brandOrange">Community</p><h2 className="mt-3 text-2xl font-bold text-navy">Breaking Cycles. Building Legacies.</h2><p className="mt-3 text-navy/70">Explore B3U community initiatives and the broader impact of Dr. Bree&apos;s work beyond the stage.</p><Link href="/community" className="btn-outline mt-6 inline-flex">Explore Community</Link></div></div></section>
-      <section className="section-padding bg-brandOrange/10"><div className="mx-auto max-w-6xl grid gap-10 md:grid-cols-2 md:items-center"><div><p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">The Big Take Back</p><h2 className="mt-4 text-3xl md:text-4xl font-bold text-navy">What I Left Behind</h2><p className="mt-5 text-lg text-navy/75">A memoir and teaching journey that helps readers confront repeating patterns, reclaim what life tried to take, and rebuild with intention.</p><Link href="/shop" className="btn-primary mt-7 inline-flex">Get the Book</Link></div><div className="relative min-h-[420px]"><Image src={bookImage.image} alt={bookImage.alt} fill className="object-contain" sizes="(max-width: 768px) 100vw, 50vw" /></div></div></section>
-      <section className="section-padding bg-navy text-white text-center"><div className="mx-auto max-w-4xl"><h2 className="text-3xl md:text-4xl font-bold">Bring Dr. Bree to Your Organization</h2><p className="mx-auto mt-5 max-w-2xl text-lg text-white/80">National and virtual keynotes, leadership workshops, professional-development programs, corporate events, government agencies, military and veteran organizations, professional associations, colleges, and universities.</p><div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center"><Link href="/booking" className="btn-primary">Book Dr. Bree</Link><Link href="/speaking" className="btn-outline border-white text-white hover:bg-white hover:text-navy">Explore Speaking Programs</Link></div></div></section>
+      <section className="section-padding bg-white">
+        <div className="mx-auto max-w-6xl grid gap-12 md:grid-cols-2 md:items-center">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">
+              Transformational Speaking
+            </p>
+            <h2 className="mt-4 text-3xl md:text-4xl font-bold text-navy">
+              Leadership Should Not Cost You Yourself
+            </h2>
+            <p className="mt-5 text-lg leading-relaxed text-navy/80">
+              Strong, dependable leaders often become so consumed by performing, serving, and
+              carrying responsibility that they lose themselves behind the role. Dr. Bree helps
+              audiences recognize survival-mode leadership, reclaim their voice, reconnect with
+              purpose, and lead with greater clarity.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link href="/speaking" className="btn-primary">
+                Explore Speaking Programs
+              </Link>
+              <Link href="/booking" className="btn-outline">
+                Book Dr. Bree
+              </Link>
+            </div>
+          </div>
+          <div className="relative overflow-hidden rounded-3xl shadow-xl">
+            <Image
+              src={aboutImage.image}
+              alt={aboutImage.alt}
+              width={900}
+              height={900}
+              className="aspect-square w-full object-cover"
+            />
+          </div>
+        </div>
+      </section>
+      <section className="section-padding bg-white">
+        <div className="mx-auto max-w-6xl">
+          <div className="grid gap-6 md:grid-cols-3 text-left">
+            <div className="rounded-2xl bg-brandBlue p-7 text-white shadow-lg">
+              <h3 className="text-2xl font-bold">Burn</h3>
+              <p className="mt-3">the beliefs and labels that keep you trapped.</p>
+            </div>
+            <div className="rounded-2xl bg-brandBlue p-7 text-white shadow-lg">
+              <h3 className="text-2xl font-bold">Break</h3>
+              <p className="mt-3">the cycles that fuel burnout, silence, and disconnection.</p>
+            </div>
+            <div className="rounded-2xl bg-brandBlue p-7 text-white shadow-lg">
+              <h3 className="text-2xl font-bold">Become</h3>
+              <p className="mt-3">
+                the clear, confident, purpose-driven leader you were created to be.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className="section-padding bg-brandBlue-light/15">
+        <div className="mx-auto max-w-6xl">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">
+              Signature Keynote
+            </p>
+            <h2 className="mt-4 text-3xl md:text-4xl font-bold text-navy">
+              The Leader Behind the Role
+            </h2>
+            <p className="mt-4 text-lg text-navy/75">
+              Reclaiming Identity, Voice, and Purpose Before Burnout Takes Over
+            </p>
+          </div>
+          <div className="mt-10 grid gap-5 md:grid-cols-5">
+            {['Identity', 'Voice', 'Purpose', 'Resilience', 'Clarity'].map((item) => (
+              <div key={item} className="card bg-white text-center font-semibold text-navy">
+                {item}
+              </div>
+            ))}
+          </div>
+          <div className="mt-8 text-center">
+            <Link href="/speaking" className="btn-primary">
+              View Keynote Details
+            </Link>
+          </div>
+        </div>
+      </section>
+      <section className="section-padding bg-white">
+        <div className="mx-auto max-w-5xl">
+          <h2 className="text-center text-3xl md:text-4xl font-bold text-navy">
+            What Event Organizers and Audiences Are Saying
+          </h2>
+          <p className="mx-auto mt-4 max-w-3xl text-center text-navy/70">
+            Speaking-result testimonials will be featured here as organizer and audience
+            feedback becomes available.
+          </p>
+          <div className="mt-8 grid gap-6 md:grid-cols-2">
+            <div className="card bg-brandBlue-light/10">
+              <p className="font-semibold text-brandOrange">Event Organizer Feedback</p>
+              <p className="mt-3 text-sm text-navy/65">
+                Speaking testimonials coming soon.
+              </p>
+            </div>
+            <div className="card bg-brandBlue-light/10">
+              <p className="font-semibold text-brandOrange">Audience Impact</p>
+              <p className="mt-3 text-sm text-navy/65">
+                Participant testimonials coming soon.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className="section-padding bg-navy text-white">
+        <div className="mx-auto max-w-6xl">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">
+                Upcoming Appearance
+              </p>
+              <h2 className="mt-3 text-3xl md:text-4xl font-bold">See Dr. Bree Live</h2>
+              <p className="mt-3 text-white/75">
+                Upcoming speaking appearances, leadership programs, book signings, and virtual
+                events are organized on the Events page.
+              </p>
+            </div>
+            <Link href="/event-gallery" className="btn-primary">
+              View Events
+            </Link>
+          </div>
+          <div className="mt-8 grid gap-8 lg:grid-cols-2 lg:items-center">
+            <div className="overflow-hidden rounded-3xl bg-black/20 p-4">
+              <Image
+                src="/images/events/unwine-break-it-2026.png"
+                alt="UnWine and Break It book signing event"
+                width={1024}
+                height={1536}
+                className="mx-auto h-auto max-h-[520px] w-auto object-contain"
+              />
+            </div>
+            <div>
+              <span className="inline-flex rounded-full bg-brandOrange px-3 py-1 text-xs font-semibold">
+                Book Signing
+              </span>
+              <h3 className="mt-5 text-2xl font-bold">UnWine &amp; Break It</h3>
+              <p className="mt-3 text-white/75">Sunday, August 30, 2026 • In person</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section className="section-padding bg-white">
+        <div className="mx-auto max-w-6xl grid gap-8 md:grid-cols-3">
+          <div className="card bg-white border border-navy/10">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brandOrange">
+              Podcast
+            </p>
+            <h2 className="mt-3 text-2xl font-bold text-navy">
+              B3U: Burn, Break, Become Unstoppable
+            </h2>
+            <p className="mt-3 text-navy/70">
+              Listen to conversations and teaching that help people burn limiting beliefs, break
+              destructive cycles, and become who they were created to be.
+            </p>
+            <Link href="/podcast" className="btn-outline mt-6 inline-flex">
+              Listen to B3U
+            </Link>
+          </div>
+          <div className="card bg-white border border-navy/10">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brandOrange">
+              Journal
+            </p>
+            <h2 className="mt-3 text-2xl font-bold text-navy">
+              Leadership, Identity & Transformation
+            </h2>
+            <p className="mt-3 text-navy/70">
+              Read Dr. Bree&apos;s insights on resilience, transition, burnout, identity, voice, and
+              purpose-driven leadership.
+            </p>
+            <Link href="/journal" className="btn-outline mt-6 inline-flex">
+              Read the Journal
+            </Link>
+          </div>
+          <div className="card bg-white border border-navy/10">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brandOrange">
+              Community
+            </p>
+            <h2 className="mt-3 text-2xl font-bold text-navy">
+              Breaking Cycles. Building Legacies.
+            </h2>
+            <p className="mt-3 text-navy/70">
+              Explore B3U community initiatives and the broader impact of Dr. Bree&apos;s work
+              beyond the stage.
+            </p>
+            <Link href="/community" className="btn-outline mt-6 inline-flex">
+              Explore Community
+            </Link>
+          </div>
+        </div>
+      </section>
+      <section className="section-padding bg-brandOrange/10">
+        <div className="mx-auto max-w-6xl grid gap-10 md:grid-cols-2 md:items-center">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">
+              The Big Take Back
+            </p>
+            <h2 className="mt-4 text-3xl md:text-4xl font-bold text-navy">What I Left Behind</h2>
+            <p className="mt-5 text-lg text-navy/75">
+              A memoir and teaching journey that helps readers confront repeating patterns, reclaim
+              what life tried to take, and rebuild with intention.
+            </p>
+            <Link href="/shop" className="btn-primary mt-7 inline-flex">
+              Get the Book
+            </Link>
+          </div>
+          <div className="relative min-h-[420px]">
+            <Image
+              src={bookImage.image}
+              alt={bookImage.alt}
+              fill
+              className="object-contain"
+              sizes="(max-width: 768px) 100vw, 50vw"
+            />
+          </div>
+        </div>
+      </section>
+      <section className="section-padding bg-navy text-white text-center">
+        <div className="mx-auto max-w-4xl">
+          <h2 className="text-3xl md:text-4xl font-bold">Bring Dr. Bree to Your Organization</h2>
+          <p className="mx-auto mt-5 max-w-2xl text-lg text-white/80">
+            National and virtual keynotes, leadership workshops, professional-development programs,
+            corporate events, government agencies, military and veteran organizations, professional
+            associations, colleges, and universities.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <Link href="/booking" className="btn-primary">
+              Book Dr. Bree
+            </Link>
+            <Link
+              href="/speaking"
+              className="btn-outline border-white text-white hover:bg-white hover:text-navy"
+            >
+              Explore Speaking Programs
+            </Link>
+          </div>
+        </div>
+      </section>
     </Layout>
   );
 }
 
-export const getServerSideProps: GetServerSideProps<HomePageProps> = async () => ({ props: await getPublishedSitePageProps() });
+export const getServerSideProps: GetServerSideProps<HomePageProps> = async () => ({
+  props: await getPublishedSitePageProps(),
+});
