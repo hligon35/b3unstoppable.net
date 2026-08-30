@@ -7,10 +7,11 @@ import B3ULogo from '@/images/logos/B3U3D.png';
 const navItems = [
   { href: '/', label: 'Home' },
   { href: '/about', label: 'About' },
+  { href: '/speaking', label: 'Speaking' },
   { href: '/podcast', label: 'Podcast' },
-  { href: '/community', label: 'Community' },
-  { href: '/event-gallery', label: 'Events' },
   { href: '/journal', label: 'Journal' },
+  { href: '/event-gallery', label: 'Events' },
+  { href: '/community', label: 'Community' },
   { href: '/shop', label: 'Shop' },
   { href: '/contact', label: 'Contact' },
 ];
@@ -19,8 +20,6 @@ export default function Navbar() {
   const { pathname } = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
-  // Check if we're on the homepage to determine initial styling
   const isHomePage = pathname === '/';
 
   useEffect(() => {
@@ -29,47 +28,40 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Close mobile menu when route changes
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [pathname]);
 
-  // For homepage: start transparent with white text, become white bg with dark text on scroll
-  // For other pages: always white bg with dark text
   const bgClass = scrolled || !isHomePage ? 'bg-white/95 shadow-lg' : 'bg-transparent';
   const textClass = scrolled || !isHomePage ? 'text-navy' : 'text-white';
-  
+
   return (
     <header className={`fixed top-0 left-0 w-full isolate z-[200] transition backdrop-blur ${bgClass}`}>
-      <Link
-        href="/#newsletter"
-        className="block border-b border-white/10 bg-brandOrange px-4 py-2 text-center text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-brandOrange-dark"
-        aria-label="Join The Take Back Weekly for updates"
-      >
-        <span>The Big Take Back is on sale now • Join The Take Back Weekly for new events, podcast drops, and Bree updates</span>
-      </Link>
-      <nav className={`max-w-7xl mx-auto px-6 py-2 md:px-10 md:py-3 ${textClass}`}>
-        <div className="flex items-center justify-between gap-4 md:gap-5 lg:gap-8">
+      <div className="block border-b border-white/10 bg-brandOrange px-4 py-2 text-center text-xs font-semibold uppercase tracking-[0.18em] text-white">
+        <span>Transformational Speaker • U.S. Army Veteran • Author • Founder of B3U</span>
+      </div>
+      <nav className={`max-w-7xl mx-auto px-4 py-2 md:px-6 md:py-3 ${textClass}`}>
+        <div className="flex items-center justify-between gap-3">
           <Link href="/" className={`flex items-center font-display text-2xl tracking-wide ${textClass}`}>
-            <div className="relative h-18 w-18 md:h-20 md:w-20 lg:h-24 lg:w-24">
-              <Image 
-                src={B3ULogo} 
+            <div className="relative h-16 w-16 md:h-20 md:w-20 lg:h-24 lg:w-24">
+              <Image
+                src={B3ULogo}
                 alt="B3U Logo"
                 fill
-                sizes="(max-width: 768px) 72px, (max-width: 1024px) 80px, 96px"
+                sizes="(max-width: 768px) 64px, (max-width: 1024px) 80px, 96px"
                 className="object-contain"
               />
             </div>
           </Link>
 
-          <ul className="max-md:hidden md:flex flex-1 flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm font-semibold lg:gap-x-5 lg:text-base xl:gap-x-8">
-            {navItems.map(item => (
+          <ul className="max-md:hidden md:flex flex-1 flex-wrap items-center justify-center gap-x-3 gap-y-2 text-xs font-semibold lg:gap-x-4 lg:text-sm xl:gap-x-5">
+            {navItems.map((item) => (
               <li key={item.href}>
                 <Link
                   href={item.href}
                   className={`relative py-2 transition-colors duration-200 hover:text-brandOrange after:absolute after:left-0 after:bottom-0 after:h-0.5 after:bg-brandOrange after:transition-all after:duration-300 ${
-                    pathname === item.href 
-                      ? 'text-brandOrange after:w-full' 
+                    pathname === item.href
+                      ? 'text-brandOrange after:w-full'
                       : `${textClass} after:w-0 hover:after:w-full`
                   }`}
                 >
@@ -79,21 +71,24 @@ export default function Navbar() {
             ))}
           </ul>
 
-          <div className="max-md:hidden md:flex items-center">
+          <div className="max-md:hidden md:flex items-center gap-2">
             <Link
-              href="/shop"
-              className="btn-primary px-4 py-2 text-sm lg:px-5 lg:py-2.5"
-              aria-label="Explore The Big Take Back book"
+              href="/booking"
+              className="btn-primary px-4 py-2 text-xs lg:px-5 lg:py-2.5 lg:text-sm whitespace-nowrap"
+              aria-label="Book Dr. Bree Charles"
             >
-              Get the Book
+              Book Dr. Bree
             </Link>
           </div>
 
           <div className="flex items-center gap-3 md:hidden">
-            <button 
-              className={`px-4 py-2 rounded-md font-semibold text-sm transition-colors ${
-                scrolled || !isHomePage 
-                  ? 'bg-brandBlue text-white hover:bg-brandBlue-dark' 
+            <Link href="/booking" className="btn-primary px-3 py-2 text-xs whitespace-nowrap">
+              Book Dr. Bree
+            </Link>
+            <button
+              className={`px-3 py-2 rounded-md font-semibold text-sm transition-colors ${
+                scrolled || !isHomePage
+                  ? 'bg-brandBlue text-white hover:bg-brandBlue-dark'
                   : 'bg-white/20 text-white hover:bg-white/30 backdrop-blur'
               }`}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -111,19 +106,17 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile menu dropdown */}
       {mobileMenuOpen && (
         <div className="bg-white shadow-lg border-t md:hidden">
           <nav className="container mx-auto px-4 py-4">
             <Link
-              href="/#newsletter"
-              className="btn-primary w-full mb-4"
+              href="/booking"
+              className="btn-primary w-full mb-4 text-center"
               onClick={() => setMobileMenuOpen(false)}
-              aria-label="Subscribe for B3U updates"
             >
-              Subscribe for Updates
+              Book Dr. Bree
             </Link>
-            <ul className="flex flex-col space-y-4">
+            <ul className="flex flex-col space-y-2">
               {navItems.map((item) => (
                 <li key={item.href}>
                   <Link
