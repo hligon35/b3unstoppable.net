@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { isAuthenticatedRequest } from '../../lib/adminAuth';
-import { deleteSubscriber, getSubscribers, insertSubscriber } from '../../lib/db';
+import { isAuthenticatedRequest } from '@/lib/adminAuth';
+import { deleteSubscriber, getSubscribers, insertSubscriber } from '@/lib/db';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
