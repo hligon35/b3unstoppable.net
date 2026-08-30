@@ -1,11 +1,6 @@
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
-import { useEffect, useRef } from 'react';
-import { useRouter } from 'next/router';
 import Script from 'next/script';
-import { DebugPanel } from '../../utils/debug/dev-panel';
-import { DebugErrorBoundary } from '../../utils/debug/error-boundary';
-import { installClientMonitoring, recordPageView, recordRoutePerformance } from '../../utils/debug/client';
 import AdminNewsletterEnhancer from '@/components/AdminNewsletterEnhancer';
 import { usePublishedSiteDraft, type SiteDraft } from '@/lib/siteEditorContent';
 import '../styles/globals.css';
@@ -56,8 +51,6 @@ function buildPaletteStyle(draft: SiteDraft) {
 }
 
 export default function App({ Component, pageProps }: AppProps) {
-  const router = useRouter();
-  const routeStartedAtRef = useRef<number | null>(null);
   const cloudflareAnalyticsToken = process.env.NEXT_PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN;
   const publishedDraftPageProps = pageProps as PublishedDraftPageProps;
   const { draft: publishedDraft } = usePublishedSiteDraft({
@@ -66,41 +59,6 @@ export default function App({ Component, pageProps }: AppProps) {
     preferLocalDraft: false,
   });
   const paletteStyle = buildPaletteStyle(publishedDraft);
-
-  useEffect(() => {
-    installClientMonitoring();
-    recordPageView(router.asPath);
-  }, []);
-
-  useEffect(() => {
-    const onRouteStart = () => {
-      routeStartedAtRef.current = performance.now();
-    };
-
-    const onRouteComplete = (url: string) => {
-      if (routeStartedAtRef.current !== null) {
-        recordRoutePerformance(url, performance.now() - routeStartedAtRef.current);
-        routeStartedAtRef.current = null;
-      }
-      recordPageView(url);
-    };
-
-    const onRouteError = (_error: Error, url: string) => {
-      if (routeStartedAtRef.current !== null) {
-        recordRoutePerformance(url, performance.now() - routeStartedAtRef.current, true);
-        routeStartedAtRef.current = null;
-      }
-    };
-
-    router.events.on('routeChangeStart', onRouteStart);
-    router.events.on('routeChangeComplete', onRouteComplete);
-    router.events.on('routeChangeError', onRouteError);
-    return () => {
-      router.events.off('routeChangeStart', onRouteStart);
-      router.events.off('routeChangeComplete', onRouteComplete);
-      router.events.off('routeChangeError', onRouteError);
-    };
-  }, [router.events]);
 
   return (
     <>
@@ -117,11 +75,8 @@ export default function App({ Component, pageProps }: AppProps) {
         />
       ) : null}
 
-      <DebugErrorBoundary>
-        <Component {...pageProps} />
-      </DebugErrorBoundary>
+      <Component {...pageProps} />
       <AdminNewsletterEnhancer />
-      <DebugPanel />
     </>
   );
 }
