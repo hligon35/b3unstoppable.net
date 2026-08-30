@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { getAdminRole, isAuthenticatedRequest } from '../../lib/adminAuth';
-import { fetchCloudflareAnalytics } from '../../lib/cloudflareAnalytics';
+import { getAdminRole, isAuthenticatedRequest } from '@/lib/adminAuth';
+import { fetchCloudflareAnalytics } from '@/lib/cloudflareAnalytics';
 
 const LAST_7_DAYS_QUERY = `
   query($zoneTag: string, $start: Date!, $end: Date!) {
