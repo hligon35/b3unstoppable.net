@@ -1,8 +1,8 @@
 import crypto from 'node:crypto';
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { monitoredServerFetch, registerServerProcessMonitoring, withApiMonitoring } from '../../../../utils/debug/server';
-import { applyFormsRateLimit, verifyTurnstileToken } from '../../../../utils/security/formsProtection';
-import { insertSubscriber } from '../../../lib/db';
+import { monitoredServerFetch, registerServerProcessMonitoring, withApiMonitoring } from '../../../../../utils/debug/server';
+import { applyFormsRateLimit, verifyTurnstileToken } from '../../../../../utils/security/formsProtection';
+import { insertSubscriber } from '@/lib/db';
 
 type Route = 'contact' | 'newsletter' | 'submit' | 'stories' | 'moderate' | '';
 
