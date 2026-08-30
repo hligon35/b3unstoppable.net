@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { getAdminRole, isAuthenticatedRequest } from '../../lib/adminAuth';
-import { getAnalytics, getDeviceTypes, getTopBrowsers, getTopReferrers, getTotalViews, insertPageView } from '../../lib/db';
+import { getAdminRole, isAuthenticatedRequest } from '../../../lib/adminAuth';
+import { getAnalytics, getDeviceTypes, getTopBrowsers, getTopReferrers, getTotalViews, insertPageView } from '../../../lib/db';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
