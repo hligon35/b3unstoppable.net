@@ -72,7 +72,7 @@ export default function SpeakingPage() {
         </div>
       </section>
 
-      <section className="section-padding bg-brandOrange text-white">
+      <section className="section-padding bg-brandBlue text-white">
         <div className="mx-auto max-w-5xl text-center">
           <h2 className="text-3xl md:text-4xl font-bold">The B3U Framework</h2>
           <div className="mt-10 grid gap-6 md:grid-cols-3 text-left">
