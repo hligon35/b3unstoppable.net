@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { isAuthenticatedRequest } from '../../lib/adminAuth';
-import { deleteQueuedNewsletter, listNewsletterQueue, queueNewsletter, updateQueuedNewsletter } from '../../lib/newsletters';
+import { isAuthenticatedRequest } from '@/lib/adminAuth';
+import { deleteQueuedNewsletter, listNewsletterQueue, queueNewsletter, updateQueuedNewsletter } from '@/lib/newsletters';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!isAuthenticatedRequest(req)) {
