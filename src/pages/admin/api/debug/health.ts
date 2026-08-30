@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { captureServerError, isAuthorizedMonitoringRequest, recordHeartbeat, withApiMonitoring } from '../../../../utils/debug/server';
+import { captureServerError, isAuthorizedMonitoringRequest, recordHeartbeat, withApiMonitoring } from '../../../../../utils/debug/server';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
