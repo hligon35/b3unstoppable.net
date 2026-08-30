@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { exportServerEntries } from '../../../../utils/logger/server';
-import { isAuthorizedMonitoringRequest, withApiMonitoring } from '../../../../utils/debug/server';
+import { exportServerEntries } from '../../../../../utils/logger/server';
+import { isAuthorizedMonitoringRequest, withApiMonitoring } from '../../../../../utils/debug/server';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
