@@ -2,11 +2,8 @@ import Layout from '@/components/Layout';
 import TurnstileField, { useTurnstileConfig } from '@/components/TurnstileField';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createWebPageStructuredData, siteUrl } from '@/lib/siteMetadata';
-import { useFormsApi } from '@/lib/useFormsApi';
-import { submitFormToEndpoint } from '@/lib/formsSubmit';
 
 export default function BookingPage() {
-  const { formsApi, debugEnabled } = useFormsApi();
   const [sent, setSent] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,10 +27,6 @@ export default function BookingPage() {
   const onSubmit: React.FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
     if (pending) return;
-    if (!formsApi) {
-      setError('Booking inquiries are temporarily unavailable. Please try again shortly.');
-      return;
-    }
     if (turnstileLoading) {
       setError('Security check is still loading. Please try again in a moment.');
       return;
@@ -46,9 +39,22 @@ export default function BookingPage() {
     setError(null);
     setPending(true);
     try {
-      await submitFormToEndpoint(formRef.current!, `${formsApi}?endpoint=contact`);
+      const form = formRef.current!;
+      const formData = new FormData(form);
+      const payload: Record<string, string> = {};
+      formData.forEach((value, key) => { payload[key] = String(value); });
+      payload.turnstileToken = turnstileToken;
+
+      const response = await fetch('/api/booking', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) throw new Error(`Booking request failed: ${response.status}`);
+
       setSent(true);
-      try { formRef.current?.reset(); } catch {}
+      try { form.reset(); } catch {}
       setTurnstileToken('');
       setTurnstileResetKey((value) => value + 1);
       setT0(String(Date.now()));
@@ -78,10 +84,8 @@ export default function BookingPage() {
 
           <div className="card mx-auto max-w-4xl bg-white shadow-2xl">
             <form ref={formRef} onSubmit={onSubmit} className="grid gap-6 md:grid-cols-2">
-              <input type="hidden" name="subject" value="Dr. Bree Speaking Inquiry" />
               <input type="text" name="hp" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />
               <input type="hidden" name="t0" value={t0} />
-              {debugEnabled && <input type="hidden" name="debug" value="1" />}
 
               <div><label className={labelClass}>Organization Name *</label><input className={inputClass} name="organizationName" required /></div>
               <div><label className={labelClass}>Contact Name *</label><input className={inputClass} name="name" required /></div>
