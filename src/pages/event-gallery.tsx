@@ -1,270 +1,108 @@
 import type { GetServerSideProps } from 'next';
 import Layout from '@/components/Layout';
 import Image from 'next/image';
-import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { useMemo } from 'react';
 import { createCollectionPageStructuredData, siteUrl } from '@/lib/siteMetadata';
-import type { EventGalleryCardContent } from '@/lib/eventGalleryContent';
-import { eventGalleryContent } from '@/lib/eventGalleryContent';
-import { resolveSiteImage } from '@/lib/siteEditorImages';
-import { usePublishedSiteDraft } from '@/lib/siteEditorContent';
 import { getPublishedSitePageProps, type PublishedSitePageProps } from '@/lib/siteEditorContent.server';
-import B3ULogo from '@/images/logos/B3U3D.png';
-
-function cardBadges(card: EventGalleryCardContent) {
-  return [card.badgeOne, card.badgeTwo, card.badgeThree].filter(Boolean);
-}
 
 type EventGalleryPageProps = PublishedSitePageProps;
 
-export default function EventGalleryPage({ initialSiteDraft, initialSiteUpdatedAt }: EventGalleryPageProps) {
-  const [flyerOpen, setFlyerOpen] = useState(false);
-  const { draft } = usePublishedSiteDraft({
-    initialDraft: initialSiteDraft,
-    initialUpdatedAt: initialSiteUpdatedAt,
-    preferLocalDraft: false,
-  });
-  // If the persisted published draft hasn't been updated, force-replace
-  // the 'stay-tuned' card with the content from `eventGalleryContent`.
-  const patchedDraft = useMemo(() => {
-    try {
-      const stay = eventGalleryContent.cards.find((c) => c.id === 'stay-tuned');
-      if (!stay) return draft;
-      const cards = draft.eventCards.map((c) => (c.id === 'stay-tuned' ? { ...c, ...stay } : c));
-      return { ...draft, eventCards: cards };
-    } catch {
-      return draft;
-    }
-  }, [draft]);
-
-  const visibleCards = patchedDraft.eventCards.filter((card) => !card.hidden);
-  const flyerImage = resolveSiteImage(draft.eventsFlyerImage);
-  const bookImage = resolveSiteImage(draft.eventsBookImage);
+export default function EventGalleryPage(_: EventGalleryPageProps) {
   const pageStructuredData = useMemo(() => createCollectionPageStructuredData({
     pageUrl: `${siteUrl}/event-gallery/`,
-    title: 'Events and Updates | B3U',
-    description: 'Explore B3U book updates, promotional highlights, and stay tuned messaging for upcoming Dr. Bree Charles events and announcements.',
-    keywords: ['B3U events', 'Dr. Bree Charles updates', 'The Big Take Back', 'Richmond VA speaker'],
+    title: 'Dr. Bree Charles Events | Speaking Appearances, Programs & Book Signings',
+    description: 'View upcoming and past appearances from Dr. Bree Charles, including speaking engagements, leadership programs, book signings, and professional event highlights.',
+    keywords: ['Dr. Bree Charles events', 'speaking appearances', 'leadership programs', 'book signings', 'transformational speaker events'],
   }), []);
-
-  function cardMedia(card: EventGalleryCardContent) {
-    if (card.id === 'stay-tuned') {
-      return { src: B3ULogo, alt: 'B3U logo' };
-    }
-
-    return card.mediaType === 'book'
-      ? { src: bookImage.image, alt: bookImage.alt }
-      : { src: flyerImage.image, alt: flyerImage.alt };
-  }
-
-  useEffect(() => {
-    if (!flyerOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setFlyerOpen(false);
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener('keydown', onKeyDown);
-    };
-  }, [flyerOpen]);
 
   return (
     <Layout
-      title="Events | B3U"
-      description="Explore B3U book updates, promotional highlights, and stay tuned messaging for upcoming Dr. Bree Charles events and announcements."
+      title="Dr. Bree Charles Events | Speaking Appearances, Programs & Book Signings"
+      description="View upcoming speaking appearances, leadership programs, book signings, event highlights, and past appearances from Dr. Bree Charles."
       structuredData={pageStructuredData}
     >
       <section className="section-padding bg-white">
-        <div className="mx-auto max-w-5xl">
-          <div className="mb-12 text-center">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">Events</p>
-            <h1 className="mt-4 text-4xl font-bold text-navy md:text-5xl">{draft.eventsHeading}</h1>
-            <p className="mx-auto mt-4 max-w-3xl text-lg text-navy/75">
-              {draft.eventsDescription}
-            </p>
+        <div className="mx-auto max-w-6xl pt-10">
+          <div className="mx-auto mb-12 max-w-3xl text-center">
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">Events & Appearances</p>
+            <h1 className="mt-4 text-4xl md:text-5xl font-bold text-navy">Speaking Appearances, Leadership Programs & Book Events</h1>
+            <p className="mt-5 text-lg text-navy/75">Follow Dr. Bree Charles&apos; upcoming appearances and explore recent event highlights from her speaking, leadership, and author work.</p>
           </div>
 
-          <div className="mb-10 rounded-3xl border border-navy/10 bg-gradient-to-br from-navy via-[#0f3150] to-[#194d75] p-6 text-white shadow-xl md:p-8">
-            <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <section className="mb-16">
+            <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brandOrange-light">Featured Events</p>
-                <h2 className="mt-2 text-2xl font-bold md:text-3xl">Attend Live + Virtual B3U Experiences</h2>
-                <p className="mt-2 max-w-3xl text-sm text-white/85 md:text-base">Register now for the Men&apos;s Summit and the UnWine &amp; Break It signing experience. Spots and reminders fill quickly.</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brandOrange">Upcoming Events</p>
+                <h2 className="mt-2 text-3xl font-bold text-navy">Upcoming Appearances</h2>
               </div>
+              <Link href="/booking" className="btn-primary">Book Dr. Bree</Link>
             </div>
 
-            <div className="mt-6 grid gap-6 md:grid-cols-2">
-              <article className="mx-auto w-full max-w-[360px] overflow-hidden rounded-2xl border border-white/15 bg-black/25 p-3 md:col-span-2">
-                <div className="overflow-hidden rounded-xl bg-black/20">
+            <div className="grid gap-8 lg:grid-cols-2">
+              <article className="card overflow-hidden p-0 bg-white">
+                <div className="relative bg-navy/5">
                   <Image
                     src="/images/events/unwine-break-it-2026.png"
-                    alt="UnWine and Break It event flyer with Dr. Bree Charles"
+                    alt="UnWine and Break It book signing with Dr. Bree Charles"
                     width={1024}
                     height={1536}
-                    className="h-auto w-full object-contain"
-                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="mx-auto h-auto max-h-[620px] w-auto object-contain"
                   />
                 </div>
-                <div className="mt-3 text-center">
-                  <p className="text-sm font-semibold text-white">UnWine &amp; Break It</p>
-                  <p className="text-xs text-white/75">Book signing and meet the author • Sunday, August 30 • Revolution Winery</p>
-                </div>
-              </article>
-            </div>
-          </div>
-
-          <div className="mb-10 rounded-3xl border border-brandOrange/20 bg-gradient-to-r from-brandOrange to-brandOrange-dark p-6 text-white shadow-xl">
-            {draft.eventsBookUpdateEyebrow ? <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/80">{draft.eventsBookUpdateEyebrow}</p> : null}
-            {draft.eventsBookUpdateTitle ? <h2 className="mt-3 text-2xl font-bold md:text-3xl">{draft.eventsBookUpdateTitle}</h2> : null}
-            {draft.eventsBookUpdateDescription ? (
-              <p className="mt-3 max-w-3xl text-sm text-white/90 md:text-base">{draft.eventsBookUpdateDescription}</p>
-            ) : null}
-          </div>
-
-          <div className="grid gap-8 md:grid-cols-2">
-            {visibleCards.map((card) => {
-              const media = cardMedia(card);
-              const badges = cardBadges(card);
-              const hasDetailBlock = Boolean(card.detailTitle || card.detailLineOne || card.detailLineTwo || card.detailLineThree);
-              const showFlyerButton = card.secondaryActionType === 'flyer';
-              const showSecondaryLink = card.secondaryActionType === 'link' && card.secondaryActionLabel && card.secondaryActionUrl;
-
-              return (
-                <div key={card.id} className="card overflow-hidden p-0">
-                  {card.mediaType === 'flyer' ? (
-                    <button
-                      type="button"
-                      className="relative h-64 w-full cursor-zoom-in bg-white focus:outline-none focus-visible:ring-4 focus-visible:ring-brandOrange/30"
-                      onClick={() => setFlyerOpen(true)}
-                      aria-label={`Enlarge ${card.title || 'event'} media`}
-                    >
-                      <Image
-                        src={media.src}
-                        alt={media.alt}
-                        fill
-                        className="object-contain p-3"
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                      />
-                      {card.mediaBadge ? <span className="absolute left-4 top-4 rounded-full bg-brandOrange px-3 py-1 text-xs font-semibold text-white">{card.mediaBadge}</span> : null}
-                    </button>
-                  ) : (
-                    <div className="relative h-64 bg-white">
-                      <Image
-                        src={media.src}
-                        alt={media.alt}
-                        fill
-                        className="object-contain p-3"
-                        sizes="(max-width: 768px) 100vw, 50vw"
-                      />
-                      <div className="absolute inset-0 bg-black/10" />
-                      {card.mediaBadge ? <span className="absolute left-4 top-4 rounded-full bg-brandOrange px-3 py-1 text-xs font-semibold text-white">{card.mediaBadge}</span> : null}
-                    </div>
-                  )}
-
-                  <div className="p-6">
-                    {badges.length ? (
-                      <div className="mb-3 flex flex-wrap items-center gap-2">
-                        {badges.map((badge, index) => (
-                          <span
-                            key={`${card.id}-badge-${index}`}
-                            className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                              index === 0 ? 'bg-brandOrange/10 text-brandOrange' : 'bg-navy/5 text-navy/70'
-                            }`}
-                          >
-                            {badge}
-                          </span>
-                        ))}
-                      </div>
-                    ) : null}
-
-                    {card.title ? <h3 className="text-xl font-bold text-navy">{card.title}</h3> : null}
-                    {card.description ? <p className="mt-3 text-sm text-navy/70">{card.description}</p> : null}
-
-                    {hasDetailBlock ? (
-                      <div className="mt-4 rounded-xl bg-brandBlue-light/20 p-4 text-sm text-navy/80">
-                        {card.detailTitle ? <p className="font-semibold text-navy">{card.detailTitle}</p> : null}
-                        {card.detailLineOne ? <p className={card.detailTitle ? 'mt-1' : ''}>{card.detailLineOne}</p> : null}
-                        {card.detailLineTwo ? <p>{card.detailLineTwo}</p> : null}
-                        {card.detailLineThree ? <p>{card.detailLineThree}</p> : null}
-                      </div>
-                    ) : null}
-
-                    {card.primaryActionLabel || showFlyerButton || showSecondaryLink ? (
-                      <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                        {card.primaryActionLabel && card.primaryActionUrl ? (
-                          <a
-                            href={card.primaryActionUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn-primary"
-                            aria-label={card.title ? `${card.primaryActionLabel} for ${card.title}` : card.primaryActionLabel}
-                          >
-                            {card.primaryActionLabel}
-                          </a>
-                        ) : null}
-
-                        {showFlyerButton ? (
-                          <button
-                            type="button"
-                            className="btn-outline"
-                            onClick={() => setFlyerOpen(true)}
-                          >
-                            {card.secondaryActionLabel || 'View Flyer'}
-                          </button>
-                        ) : null}
-
-                        {showSecondaryLink ? (
-                          <a
-                            href={card.secondaryActionUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn-outline"
-                          >
-                            {card.secondaryActionLabel}
-                          </a>
-                        ) : null}
-                      </div>
-                    ) : null}
+                <div className="p-7">
+                  <span className="inline-flex rounded-full bg-brandOrange/10 px-3 py-1 text-xs font-semibold text-brandOrange">Book Signing</span>
+                  <h3 className="mt-4 text-2xl font-bold text-navy">UnWine &amp; Break It</h3>
+                  <p className="mt-3 text-navy/75">Meet Dr. Bree Charles and experience a live author event centered around <em>The Big Take Back: What I Left Behind</em>.</p>
+                  <div className="mt-5 rounded-xl bg-brandBlue-light/20 p-4 text-sm text-navy/80">
+                    <p><strong>Date:</strong> Sunday, August 30, 2026</p>
+                    <p><strong>Time:</strong> 12:00 PM–5:00 PM</p>
+                    <p><strong>Format:</strong> In person</p>
                   </div>
                 </div>
-              );
-            })}
-          </div>
+              </article>
+
+              <article className="card flex min-h-[340px] flex-col items-center justify-center text-center bg-brandBlue-light/10">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brandOrange">Speaking Calendar</p>
+                <h3 className="mt-4 text-2xl font-bold text-navy">Additional Dates Coming Soon</h3>
+                <p className="mt-4 max-w-md text-navy/70">Upcoming keynote appearances, leadership programs, military and veteran programs, association events, and virtual presentations will be added as they are confirmed.</p>
+                <Link href="/booking" className="btn-outline mt-6">Request Dr. Bree for Your Event</Link>
+              </article>
+            </div>
+          </section>
+
+          <section className="mb-16 bg-brandBlue-light/10 rounded-3xl p-7 md:p-10">
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brandOrange">Recent Work</p>
+              <h2 className="mt-3 text-3xl font-bold text-navy">Past Appearances and Event Highlights</h2>
+              <p className="mt-4 text-navy/70">Past speaking engagements, leadership programs, book events, professional stage photographs, and verified event highlights will be archived here rather than remaining in Upcoming Events.</p>
+            </div>
+            <div className="mt-8 grid gap-6 md:grid-cols-3">
+              <div className="card bg-white min-h-[220px] flex items-center justify-center text-center"><div><p className="font-semibold text-navy">Speaking Photograph</p><p className="mt-2 text-sm text-navy/60">Professional stage-photo placeholder</p></div></div>
+              <div className="card bg-white min-h-[220px] flex items-center justify-center text-center"><div><p className="font-semibold text-navy">Event Highlight</p><p className="mt-2 text-sm text-navy/60">Recent appearance highlight placeholder</p></div></div>
+              <div className="card bg-white min-h-[220px] flex items-center justify-center text-center"><div><p className="font-semibold text-navy">Leadership Program</p><p className="mt-2 text-sm text-navy/60">Program recap placeholder</p></div></div>
+            </div>
+          </section>
+
+          <section className="mb-16">
+            <h2 className="text-center text-3xl md:text-4xl font-bold text-navy">What Event Organizers and Audiences Are Saying</h2>
+            <div className="mt-8 grid gap-6 md:grid-cols-2">
+              <div className="card bg-white"><p className="text-sm font-semibold uppercase tracking-[0.18em] text-brandOrange">Organizer Testimonial</p><p className="mt-4 text-navy/65">Verified event-organizer feedback will be featured here, prioritizing audience response, participant learning, presentation value, selection rationale, and recommendation.</p></div>
+              <div className="card bg-white"><p className="text-sm font-semibold uppercase tracking-[0.18em] text-brandOrange">Audience Testimonial</p><p className="mt-4 text-navy/65">Verified audience feedback from speaking engagements and leadership programs will be featured here.</p></div>
+            </div>
+          </section>
         </div>
       </section>
 
-      {flyerOpen && (
-        <div
-          className="fixed inset-0 z-50 flex cursor-zoom-out items-center justify-center bg-black/80 p-4"
-          onClick={() => setFlyerOpen(false)}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Event flyer enlarged"
-        >
-          <div
-            className="relative h-[85vh] w-full max-w-3xl cursor-default overflow-hidden rounded-2xl bg-white"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Image
-              src={flyerImage.image}
-              alt={flyerImage.alt}
-              fill
-              className="object-contain p-4"
-              sizes="100vw"
-            />
-          </div>
+      <section className="section-padding bg-navy text-white text-center">
+        <div className="mx-auto max-w-4xl">
+          <h2 className="text-3xl md:text-4xl font-bold">Bring Dr. Bree to Your Organization</h2>
+          <p className="mx-auto mt-5 max-w-2xl text-lg text-white/80">Book Dr. Bree for a keynote, workshop, leadership program, corporate event, government agency, military or veteran program, association meeting, university, or virtual presentation.</p>
+          <Link href="/booking" className="btn-primary mt-8 inline-flex">Request Dr. Bree for Your Event</Link>
         </div>
-      )}
+      </section>
     </Layout>
   );
 }
 
-export const getServerSideProps: GetServerSideProps<EventGalleryPageProps> = async () => {
-  return {
-    props: await getPublishedSitePageProps(),
-  };
-};
+export const getServerSideProps: GetServerSideProps<EventGalleryPageProps> = async () => ({ props: await getPublishedSitePageProps() });
