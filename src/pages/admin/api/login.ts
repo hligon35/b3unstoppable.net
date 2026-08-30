@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { clearAdminSessionCookie, createAdminSessionCookie } from '../../lib/adminAuth';
-import { getConfiguredAdminPassword, getConfiguredAdminUsername, verifyAdminCredentials } from '../../lib/adminPassword';
+import { clearAdminSessionCookie, createAdminSessionCookie } from '@/lib/adminAuth';
+import { getConfiguredAdminPassword, getConfiguredAdminUsername, verifyAdminCredentials } from '@/lib/adminPassword';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const adminUsername = getConfiguredAdminUsername();
