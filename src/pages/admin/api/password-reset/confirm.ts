@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-import { createAdminSessionCookie } from '../../../lib/adminAuth';
-import { consumePasswordReset } from '../../../lib/adminPassword';
-import { withApiMonitoring } from '../../../../utils/debug/server';
+import { createAdminSessionCookie } from '@/lib/adminAuth';
+import { consumePasswordReset } from '@/lib/adminPassword';
+import { withApiMonitoring } from '../../../../../utils/debug/server';
 
 const MIN_PASSWORD_LENGTH = 12;
 const MAX_PASSWORD_LENGTH = 128;
