@@ -7,8 +7,8 @@ import {
   getPasswordResetExpiryMinutes,
   getSiteUrl,
   issueAdminPasswordReset,
-} from '../../../lib/adminPassword';
-import { monitoredServerFetch, withApiMonitoring } from '../../../../utils/debug/server';
+} from '@/lib/adminPassword';
+import { monitoredServerFetch, withApiMonitoring } from '../../../../../utils/debug/server';
 
 const GENERIC_SUCCESS_MESSAGE = 'If that account can be reset, a one-time link has been sent.';
 
