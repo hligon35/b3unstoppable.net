@@ -13,7 +13,7 @@ import { getPublishedSitePageProps, type PublishedSitePageProps } from '@/lib/si
 type AboutPageProps = PublishedSitePageProps;
 
 export default function AboutPage({ initialSiteDraft, initialSiteUpdatedAt }: AboutPageProps) {
-  const { draft } = usePublishedSiteDraft({ initialDraft: initialSiteDraft, initialSiteUpdatedAt, preferLocalDraft: false });
+  const { draft } = usePublishedSiteDraft({ initialDraft: initialSiteDraft, initialUpdatedAt: initialSiteUpdatedAt, preferLocalDraft: false });
   const featureImage = resolveSiteImage(draft.aboutPageFeatureImage);
   const aboutStructuredData = useMemo(() => createWebPageStructuredData({ pageUrl: `${siteUrl}/about/`, title: 'About Dr. Bree Charles | Transformational Speaker, Author & U.S. Army Veteran', description: 'Meet Dr. Bree Charles, founder of B3U: Burn, Break, Become Unstoppable. She helps leaders move beyond survival mode and reclaim identity, voice, and purpose.', keywords: ['About Dr. Bree Charles', 'transformational speaker', 'B3U founder', 'Burn Break Become Unstoppable', 'The Big Take Back', 'leadership speaker', 'U.S. Army veteran'] }), []);
 
