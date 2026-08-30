@@ -100,8 +100,8 @@ export default function SpeakingPage() {
         <div className="mx-auto max-w-6xl">
           <h2 className="text-center text-3xl md:text-4xl font-bold text-navy">Speaker Media</h2>
           <div className="mt-10 grid gap-6 lg:grid-cols-3">
-            <div className="card bg-white min-h-[280px] flex flex-col items-center justify-center text-center"><p className="text-sm uppercase tracking-[0.2em] text-brandOrange font-semibold">Speaker Video</p><h3 className="mt-3 text-xl font-bold">Professional Video Placeholder</h3><p className="mt-3 text-sm text-navy/60">Speaker reel or keynote footage will appear here when final media is available.</p></div>
-            <div className="card bg-white min-h-[280px] flex flex-col items-center justify-center text-center"><p className="text-sm uppercase tracking-[0.2em] text-brandOrange font-semibold">Stage Photography</p><h3 className="mt-3 text-xl font-bold">Professional Photo Placeholder</h3><p className="mt-3 text-sm text-navy/60">Professional stage and audience-engagement photography will be featured here.</p></div>
+            <div className="card bg-white min-h-[280px] flex flex-col items-center justify-center text-center"><p className="text-sm uppercase tracking-[0.2em] text-brandOrange font-semibold">Speaker Video</p><h3 className="mt-3 text-xl font-bold">Professional Video Coming Soon</h3><p className="mt-3 text-sm text-navy/60">Speaker reel or keynote footage will appear here when the final media is available.</p></div>
+            <div className="card bg-white min-h-[280px] flex flex-col items-center justify-center text-center"><p className="text-sm uppercase tracking-[0.2em] text-brandOrange font-semibold">Stage Photography</p><h3 className="mt-3 text-xl font-bold">Professional Photo Coming Soon</h3><p className="mt-3 text-sm text-navy/60">Professional stage and audience-engagement photography will be featured here.</p></div>
             <div className="card bg-white min-h-[280px] flex flex-col items-center justify-center text-center"><p className="text-sm uppercase tracking-[0.2em] text-brandOrange font-semibold">Speaker One-Sheet</p><h3 className="mt-3 text-xl font-bold">Download Coming Soon</h3><p className="mt-3 text-sm text-navy/60">A downloadable professional speaker one-sheet will be available here.</p></div>
           </div>
         </div>
@@ -111,8 +111,8 @@ export default function SpeakingPage() {
         <div className="mx-auto max-w-5xl">
           <h2 className="text-center text-3xl md:text-4xl font-bold text-navy">What Event Organizers and Audiences Are Saying</h2>
           <div className="mt-10 grid gap-6 md:grid-cols-2">
-            <div className="card bg-brandBlue-light/10"><p className="text-sm font-semibold uppercase tracking-[0.2em] text-brandOrange">Event Organizer Testimonial</p><p className="mt-4 text-navy/65">Professional speaking-result testimonial placeholder. Prioritize audience response, participant learning, presentation value, selection rationale, and recommendation.</p></div>
-            <div className="card bg-brandBlue-light/10"><p className="text-sm font-semibold uppercase tracking-[0.2em] text-brandOrange">Audience Testimonial</p><p className="mt-4 text-navy/65">Audience-impact testimonial placeholder. Replace with verified event feedback as it becomes available.</p></div>
+            <div className="card bg-brandBlue-light/10"><p className="text-sm font-semibold uppercase tracking-[0.2em] text-brandOrange">Event Organizer Testimonial</p><p className="mt-4 text-navy/65">Professional speaking-result testimonials coming soon.</p></div>
+            <div className="card bg-brandBlue-light/10"><p className="text-sm font-semibold uppercase tracking-[0.2em] text-brandOrange">Audience Testimonial</p><p className="mt-4 text-navy/65">Audience-impact testimonials coming soon.</p></div>
           </div>
         </div>
       </section>

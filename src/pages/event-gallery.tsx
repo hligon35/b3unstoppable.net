@@ -87,7 +87,7 @@ export default function EventGalleryPage(_: EventGalleryPageProps) {
           <section className="mb-16">
             <h2 className="text-center text-3xl md:text-4xl font-bold text-navy">What Event Organizers and Audiences Are Saying</h2>
             <div className="mt-8 grid gap-6 md:grid-cols-2">
-              <div className="card bg-white"><p className="text-sm font-semibold uppercase tracking-[0.18em] text-brandOrange">Organizer Testimonial</p><p className="mt-4 text-navy/65">Verified event-organizer feedback will be featured here, prioritizing audience response, participant learning, presentation value, selection rationale, and recommendation.</p></div>
+              <div className="card bg-white"><p className="text-sm font-semibold uppercase tracking-[0.18em] text-brandOrange">Organizer Testimonial</p><p className="mt-4 text-navy/65">Verified event-organizer feedback will be featured here.</p></div>
               <div className="card bg-white"><p className="text-sm font-semibold uppercase tracking-[0.18em] text-brandOrange">Audience Testimonial</p><p className="mt-4 text-navy/65">Verified audience feedback from speaking engagements and leadership programs will be featured here.</p></div>
             </div>
           </section>
