@@ -1,6 +1,5 @@
 import type { GetServerSideProps } from 'next';
 import Layout from '@/components/Layout';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { createCollectionPageStructuredData, siteUrl } from '@/lib/siteMetadata';
@@ -39,36 +38,12 @@ export default function EventGalleryPage(_: EventGalleryPageProps) {
               <Link href="/booking" className="btn-primary">Book Dr. Bree</Link>
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-2">
-              <article className="card overflow-hidden p-0 bg-white">
-                <div className="relative bg-navy/5">
-                  <Image
-                    src="/images/events/unwine-break-it-2026.png"
-                    alt="UnWine and Break It book signing with Dr. Bree Charles"
-                    width={1024}
-                    height={1536}
-                    className="mx-auto h-auto max-h-[620px] w-auto object-contain"
-                  />
-                </div>
-                <div className="p-7">
-                  <span className="inline-flex rounded-full bg-brandOrange/10 px-3 py-1 text-xs font-semibold text-brandOrange">Book Signing</span>
-                  <h3 className="mt-4 text-2xl font-bold text-navy">UnWine &amp; Break It</h3>
-                  <p className="mt-3 text-navy/75">Meet Dr. Bree Charles and experience a live author event centered around <em>The Big Take Back: What I Left Behind</em>.</p>
-                  <div className="mt-5 rounded-xl bg-brandBlue-light/20 p-4 text-sm text-navy/80">
-                    <p><strong>Date:</strong> Sunday, August 30, 2026</p>
-                    <p><strong>Time:</strong> 12:00 PM–5:00 PM</p>
-                    <p><strong>Format:</strong> In person</p>
-                  </div>
-                </div>
-              </article>
-
-              <article className="card flex min-h-[340px] flex-col items-center justify-center text-center bg-brandBlue-light/10">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brandOrange">Speaking Calendar</p>
-                <h3 className="mt-4 text-2xl font-bold text-navy">Additional Dates Coming Soon</h3>
-                <p className="mt-4 max-w-md text-navy/70">Upcoming keynote appearances, leadership programs, military and veteran programs, association events, and virtual presentations will be added as they are confirmed.</p>
-                <Link href="/booking" className="btn-outline mt-6">Request Dr. Bree for Your Event</Link>
-              </article>
-            </div>
+            <article className="card flex min-h-[340px] flex-col items-center justify-center text-center bg-brandBlue-light/10">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brandOrange">Speaking Calendar</p>
+              <h3 className="mt-4 text-2xl font-bold text-navy">Additional Dates Coming Soon</h3>
+              <p className="mt-4 max-w-md text-navy/70">Upcoming keynote appearances, leadership programs, military and veteran programs, association events, and virtual presentations will be added as they are confirmed.</p>
+              <Link href="/booking" className="btn-outline mt-6">Request Dr. Bree for Your Event</Link>
+            </article>
           </section>
 
           <section className="mb-16 bg-brandBlue-light/10 rounded-3xl p-7 md:p-10">

@@ -175,24 +175,6 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
               View Events
             </Link>
           </div>
-          <div className="mt-8 grid gap-8 lg:grid-cols-2 lg:items-center">
-            <div className="overflow-hidden rounded-3xl bg-black/20 p-4">
-              <Image
-                src="/images/events/unwine-break-it-2026.png"
-                alt="UnWine and Break It book signing event"
-                width={1024}
-                height={1536}
-                className="mx-auto h-auto max-h-[520px] w-auto object-contain"
-              />
-            </div>
-            <div>
-              <span className="inline-flex rounded-full bg-brandOrange px-3 py-1 text-xs font-semibold">
-                Book Signing
-              </span>
-              <h3 className="mt-5 text-2xl font-bold">UnWine &amp; Break It</h3>
-              <p className="mt-3 text-white/75">Sunday, August 30, 2026 • In person</p>
-            </div>
-          </div>
         </div>
       </section>
       <section className="section-padding bg-white">
