@@ -1,3 +1,5 @@
+import type { ReactElement } from 'react';
+
 type PillarName = 'Identity' | 'Voice' | 'Purpose' | 'Resilience' | 'Clarity';
 
 type KeynotePillarCardProps = {
@@ -131,7 +133,7 @@ function ClarityGraphic() {
   );
 }
 
-const graphics: Record<PillarName, () => JSX.Element> = {
+const graphics: Record<PillarName, () => ReactElement> = {
   Identity: IdentityGraphic,
   Voice: VoiceGraphic,
   Purpose: PurposeGraphic,
