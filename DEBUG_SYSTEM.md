@@ -53,7 +53,7 @@ Primary integration points:
 - uncaught exceptions
 - unhandled promise rejections
 - API request status, duration, and request metadata
-- outbound API requests such as SendGrid and backup Apps Script relays
+- outbound API requests such as Resend and backup Apps Script relays
 - server log file output with rolling retention
 
 ### Forms protection
@@ -116,8 +116,8 @@ Supported levels:
 
 ### Email and protected endpoints
 
-- `SENDGRID_API_KEY`
-- `SENDGRID_FROM_EMAIL`
+- `RESEND_API_KEY`
+- `RESEND_FROM_EMAIL`
 - `TURNSTILE_SECRET_KEY`
 - `NEXT_PUBLIC_TURNSTILE_SITE_KEY`
 - `FORMS_RATE_LIMIT_WINDOW_MS`
@@ -148,7 +148,7 @@ Alert emails include:
 - recent log snippets
 - link to exported logs when `NEXT_PUBLIC_SITE_URL` and `MONITORING_CRON_TOKEN` are configured
 
-Monitoring alert emails are sent through SendGrid to:
+Monitoring alert emails are sent through Resend to:
 
 - `hligon@getsparqd.com`
 
@@ -208,7 +208,7 @@ Required GitHub Actions secrets:
 - `MONITORING_BASE_URL`
   - example: `https://b3unstoppable.net`
 - `MONITORING_CRON_TOKEN`
-- `SENDGRID_API_KEY`
+- `RESEND_API_KEY`
 - `MONITORING_FROM_EMAIL`
 - `MONITORING_TO_EMAIL`
 

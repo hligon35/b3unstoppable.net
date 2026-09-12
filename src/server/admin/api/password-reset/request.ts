@@ -52,7 +52,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const { token, expiresAt } = await issueAdminPasswordReset(username);
   const resetUrl = `${siteUrl.replace(/\/$/, '')}/reset-password?token=${encodeURIComponent(token)}`;
-  const apiKey = process.env.SENDGRID_API_KEY;
+  const apiKey = process.env.RESEND_API_KEY;
   const toEmail = getAdminResetEmail();
   const fromEmail = getAdminResetFromEmail();
 
@@ -96,7 +96,7 @@ async function sendPasswordResetEmail(params: {
   expiresInMinutes: number;
 }) {
   const response = await monitoredServerFetch(
-    'https://api.sendgrid.com/v3/mail/send',
+    'https://api.resend.com/emails',
     {
       method: 'POST',
       headers: {
@@ -104,15 +104,10 @@ async function sendPasswordResetEmail(params: {
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        personalizations: [{ to: [{ email: params.toEmail }] }],
-        from: { email: params.fromEmail, name: 'B3U Admin Security' },
+        from: `B3U Admin Security <${params.fromEmail}>`,
+        to: [params.toEmail],
         subject: 'B3U admin password reset',
-        content: [
-          {
-            type: 'text/html',
-            value: buildPasswordResetEmailHtml(params),
-          },
-        ],
+        html: buildPasswordResetEmailHtml(params),
       }),
     },
     {

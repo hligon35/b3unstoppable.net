@@ -199,8 +199,8 @@ export async function sendCommentVerificationEmail(params: {
   postTitle: string;
   siteUrl: string;
 }) {
-  const apiKey = process.env.SENDGRID_API_KEY;
-  const fromEmail = process.env.SENDGRID_FROM_EMAIL?.trim() || process.env.MONITORING_FROM_EMAIL?.trim() || '';
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromEmail = process.env.RESEND_FROM_EMAIL?.trim() || process.env.MONITORING_FROM_EMAIL?.trim() || '';
 
   if (!apiKey || !fromEmail) {
     return { ok: false as const, reason: 'missing-email-config' as const };
@@ -209,7 +209,7 @@ export async function sendCommentVerificationEmail(params: {
   const verifyUrl = `${params.siteUrl.replace(/\/$/, '')}/journal/${params.postSlug}/?commentToken=${encodeURIComponent(params.token)}`;
 
   const response = await monitoredServerFetch(
-    'https://api.sendgrid.com/v3/mail/send',
+    'https://api.resend.com/emails',
     {
       method: 'POST',
       headers: {
@@ -217,15 +217,10 @@ export async function sendCommentVerificationEmail(params: {
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        personalizations: [{ to: [{ email: params.toEmail }] }],
-        from: { email: fromEmail, name: 'B3U Journal' },
+        from: `B3U Journal <${fromEmail}>`,
+        to: [params.toEmail],
         subject: `Confirm your B3U Journal comment: ${params.postTitle}`,
-        content: [
-          {
-            type: 'text/html',
-            value: `<!doctype html><html><body style="font-family:Arial,Helvetica,sans-serif;background:#f7fbff;padding:18px;"><div style="max-width:620px;margin:0 auto;background:#fff;border:1px solid #d5e8f5;border-radius:16px;overflow:hidden;"><div style="background:#0a1a2a;color:#fff;padding:18px 24px;"><p style="margin:0;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;">B3U Journal</p><h1 style="margin:8px 0 0;font-size:22px;">Confirm your comment</h1></div><div style="padding:24px;"><p style="margin:0 0 14px;color:#20384c;line-height:1.6;">Hi ${params.authorName.replace(/</g, '&lt;')}, thanks for joining the conversation on <strong>${params.postTitle.replace(/</g, '&lt;')}</strong>.</p><p style="margin:0 0 18px;color:#20384c;line-height:1.6;">To publish your comment, confirm your email with the button below. This link expires in ${COMMENT_VERIFY_MINUTES} minutes and can only be used once.</p><p style="margin:0 0 18px;"><a href="${verifyUrl}" style="display:inline-block;background:#007cb8;color:#fff;text-decoration:none;padding:11px 18px;border-radius:999px;font-weight:700;">Verify and submit comment</a></p><p style="margin:0;color:#506980;font-size:13px;word-break:break-all;">${verifyUrl}</p></div></div></body></html>`,
-          },
-        ],
+        html: `<!doctype html><html><body style="font-family:Arial,Helvetica,sans-serif;background:#f7fbff;padding:18px;"><div style="max-width:620px;margin:0 auto;background:#fff;border:1px solid #d5e8f5;border-radius:16px;overflow:hidden;"><div style="background:#0a1a2a;color:#fff;padding:18px 24px;"><p style="margin:0;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;">B3U Journal</p><h1 style="margin:8px 0 0;font-size:22px;">Confirm your comment</h1></div><div style="padding:24px;"><p style="margin:0 0 14px;color:#20384c;line-height:1.6;">Hi ${params.authorName.replace(/</g, '&lt;')}, thanks for joining the conversation on <strong>${params.postTitle.replace(/</g, '&lt;')}</strong>.</p><p style="margin:0 0 18px;color:#20384c;line-height:1.6;">To publish your comment, confirm your email with the button below. This link expires in ${COMMENT_VERIFY_MINUTES} minutes and can only be used once.</p><p style="margin:0 0 18px;"><a href="${verifyUrl}" style="display:inline-block;background:#007cb8;color:#fff;text-decoration:none;padding:11px 18px;border-radius:999px;font-weight:700;">Verify and submit comment</a></p><p style="margin:0;color:#506980;font-size:13px;word-break:break-all;">${verifyUrl}</p></div></div></body></html>`,
       }),
     },
     {

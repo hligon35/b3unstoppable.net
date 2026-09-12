@@ -9,7 +9,7 @@ Modern rebuild of the B3U podcast & community platform.
 - Framer Motion (hero animations)
 - GSAP (planned: scroll-driven reveals / parallax)
 - Cloudflare Web Analytics
-- SendGrid + Google Apps Script for forms delivery
+- Resend + Google Apps Script for forms delivery
 
 ## Brand Tokens
 ```
@@ -61,11 +61,11 @@ FORMS_SIGNING_SECRET=<same SECRET value configured in Apps Script>
 NEXT_PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN=
 CLOUDFLARE_API_TOKEN=
 CLOUDFLARE_ZONE_ID=
-SENDGRID_API_KEY=SG...
-SENDGRID_FROM_EMAIL=info@b3unstoppable.net
-SENDGRID_FROM_NAME=B3U
-SENDGRID_REPLY_TO=info@b3unstoppable.net
-SENDGRID_TO_EMAIL=info@b3unstoppable.net
+RESEND_API_KEY=re_...
+RESEND_FROM_EMAIL=info@b3unstoppable.net
+RESEND_FROM_NAME=B3U
+RESEND_REPLY_TO=info@b3unstoppable.net
+RESEND_TO_EMAIL=info@b3unstoppable.net
 ```
 
 ## Cloudflare Deployment
@@ -74,22 +74,22 @@ SENDGRID_TO_EMAIL=info@b3unstoppable.net
 - In Workers Builds, set the build command to `npx @opennextjs/cloudflare build` and the deploy command to `npx @opennextjs/cloudflare deploy`.
 - Keep the Worker name and custom domains aligned with `wrangler.jsonc`.
 - Keep `NEXT_PUBLIC_FORMS_API=/api/forms` so all forms go through the first-party backend.
-- SendGrid is the primary delivery path for contact emails, newsletter confirmations, and story acknowledgements.
+- Resend is the primary delivery path for contact emails, newsletter confirmations, and story acknowledgements.
 - Google Apps Script remains the backup mailer and persistence layer. Story submissions still depend on it for moderation links and approved-story feed storage.
 - Enable Cloudflare Web Analytics with `NEXT_PUBLIC_CLOUDFLARE_ANALYTICS_TOKEN`.
 - The admin dashboard now includes live Cloudflare traffic panels through `/api/cf-analytics` when `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ZONE_ID` are set.
-- Optional SendGrid marketing sync uses `SENDGRID_MARKETING_LIST_IDS` as a comma-separated list of SendGrid Marketing list IDs.
+- Optional Resend audience sync uses `RESEND_AUDIENCE_IDS` as a comma-separated list of Resend audience IDs.
 
 ## GitHub Actions Monitoring Secrets
 - The scheduled monitoring workflows read GitHub Actions secrets, not values from `.env.local`.
-- Add these repository or environment secrets in GitHub before enabling the heartbeat and weekly report workflows: `MONITORING_BASE_URL`, `MONITORING_CRON_TOKEN`, `SENDGRID_API_KEY`, `MONITORING_FROM_EMAIL`, `MONITORING_TO_EMAIL`.
+- Add these repository or environment secrets in GitHub before enabling the heartbeat and weekly report workflows: `MONITORING_BASE_URL`, `MONITORING_CRON_TOKEN`, `RESEND_API_KEY`, `MONITORING_FROM_EMAIL`, `MONITORING_TO_EMAIL`.
 - If those secrets are missing, the workflows now skip with a warning in the run summary instead of failing immediately.
 
 ## Forms Delivery
-- Primary mail delivery runs through SendGrid via the first-party forms API.
+- Primary mail delivery runs through Resend via the first-party forms API.
 - Apps Script remains the backup mailer and persistence layer.
-- Newsletter signups are also upserted into SendGrid Marketing Contacts.
-- If SendGrid fails, the API route falls back to Apps Script mail delivery.
+- Newsletter signups are also upserted into Resend Audiences.
+- If Resend fails, the API route falls back to Apps Script mail delivery.
 
 ## Code Organization
 ```

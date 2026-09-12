@@ -98,27 +98,27 @@ async function verifyTurnstile(token: string, req: NextApiRequest) {
 }
 
 async function sendEmail(options: { to: string; replyTo?: string; subject: string; html: string }) {
-  const apiKey = process.env.SENDGRID_API_KEY;
-  const fromEmail = process.env.SENDGRID_FROM_EMAIL;
-  const fromName = process.env.SENDGRID_FROM_NAME || 'B3U';
-  if (!apiKey || !fromEmail) throw new Error('SendGrid is not configured');
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromEmail = process.env.RESEND_FROM_EMAIL;
+  const fromName = process.env.RESEND_FROM_NAME || 'B3U';
+  if (!apiKey || !fromEmail) throw new Error('Resend is not configured');
 
-  const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+  const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
       authorization: `Bearer ${apiKey}`,
       'content-type': 'application/json',
     },
     body: JSON.stringify({
-      personalizations: [{ to: [{ email: options.to }] }],
-      from: { email: fromEmail, name: fromName },
-      reply_to: options.replyTo ? { email: options.replyTo } : undefined,
+      from: `${fromName} <${fromEmail}>`,
+      to: [options.to],
+      reply_to: options.replyTo || undefined,
       subject: options.subject,
-      content: [{ type: 'text/html', value: options.html }],
+      html: options.html,
     }),
   });
 
-  if (!response.ok) throw new Error(`SendGrid error ${response.status}`);
+  if (!response.ok) throw new Error(`Resend error ${response.status}`);
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -155,7 +155,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const turnstileOk = await verifyTurnstile(data.turnstileToken, req);
   if (!turnstileOk) return res.status(403).json({ ok: false, error: 'turnstile-verification-failed' });
 
-  const teamEmail = process.env.SENDGRID_TO_EMAIL;
+  const teamEmail = process.env.RESEND_TO_EMAIL;
   if (!teamEmail) return res.status(503).json({ ok: false, error: 'booking-email-not-configured' });
 
   const rows = [
@@ -217,7 +217,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await sendEmail({
       to: data.email,
-      replyTo: process.env.SENDGRID_REPLY_TO || teamEmail,
+      replyTo: process.env.RESEND_REPLY_TO || teamEmail,
       subject: 'Dr. Bree Charles speaking inquiry received',
       html: confirmationHtml,
     });

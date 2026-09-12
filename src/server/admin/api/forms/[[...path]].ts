@@ -72,7 +72,7 @@ async function handleGet(req: NextApiRequest, res: NextApiResponse, route: Route
       ok: true,
       routes: ['contact', 'newsletter', 'submit', 'stories', 'moderate'],
       backupConfigured: Boolean(normalizeUrl(process.env.FORMS_BACKUP_URL)),
-      sendgridConfigured: hasSendGridConfig(),
+      resendConfigured: hasResendConfig(),
       turnstileSiteKey: String(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '').trim(),
       runtime: 'node',
     });
@@ -95,7 +95,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, route: Rout
 
   const payload = parsePayload(req.body || {});
   const backupUrl = normalizeUrl(process.env.FORMS_BACKUP_URL);
-  const sendGridReady = hasSendGridConfig();
+  const resendReady = hasResendConfig();
 
   if (!applyFormsRateLimit(req, res, route)) {
     res.status(429).json({ ok: false, error: 'rate-limit-exceeded' });
@@ -142,7 +142,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, route: Rout
     return;
   }
 
-  if (!sendGridReady && !backupUrl) {
+  if (!resendReady && !backupUrl) {
     res.status(503).json({ ok: false, error: 'no-form-backend-configured' });
     return;
   }
@@ -162,7 +162,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, route: Rout
     }
   }
 
-  if (!sendGridReady && backupUrl) {
+  if (!resendReady && backupUrl) {
     const relay = await relayToAppsScript(route, payload, { sendEmails: true, persist: true });
     if (!relay.ok) {
       res.status(502).json({ ok: false, error: 'backup-submit-failed' });
@@ -183,8 +183,8 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, route: Rout
   }
 
   try {
-    await sendViaSendGrid(route, payload);
-    res.status(200).json({ ok: true, engine: 'sendgrid', persisted: persisted || localPersisted });
+    await sendViaResend(route, payload);
+    res.status(200).json({ ok: true, engine: 'resend', persisted: persisted || localPersisted });
   } catch (error) {
     if (backupUrl) {
       const fallbackRelay = await relayToAppsScript(route, payload, { sendEmails: true, persist: !persisted });
@@ -196,7 +196,7 @@ async function handlePost(req: NextApiRequest, res: NextApiResponse, route: Rout
 
     res.status(502).json({
       ok: false,
-      error: 'sendgrid-submit-failed',
+      error: 'resend-submit-failed',
       detail: payload.debug ? String(error) : undefined,
     });
   }
@@ -378,18 +378,18 @@ async function relayToAppsScript(
   return { ok: response.ok };
 }
 
-function hasSendGridConfig(): boolean {
-  return Boolean(process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL && process.env.SENDGRID_TO_EMAIL);
+function hasResendConfig(): boolean {
+  return Boolean(process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL && process.env.RESEND_TO_EMAIL);
 }
 
-async function sendViaSendGrid(route: Extract<Route, 'contact' | 'newsletter' | 'submit'>, payload: SubmissionPayload): Promise<void> {
-  const fromEmail = process.env.SENDGRID_FROM_EMAIL as string;
-  const fromName = process.env.SENDGRID_FROM_NAME || 'B3U';
-  const moderatorEmail = process.env.SENDGRID_TO_EMAIL as string;
-  const replyTo = process.env.SENDGRID_REPLY_TO;
+async function sendViaResend(route: Extract<Route, 'contact' | 'newsletter' | 'submit'>, payload: SubmissionPayload): Promise<void> {
+  const fromEmail = process.env.RESEND_FROM_EMAIL as string;
+  const fromName = process.env.RESEND_FROM_NAME || 'B3U';
+  const moderatorEmail = process.env.RESEND_TO_EMAIL as string;
+  const replyTo = process.env.RESEND_REPLY_TO;
 
   if (route === 'contact') {
-    await sendGridEmail({
+    await resendEmail({
       to: moderatorEmail,
       fromEmail,
       fromName,
@@ -407,7 +407,7 @@ async function sendViaSendGrid(route: Extract<Route, 'contact' | 'newsletter' | 
       }),
     });
 
-    await sendGridEmail({
+    await resendEmail({
       to: payload.email,
       fromEmail,
       fromName,
@@ -424,13 +424,13 @@ async function sendViaSendGrid(route: Extract<Route, 'contact' | 'newsletter' | 
   }
 
   if (route === 'newsletter') {
-    await upsertSendGridMarketingContact({
+    await upsertResendAudienceContact({
       email: payload.email,
       firstName: payload.name || undefined,
       createdAt: payload.createdAt,
     });
 
-    await sendGridEmail({
+    await resendEmail({
       to: moderatorEmail,
       fromEmail,
       fromName,
@@ -444,7 +444,7 @@ async function sendViaSendGrid(route: Extract<Route, 'contact' | 'newsletter' | 
       }),
     });
 
-    await sendGridEmail({
+    await resendEmail({
       to: payload.email,
       fromEmail,
       fromName,
@@ -462,7 +462,7 @@ async function sendViaSendGrid(route: Extract<Route, 'contact' | 'newsletter' | 
 
   const moderateUrl = await buildModerationUrl(payload.id);
 
-  await sendGridEmail({
+  await resendEmail({
     to: payload.email,
     fromEmail,
     fromName,
@@ -476,7 +476,7 @@ async function sendViaSendGrid(route: Extract<Route, 'contact' | 'newsletter' | 
     }),
   });
 
-  await sendGridEmail({
+  await resendEmail({
     to: moderatorEmail,
     fromEmail,
     fromName,
@@ -495,28 +495,27 @@ async function sendViaSendGrid(route: Extract<Route, 'contact' | 'newsletter' | 
   });
 }
 
-async function upsertSendGridMarketingContact(params: { email: string; firstName?: string; createdAt?: string }): Promise<void> {
-  const listIds = parseSendGridListIds(process.env.SENDGRID_MARKETING_LIST_IDS);
-  const response = await monitoredServerFetch('https://api.sendgrid.com/v3/marketing/contacts', {
-    method: 'PUT',
-    headers: {
-      authorization: `Bearer ${process.env.SENDGRID_API_KEY}`,
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      ...(listIds.length > 0 ? { list_ids: listIds } : {}),
-      contacts: [
-        {
-          email: params.email,
-          ...(params.firstName ? { first_name: params.firstName } : {}),
-        },
-      ],
-    }),
-  }, { label: 'SendGrid marketing contact upsert', route: 'forms-api', source: 'forms-api' });
+async function upsertResendAudienceContact(params: { email: string; firstName?: string; createdAt?: string }): Promise<void> {
+  const audienceIds = parseResendAudienceIds(process.env.RESEND_AUDIENCE_IDS);
 
-  if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(`sendgrid-marketing-${response.status}:${detail}`);
+  for (const audienceId of audienceIds) {
+    const response = await monitoredServerFetch(`https://api.resend.com/audiences/${audienceId}/contacts`, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: params.email,
+        ...(params.firstName ? { first_name: params.firstName } : {}),
+        unsubscribed: false,
+      }),
+    }, { label: 'Resend audience contact upsert', route: 'forms-api', source: 'forms-api' });
+
+    if (!response.ok && response.status !== 409) {
+      const detail = await response.text();
+      throw new Error(`resend-audience-${response.status}:${detail}`);
+    }
   }
 }
 
@@ -535,7 +534,7 @@ async function buildModerationUrl(id: string): Promise<{ approve: string; deny: 
   };
 }
 
-async function sendGridEmail(params: {
+async function resendEmail(params: {
   to: string;
   fromEmail: string;
   fromName: string;
@@ -543,24 +542,24 @@ async function sendGridEmail(params: {
   subject: string;
   html: string;
 }): Promise<void> {
-  const response = await monitoredServerFetch('https://api.sendgrid.com/v3/mail/send', {
+  const response = await monitoredServerFetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
-      authorization: `Bearer ${process.env.SENDGRID_API_KEY}`,
+      authorization: `Bearer ${process.env.RESEND_API_KEY}`,
       'content-type': 'application/json',
     },
     body: JSON.stringify({
-      personalizations: [{ to: [{ email: params.to }] }],
-      from: { email: params.fromEmail, name: params.fromName },
-      ...(params.replyTo ? { reply_to: { email: params.replyTo } } : {}),
+      from: `${params.fromName} <${params.fromEmail}>`,
+      to: [params.to],
+      ...(params.replyTo ? { reply_to: params.replyTo } : {}),
       subject: params.subject,
-      content: [{ type: 'text/html', value: params.html }],
+      html: params.html,
     }),
-  }, { label: 'SendGrid mail send', route: 'forms-api', source: 'forms-api' });
+  }, { label: 'Resend mail send', route: 'forms-api', source: 'forms-api' });
 
   if (!response.ok) {
     const detail = await response.text();
-    throw new Error(`sendgrid-${response.status}:${detail}`);
+    throw new Error(`resend-${response.status}:${detail}`);
   }
 }
 
@@ -650,7 +649,7 @@ function isLocalHostname(value: string): boolean {
   }
 }
 
-function parseSendGridListIds(value?: string): string[] {
+function parseResendAudienceIds(value?: string): string[] {
   return String(value || '')
     .split(',')
     .map((item) => item.trim())

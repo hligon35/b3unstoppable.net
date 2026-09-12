@@ -14,7 +14,7 @@ jobs:
         env:
           MONITORING_BASE_URL: ${{ secrets.MONITORING_BASE_URL }}
           MONITORING_CRON_TOKEN: ${{ secrets.MONITORING_CRON_TOKEN }}
-          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           MONITORING_FROM_EMAIL: ${{ secrets.MONITORING_FROM_EMAIL }}
           MONITORING_TO_EMAIL: ${{ secrets.MONITORING_TO_EMAIL }}
         run: |
@@ -27,7 +27,7 @@ jobs:
             echo "configured=true" >> "$GITHUB_OUTPUT"
           fi
 
-          if [ -n "$SENDGRID_API_KEY" ] && [ -n "$MONITORING_FROM_EMAIL" ] && [ -n "$MONITORING_TO_EMAIL" ] && [ -n "$MONITORING_BASE_URL" ]; then
+          if [ -n "$RESEND_API_KEY" ] && [ -n "$MONITORING_FROM_EMAIL" ] && [ -n "$MONITORING_TO_EMAIL" ] && [ -n "$MONITORING_BASE_URL" ]; then
             echo "email_configured=true" >> "$GITHUB_OUTPUT"
           else
             echo "email_configured=false" >> "$GITHUB_OUTPUT"
@@ -51,7 +51,7 @@ jobs:
       - name: Send production outage alert email
         if: failure() && steps.config.outputs.email_configured == 'true'
         env:
-          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           MONITORING_FROM_EMAIL: ${{ secrets.MONITORING_FROM_EMAIL }}
           MONITORING_TO_EMAIL: ${{ secrets.MONITORING_TO_EMAIL }}
           MONITORING_BASE_URL: ${{ secrets.MONITORING_BASE_URL }}
@@ -59,30 +59,18 @@ jobs:
         run: |
           payload=$(cat <<EOF
           {
-            "personalizations": [
-              {
-                "to": [{ "email": "$MONITORING_TO_EMAIL" }],
-                "subject": "[Production Alert] B3U health check failed"
-              }
-            ],
-            "from": {
-              "email": "$MONITORING_FROM_EMAIL",
-              "name": "B3U Monitoring"
-            },
-            "content": [
-              {
-                "type": "text/html",
-                "value": "<p>The production health check failed for <strong>$MONITORING_BASE_URL</strong>.</p><p>This heartbeat runs every 5 minutes and could not reach <code>/api/debug/health</code>.</p><p>GitHub Actions run: <a href=\"$GITHUB_RUN_URL\">$GITHUB_RUN_URL</a></p>"
-              }
-            ]
+            "from": "B3U Monitoring <$MONITORING_FROM_EMAIL>",
+            "to": ["$MONITORING_TO_EMAIL"],
+            "subject": "[Production Alert] B3U health check failed",
+            "html": "<p>The production health check failed for <strong>$MONITORING_BASE_URL</strong>.</p><p>This heartbeat runs every 5 minutes and could not reach <code>/api/debug/health</code>.</p><p>GitHub Actions run: <a href=\"$GITHUB_RUN_URL\">$GITHUB_RUN_URL</a></p>"
           }
           EOF
           )
 
           curl --fail --silent --show-error \
             --request POST \
-            --url https://api.sendgrid.com/v3/mail/send \
-            --header "Authorization: Bearer $SENDGRID_API_KEY" \
+            --url https://api.resend.com/emails \
+            --header "Authorization: Bearer $RESEND_API_KEY" \
             --header "Content-Type: application/json" \
             --data "$payload"
 
@@ -91,4 +79,4 @@ jobs:
         run: |
           echo "### Outage email was not sent" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "The heartbeat failed, but one or more GitHub Actions secrets for email delivery are missing: SENDGRID_API_KEY, MONITORING_FROM_EMAIL, MONITORING_TO_EMAIL, MONITORING_BASE_URL." >> "$GITHUB_STEP_SUMMARY"
+          echo "The heartbeat failed, but one or more GitHub Actions secrets for email delivery are missing: RESEND_API_KEY, MONITORING_FROM_EMAIL, MONITORING_TO_EMAIL, MONITORING_BASE_URL." >> "$GITHUB_STEP_SUMMARY"

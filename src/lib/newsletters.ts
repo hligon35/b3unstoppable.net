@@ -13,7 +13,7 @@ import {
 
 const MAX_SUBJECT_LENGTH = 160;
 const MAX_BODY_LENGTH = 20000;
-const SENDGRID_BATCH_SIZE = 500;
+const RESEND_BATCH_SIZE = 100;
 const NEWSLETTER_SECTION_MARKER_PATTERN = /^\[\[B3U:([a-z0-9-]+)\]\]$/i;
 
 type ScheduledNewsletterRecord = {
@@ -117,7 +117,7 @@ export async function queueNewsletter(params: {
   validateNewsletterDraft({ subject, bodyText, recipientEmails });
 
   if (!hasNewsletterSendConfig()) {
-    throw new Error('SendGrid newsletter delivery is not configured on this environment.');
+    throw new Error('Resend newsletter delivery is not configured on this environment.');
   }
 
   const record = await createScheduledNewsletterRecord({
@@ -265,7 +265,7 @@ function truncateError(message: string) {
 }
 
 function hasNewsletterSendConfig() {
-  return Boolean(process.env.SENDGRID_API_KEY && process.env.SENDGRID_FROM_EMAIL);
+  return Boolean(process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL);
 }
 
 async function sendNewsletterEmail(params: {
@@ -274,31 +274,35 @@ async function sendNewsletterEmail(params: {
   recipientEmails: string[];
 }) {
   if (!hasNewsletterSendConfig()) {
-    throw new Error('SendGrid newsletter delivery is not configured on this environment.');
+    throw new Error('Resend newsletter delivery is not configured on this environment.');
   }
 
-  const fromEmail = process.env.SENDGRID_FROM_EMAIL as string;
-  const fromName = process.env.SENDGRID_FROM_NAME || 'B3U';
-  const replyTo = process.env.SENDGRID_REPLY_TO;
+  const fromEmail = process.env.RESEND_FROM_EMAIL as string;
+  const fromName = process.env.RESEND_FROM_NAME || 'B3U';
+  const replyTo = process.env.RESEND_REPLY_TO;
   const html = buildNewsletterHtml(params.bodyText);
-  const personalizations = params.recipientEmails.map((email) => ({ to: [{ email }] }));
+  const recipientBatches: string[][] = [];
 
-  for (let index = 0; index < personalizations.length; index += SENDGRID_BATCH_SIZE) {
-    const batch = personalizations.slice(index, index + SENDGRID_BATCH_SIZE);
+  for (let index = 0; index < params.recipientEmails.length; index += RESEND_BATCH_SIZE) {
+    recipientBatches.push(params.recipientEmails.slice(index, index + RESEND_BATCH_SIZE));
+  }
 
-    const response = await monitoredServerFetch('https://api.sendgrid.com/v3/mail/send', {
+  for (const batch of recipientBatches) {
+    const response = await monitoredServerFetch('https://api.resend.com/emails/batch', {
       method: 'POST',
       headers: {
-        authorization: `Bearer ${process.env.SENDGRID_API_KEY}`,
+        authorization: `Bearer ${process.env.RESEND_API_KEY}`,
         'content-type': 'application/json',
       },
-      body: JSON.stringify({
-        personalizations: batch,
-        from: { email: fromEmail, name: fromName },
-        ...(replyTo ? { reply_to: { email: replyTo } } : {}),
-        subject: params.subject,
-        content: [{ type: 'text/html', value: html }],
-      }),
+      body: JSON.stringify(
+        batch.map((email) => ({
+          from: `${fromName} <${fromEmail}>`,
+          to: [email],
+          ...(replyTo ? { reply_to: replyTo } : {}),
+          subject: params.subject,
+          html,
+        })),
+      ),
     }, { label: 'Scheduled newsletter send', route: 'newsletter-queue', source: 'newsletter-queue' });
 
     if (!response.ok) {

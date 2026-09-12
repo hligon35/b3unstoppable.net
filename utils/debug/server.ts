@@ -341,7 +341,7 @@ async function maybeSendAlert(entry: MonitoringEntry): Promise<void> {
       message: `Monitoring alert delivery failed: ${normalized.message}`,
       stack: normalized.stack,
       route: 'monitoring-alert',
-      endpoint: 'sendgrid',
+      endpoint: 'resend',
       requestId: entry.requestId,
       context: {
         alertFingerprint: entry.fingerprint,

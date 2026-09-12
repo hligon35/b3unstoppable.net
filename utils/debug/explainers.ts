@@ -28,8 +28,8 @@ export function explainIssue(entry: MonitoringEntry): string {
     return `A network request could not complete. This usually means the browser or server could not reach the endpoint, the endpoint blocked the request with CORS or auth rules, or an upstream service timed out.`;
   }
 
-  if (message.includes('sendgrid')) {
-    return `An email delivery operation failed while communicating with SendGrid. This usually means the SendGrid API key is invalid, a required sender identity is missing, or SendGrid rejected the request payload.`;
+  if (message.includes('resend')) {
+    return `An email delivery operation failed while communicating with Resend. This usually means the Resend API key is invalid, a required sender domain is not verified, or Resend rejected the request payload.`;
   }
 
   if (message.includes('environment') || message.includes('env')) {
@@ -70,8 +70,8 @@ export function suggestFixes(entry: MonitoringEntry): string[] {
     suggestions.push('Verify the request carries the correct token, secret, or signed URL for the current environment.');
   }
 
-  if (message.includes('sendgrid')) {
-    suggestions.push('Validate SENDGRID_API_KEY, SENDGRID_FROM_EMAIL, and sender verification settings in SendGrid.');
+  if (message.includes('resend')) {
+    suggestions.push('Validate RESEND_API_KEY, RESEND_FROM_EMAIL, and domain verification settings in Resend.');
   }
 
   if (message.includes('failed to fetch') || message.includes('network') || message.includes('cors')) {

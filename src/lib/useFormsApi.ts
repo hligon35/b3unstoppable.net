@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 // Priority: URL ?formsApi -> sessionStorage -> NEXT_PUBLIC_FORMS_API
 // Also exposes a setter that persists to sessionStorage and notifies listeners.
 
-// Default to the first-party forms endpoint so SendGrid can run server-side.
+// Default to the first-party forms endpoint so Resend can run server-side.
 // Static-only deployments can still override this with NEXT_PUBLIC_FORMS_API.
 const DEFAULT_FORMS_API = '/api/forms';
 const ENV_BASE = ((process.env.NEXT_PUBLIC_FORMS_API as string) || DEFAULT_FORMS_API).replace(/\/$/, '');

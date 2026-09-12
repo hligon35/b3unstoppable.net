@@ -4,8 +4,8 @@ import type { MonitoringEntry, WeeklyAnalyticsSource, WeeklyReportSummary } from
 
 export async function sendMonitoringAlertEmail(entry: MonitoringEntry, relatedLogs: MonitoringEntry[] = []): Promise<boolean> {
   const config = getDebugConfig('server');
-  const apiKey = process.env.SENDGRID_API_KEY;
-  const fromEmail = process.env.MONITORING_FROM_EMAIL || process.env.SENDGRID_FROM_EMAIL;
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromEmail = process.env.MONITORING_FROM_EMAIL || process.env.RESEND_FROM_EMAIL;
 
   if (!config.emailAlertsEnabled || !apiKey || !fromEmail) {
     return false;
@@ -28,8 +28,8 @@ export async function sendMonitoringAlertEmail(entry: MonitoringEntry, relatedLo
 
 export async function sendWeeklyReportEmail(summary: WeeklyReportSummary): Promise<boolean> {
   const config = getDebugConfig('server');
-  const apiKey = process.env.SENDGRID_API_KEY;
-  const fromEmail = process.env.MONITORING_FROM_EMAIL || process.env.SENDGRID_FROM_EMAIL;
+  const apiKey = process.env.RESEND_API_KEY;
+  const fromEmail = process.env.MONITORING_FROM_EMAIL || process.env.RESEND_FROM_EMAIL;
 
   if (!apiKey || !fromEmail) {
     return false;
@@ -46,17 +46,17 @@ export async function sendWeeklyReportEmail(summary: WeeklyReportSummary): Promi
 }
 
 async function sendEmail(params: { to: string; fromEmail: string; subject: string; html: string }): Promise<void> {
-  const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+  const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
-      authorization: `Bearer ${process.env.SENDGRID_API_KEY}`,
+      authorization: `Bearer ${process.env.RESEND_API_KEY}`,
       'content-type': 'application/json',
     },
     body: JSON.stringify({
-      personalizations: [{ to: [{ email: params.to }] }],
-      from: { email: params.fromEmail, name: 'SparQ Digital Monitoring' },
+      from: `SparQ Digital Monitoring <${params.fromEmail}>`,
+      to: [params.to],
       subject: params.subject,
-      content: [{ type: 'text/html', value: params.html }],
+      html: params.html,
     }),
   });
 

@@ -6,12 +6,12 @@ type Env = {
   FORMS_SIGNING_SECRET?: string;
   NEXT_PUBLIC_SITE_URL?: string;
   NEXT_PUBLIC_TURNSTILE_SITE_KEY?: string;
-  SENDGRID_API_KEY?: string;
-  SENDGRID_FROM_EMAIL?: string;
-  SENDGRID_FROM_NAME?: string;
-  SENDGRID_MARKETING_LIST_IDS?: string;
-  SENDGRID_REPLY_TO?: string;
-  SENDGRID_TO_EMAIL?: string;
+  RESEND_API_KEY?: string;
+  RESEND_FROM_EMAIL?: string;
+  RESEND_FROM_NAME?: string;
+  RESEND_AUDIENCE_IDS?: string;
+  RESEND_REPLY_TO?: string;
+  RESEND_TO_EMAIL?: string;
   TURNSTILE_SECRET_KEY?: string;
 };
 
@@ -90,7 +90,7 @@ async function handleGet(route: Route, url: URL, env: Env): Promise<Response> {
       ok: true,
       routes: ['contact', 'newsletter', 'submit', 'stories', 'moderate'],
       backupConfigured: Boolean(normalizeUrl(env.FORMS_BACKUP_URL)),
-      sendgridConfigured: hasSendGridConfig(env),
+      resendConfigured: hasResendConfig(env),
       turnstileSiteKey: String(env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '').trim(),
     });
   }
@@ -110,7 +110,7 @@ async function handlePost(route: Route, request: Request, env: Env): Promise<Res
   const formData = await request.formData();
   const payload = parsePayload(formData);
   const backupUrl = normalizeUrl(env.FORMS_BACKUP_URL);
-  const sendGridReady = hasSendGridConfig(env);
+  const resendReady = hasResendConfig(env);
 
   if (payload.honeypot) {
     return json({ ok: true, engine: 'filtered' });
@@ -148,11 +148,11 @@ async function handlePost(route: Route, request: Request, env: Env): Promise<Res
     return json({ ok: false, error: 'backup-required-for-story-submissions' }, 503);
   }
 
-  if (!sendGridReady && !backupUrl) {
+  if (!resendReady && !backupUrl) {
     return json({ ok: false, error: 'no-form-backend-configured' }, 503);
   }
 
-  if (!sendGridReady && backupUrl) {
+  if (!resendReady && backupUrl) {
     const relay = await relayToAppsScript(route, payload, env, { sendEmails: true, persist: true });
     if (!relay.ok) {
       return json({ ok: false, error: 'backup-submit-failed' }, 502);
@@ -170,8 +170,8 @@ async function handlePost(route: Route, request: Request, env: Env): Promise<Res
   }
 
   try {
-    await sendViaSendGrid(route, payload, env);
-    return json({ ok: true, engine: 'sendgrid', persisted });
+    await sendViaResend(route, payload, env);
+    return json({ ok: true, engine: 'resend', persisted });
   } catch (error) {
     if (backupUrl) {
       const fallbackRelay = await relayToAppsScript(route, payload, env, { sendEmails: true, persist: !persisted });
@@ -182,7 +182,7 @@ async function handlePost(route: Route, request: Request, env: Env): Promise<Res
 
     return json({
       ok: false,
-      error: 'sendgrid-submit-failed',
+      error: 'resend-submit-failed',
       detail: payload.debug ? String(error) : undefined,
     }, 502);
   }
@@ -409,18 +409,18 @@ async function relayToAppsScript(
   return { ok: response.ok };
 }
 
-function hasSendGridConfig(env: Env): boolean {
-  return Boolean(env.SENDGRID_API_KEY && env.SENDGRID_FROM_EMAIL && env.SENDGRID_TO_EMAIL);
+function hasResendConfig(env: Env): boolean {
+  return Boolean(env.RESEND_API_KEY && env.RESEND_FROM_EMAIL && env.RESEND_TO_EMAIL);
 }
 
-async function sendViaSendGrid(route: Extract<Route, 'contact' | 'newsletter' | 'submit'>, payload: SubmissionPayload, env: Env): Promise<void> {
-  const fromEmail = env.SENDGRID_FROM_EMAIL as string;
-  const fromName = env.SENDGRID_FROM_NAME || 'B3U';
-  const moderatorEmail = env.SENDGRID_TO_EMAIL as string;
-  const replyTo = env.SENDGRID_REPLY_TO;
+async function sendViaResend(route: Extract<Route, 'contact' | 'newsletter' | 'submit'>, payload: SubmissionPayload, env: Env): Promise<void> {
+  const fromEmail = env.RESEND_FROM_EMAIL as string;
+  const fromName = env.RESEND_FROM_NAME || 'B3U';
+  const moderatorEmail = env.RESEND_TO_EMAIL as string;
+  const replyTo = env.RESEND_REPLY_TO;
 
   if (route === 'contact') {
-    await sendGridEmail(env, {
+    await resendEmail(env, {
       to: moderatorEmail,
       fromEmail,
       fromName,
@@ -438,7 +438,7 @@ async function sendViaSendGrid(route: Extract<Route, 'contact' | 'newsletter' | 
       }),
     });
 
-    await sendGridEmail(env, {
+    await resendEmail(env, {
       to: payload.email,
       fromEmail,
       fromName,
@@ -455,13 +455,13 @@ async function sendViaSendGrid(route: Extract<Route, 'contact' | 'newsletter' | 
   }
 
   if (route === 'newsletter') {
-    await upsertSendGridMarketingContact(env, {
+    await upsertResendAudienceContact(env, {
       email: payload.email,
       firstName: payload.name || undefined,
       createdAt: payload.createdAt,
     });
 
-    await sendGridEmail(env, {
+    await resendEmail(env, {
       to: moderatorEmail,
       fromEmail,
       fromName,
@@ -475,7 +475,7 @@ async function sendViaSendGrid(route: Extract<Route, 'contact' | 'newsletter' | 
       }),
     });
 
-    await sendGridEmail(env, {
+    await resendEmail(env, {
       to: payload.email,
       fromEmail,
       fromName,
@@ -493,7 +493,7 @@ async function sendViaSendGrid(route: Extract<Route, 'contact' | 'newsletter' | 
 
   const moderateUrl = await buildModerationUrl(payload.id, env);
 
-  await sendGridEmail(env, {
+  await resendEmail(env, {
     to: payload.email,
     fromEmail,
     fromName,
@@ -507,7 +507,7 @@ async function sendViaSendGrid(route: Extract<Route, 'contact' | 'newsletter' | 
     }),
   });
 
-  await sendGridEmail(env, {
+  await resendEmail(env, {
     to: moderatorEmail,
     fromEmail,
     fromName,
@@ -526,31 +526,30 @@ async function sendViaSendGrid(route: Extract<Route, 'contact' | 'newsletter' | 
   });
 }
 
-async function upsertSendGridMarketingContact(
+async function upsertResendAudienceContact(
   env: Env,
   params: { email: string; firstName?: string; createdAt?: string },
 ): Promise<void> {
-  const listIds = parseSendGridListIds(env.SENDGRID_MARKETING_LIST_IDS);
-  const response = await fetch('https://api.sendgrid.com/v3/marketing/contacts', {
-    method: 'PUT',
-    headers: {
-      authorization: `Bearer ${env.SENDGRID_API_KEY}`,
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      ...(listIds.length > 0 ? { list_ids: listIds } : {}),
-      contacts: [
-        {
-          email: params.email,
-          ...(params.firstName ? { first_name: params.firstName } : {}),
-        },
-      ],
-    }),
-  });
+  const audienceIds = parseResendAudienceIds(env.RESEND_AUDIENCE_IDS);
 
-  if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(`sendgrid-marketing-${response.status}:${detail}`);
+  for (const audienceId of audienceIds) {
+    const response = await fetch(`https://api.resend.com/audiences/${audienceId}/contacts`, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${env.RESEND_API_KEY}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: params.email,
+        ...(params.firstName ? { first_name: params.firstName } : {}),
+        unsubscribed: false,
+      }),
+    });
+
+    if (!response.ok && response.status !== 409) {
+      const detail = await response.text();
+      throw new Error(`resend-audience-${response.status}:${detail}`);
+    }
   }
 }
 
@@ -589,7 +588,7 @@ function base64Url(buffer: ArrayBuffer): string {
   return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
 }
 
-async function sendGridEmail(
+async function resendEmail(
   env: Env,
   params: {
     to: string;
@@ -600,24 +599,24 @@ async function sendGridEmail(
     html: string;
   },
 ): Promise<void> {
-  const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+  const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
-      authorization: `Bearer ${env.SENDGRID_API_KEY}`,
+      authorization: `Bearer ${env.RESEND_API_KEY}`,
       'content-type': 'application/json',
     },
     body: JSON.stringify({
-      personalizations: [{ to: [{ email: params.to }] }],
-      from: { email: params.fromEmail, name: params.fromName },
-      ...(params.replyTo ? { reply_to: { email: params.replyTo } } : {}),
+      from: `${params.fromName} <${params.fromEmail}>`,
+      to: [params.to],
+      ...(params.replyTo ? { reply_to: params.replyTo } : {}),
       subject: params.subject,
-      content: [{ type: 'text/html', value: params.html }],
+      html: params.html,
     }),
   });
 
   if (!response.ok) {
     const detail = await response.text();
-    throw new Error(`sendgrid-${response.status}:${detail}`);
+    throw new Error(`resend-${response.status}:${detail}`);
   }
 }
 
@@ -686,7 +685,7 @@ function getEmailLogoUrl(): string {
   return 'https://b3unstoppable.net/images/logos/B3U3D.png';
 }
 
-function parseSendGridListIds(value?: string): string[] {
+function parseResendAudienceIds(value?: string): string[] {
   return String(value || '')
     .split(',')
     .map((item) => item.trim())
