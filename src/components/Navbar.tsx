@@ -93,6 +93,8 @@ export default function Navbar() {
               }`}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle mobile menu"
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-nav-menu"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {mobileMenuOpen ? (
@@ -107,7 +109,7 @@ export default function Navbar() {
       </nav>
 
       {mobileMenuOpen && (
-        <div className="bg-white shadow-lg border-t md:hidden">
+        <div id="mobile-nav-menu" className="bg-white shadow-lg border-t md:hidden">
           <nav className="container mx-auto px-4 py-4">
             <Link
               href="/booking"

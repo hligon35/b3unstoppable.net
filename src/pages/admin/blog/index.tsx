@@ -310,7 +310,7 @@ export default function AdminBlogIndex({ adminRole }: AdminBlogIndexProps) {
                         </td>
                         <td className="px-3 py-3">
                           <div className="h-16 w-28 overflow-hidden rounded-lg bg-slate-200">
-                            {post.featuredImageUrl ? <img src={post.featuredImageUrl} alt="" className="h-full w-full object-cover" /> : null}
+                            {post.featuredImageUrl ? <img src={post.featuredImageUrl} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" /> : null}
                           </div>
                         </td>
                         <td className="px-3 py-3 text-sm text-slate-700">{post.category || 'Uncategorized'}</td>
@@ -337,7 +337,7 @@ export default function AdminBlogIndex({ adminRole }: AdminBlogIndexProps) {
                   <article key={post.id} className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
                     <div className="flex items-start gap-3">
                       <div className="h-16 w-24 overflow-hidden rounded-lg bg-slate-200">
-                        {post.featuredImageUrl ? <img src={post.featuredImageUrl} alt="" className="h-full w-full object-cover" /> : null}
+                        {post.featuredImageUrl ? <img src={post.featuredImageUrl} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" /> : null}
                       </div>
                       <div className="min-w-0 flex-1">
                         <h3 className="line-clamp-2 text-base font-semibold text-slate-900">{post.title}</h3>

@@ -614,7 +614,7 @@ export default function BlogEditorScreen({ backHref, mode, initialPost, existing
               {draft.featuredImageUrl ? (
                 <div className="overflow-hidden rounded-2xl border border-gray-200">
                   <div className="aspect-[16/9] w-full bg-slate-100">
-                    <img src={draft.featuredImageUrl} alt="Featured preview" className="h-full w-full object-cover" />
+                    <img src={draft.featuredImageUrl} alt="Featured preview" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                   </div>
                   <div className="flex items-center justify-end border-t border-gray-200 bg-white px-3 py-2">
                     <button type="button" onClick={() => updateDraft('featuredImageUrl', null)} className="min-h-11 rounded-full border border-brandOrange/30 px-4 py-2 text-sm font-semibold text-brandOrange transition hover:bg-brandOrange hover:text-white">Remove image</button>
@@ -802,7 +802,7 @@ export default function BlogEditorScreen({ backHref, mode, initialPost, existing
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#003E68]">Open Graph preview</p>
                   <div className="mt-3 flex items-start gap-3">
                     <div className="h-20 w-28 overflow-hidden rounded-xl bg-slate-200">
-                      {(draft.socialImageUrl || draft.featuredImageUrl) ? <img src={draft.socialImageUrl || draft.featuredImageUrl || ''} alt="OG preview" className="h-full w-full object-cover" /> : null}
+                      {(draft.socialImageUrl || draft.featuredImageUrl) ? <img src={draft.socialImageUrl || draft.featuredImageUrl || ''} alt="OG preview" loading="lazy" decoding="async" className="h-full w-full object-cover" /> : null}
                     </div>
                     <div className="min-w-0">
                       <p className="line-clamp-2 text-sm font-semibold text-[#10162A]">{draft.seoTitle || draft.title || 'Blog title'}</p>
