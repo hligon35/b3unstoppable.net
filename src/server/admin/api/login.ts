@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 
 import { clearAdminSessionCookie, createAdminSessionCookie } from '@/lib/adminAuth';
 import { getConfiguredAdminPassword, getConfiguredAdminUsername, verifyAdminCredentials } from '@/lib/adminPassword';
+import { applyFormsRateLimit } from '../../../../utils/security/formsProtection';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const adminUsername = getConfiguredAdminUsername();
@@ -9,6 +10,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const csrfToken = process.env.CSRF_TOKEN;
 
   if (req.method === 'POST') {
+    if (!applyFormsRateLimit(req, res, 'login')) {
+      return res.status(429).json({ message: 'Too many login attempts. Please try again later.' });
+    }
+
     if (csrfToken) {
       const csrfHeader = req.headers['x-csrf-token'];
 
