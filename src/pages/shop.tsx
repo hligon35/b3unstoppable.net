@@ -19,6 +19,9 @@ type PayPalWindow = Window & {
 
 type ShopPageProps = PublishedSitePageProps;
 
+const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID
+  || 'BAAPBO-Uvexziam7VLQ2yKMSsR2wCpPVT3FB5A_JCB5ENRZakcAlTvZiI-TV2iZz-hLGg62MA9VxbS77jQ';
+
 export default function ShopPage({ initialSiteDraft, initialSiteUpdatedAt }: ShopPageProps) {
   const { draft } = usePublishedSiteDraft({
     initialDraft: initialSiteDraft,
@@ -160,7 +163,7 @@ export default function ShopPage({ initialSiteDraft, initialSiteUpdatedAt }: Sho
       </section>
 
       <Script
-        src="https://www.paypal.com/sdk/js?client-id=BAAPBO-Uvexziam7VLQ2yKMSsR2wCpPVT3FB5A_JCB5ENRZakcAlTvZiI-TV2iZz-hLGg62MA9VxbS77jQ&components=hosted-buttons&enable-funding=venmo&currency=USD"
+        src={`https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&components=hosted-buttons&enable-funding=venmo&currency=USD`}
         strategy="afterInteractive"
         onLoad={renderPayPalButton}
       />

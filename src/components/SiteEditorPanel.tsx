@@ -32,6 +32,9 @@ type EditorTab = 'about' | 'newsletter' | 'events' | 'shop' | 'colors' | 'images
 type EventsPanelTab = 'page' | 'cards';
 type ShopPanelTab = 'page' | 'products';
 
+const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID
+  || 'BAAPBO-Uvexziam7VLQ2yKMSsR2wCpPVT3FB5A_JCB5ENRZakcAlTvZiI-TV2iZz-hLGg62MA9VxbS77jQ';
+
 type PayPalWindow = Window & {
   paypal?: {
     HostedButtons: (options: { hostedButtonId: string }) => {
@@ -1521,7 +1524,7 @@ export default function SiteEditorPanel() {
       </div>
 
       <Script
-        src="https://www.paypal.com/sdk/js?client-id=BAAPBO-Uvexziam7VLQ2yKMSsR2wCpPVT3FB5A_JCB5ENRZakcAlTvZiI-TV2iZz-hLGg62MA9VxbS77jQ&components=hosted-buttons&enable-funding=venmo&currency=USD"
+        src={`https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&components=hosted-buttons&enable-funding=venmo&currency=USD`}
         strategy="afterInteractive"
         onLoad={renderShopPreviewButtons}
       />
