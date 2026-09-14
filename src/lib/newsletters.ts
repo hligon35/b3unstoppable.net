@@ -387,7 +387,7 @@ function buildStructuredTakeBackWeeklyLetterHtml(sections: Map<string, string>) 
   const affirmationTitle = sections.get('affirmation-title') || 'THIS WEEK’S AFFIRMATION';
   const affirmationBody = sections.get('affirmation-body') || '';
   const bottomEncouragement = sections.get('bottom-encouragement') || '';
-  const footerLine = sections.get('footer-tagline') || 'www.b3unstoppable.net | B3U — Burn. Break. Become Unstoppable.';
+  const footerLine = sections.get('footer-tagline') || 'b3unstoppable.net | B3U — Burn. Break. Become Unstoppable.';
   const htmlSections = [
     formatNewsletterBody(openingBody),
     formatClosingSignatureText(closingSignature),
@@ -420,7 +420,7 @@ function buildStructuredTakeBackWeeklyLetterHtml(sections: Map<string, string>) 
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
           <tr>
             <td class="letter-logo-cell" style="width:88px;vertical-align:top;padding-top:2px;">
-              <img class="letter-logo" src="https://www.b3unstoppable.net/images/logos/B3U3D.png" alt="B3U" width="76" style="display:block;width:76px;height:auto;border:0;outline:none;text-decoration:none;">
+              <img class="letter-logo" src="https://b3unstoppable.net/images/logos/B3U3D.png" alt="B3U" width="76" style="display:block;width:76px;height:auto;border:0;outline:none;text-decoration:none;">
             </td>
             <td style="vertical-align:top;text-align:right;">
               <h1 class="letter-title" style="margin:0;font-size:27px;line-height:1;font-weight:500;text-transform:uppercase;letter-spacing:0.03em;color:#ffffff;white-space:nowrap;">${escapeHtml(headerTitle)}</h1>
@@ -457,7 +457,7 @@ function buildTakeBackWeeklyLetterHtml(bodyText: string) {
   const metaLine = sections[1] || 'By Dr. Bree Charles';
   const tagline = sections[2] || 'Breaking Cycles. Building Legacies.';
   const mainTitle = sections[3] || 'The Take Back Weekly';
-  const footerLine = sections.at(-1)?.includes('b3unstoppable') ? sections.at(-1) as string : 'www.b3unstoppable.net | B3U — Burn. Break. Become Unstoppable.';
+  const footerLine = sections.at(-1)?.includes('b3unstoppable') ? sections.at(-1) as string : 'b3unstoppable.net | B3U — Burn. Break. Become Unstoppable.';
   const contentSections = sections.slice(4, sections.at(-1) === footerLine ? -1 : undefined);
 
   return `<!doctype html>
@@ -482,7 +482,7 @@ function buildTakeBackWeeklyLetterHtml(bodyText: string) {
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
           <tr>
             <td class="letter-logo-cell" style="width:88px;vertical-align:top;padding-top:2px;">
-              <img class="letter-logo" src="https://www.b3unstoppable.net/images/logos/B3U3D.png" alt="B3U" width="76" style="display:block;width:76px;height:auto;border:0;outline:none;text-decoration:none;">
+              <img class="letter-logo" src="https://b3unstoppable.net/images/logos/B3U3D.png" alt="B3U" width="76" style="display:block;width:76px;height:auto;border:0;outline:none;text-decoration:none;">
             </td>
             <td style="vertical-align:top;text-align:right;">
               <h1 class="letter-title" style="margin:0;font-size:27px;line-height:1;font-weight:500;text-transform:uppercase;letter-spacing:0.03em;color:#ffffff;white-space:nowrap;">${escapeHtml(headerTitle)}</h1>

@@ -1,0 +1,25 @@
+{
+  "name": "B3U — Burn, Break, Become Unstoppable",
+  "short_name": "B3U",
+  "description": "Dr. Bree Charles: speaker, author, and founder of Burn, Break, Become Unstoppable — leadership, identity, purpose, and transformation.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0A1A2A",
+  "theme_color": "#0A1A2A",
+  "lang": "en-US",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/logos/B3U3D.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

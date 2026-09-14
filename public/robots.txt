@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.b3unstoppable.net/sitemap.xml
+Sitemap: https://b3unstoppable.net/sitemap.xml
