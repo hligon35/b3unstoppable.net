@@ -143,7 +143,7 @@ export default function Login({ csrfToken }: LoginPageProps) {
         </label>
 
         <div className="mb-4 text-right">
-          <Link href="/forgot-password" className="text-sm font-medium text-brandOrange transition hover:text-brandOrange-dark hover:underline">
+          <Link href="/forgot-password" className="text-sm font-medium text-brandOrange-dark transition hover:text-brandOrange-dark hover:underline">
             Forgot password?
           </Link>
         </div>

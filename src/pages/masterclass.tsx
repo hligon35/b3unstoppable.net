@@ -69,7 +69,7 @@ export default function MasterclassPage() {
 
               <h1 className="mt-4 text-4xl md:text-5xl lg:text-6xl font-display font-bold leading-tight">
                 Unbroken: Burn, Break, and Become Unstoppable in{' '}
-                <span className="text-brandOrange">Creating a Successful Purpose-Driven Life.</span>
+                <span className="text-brandOrange-light">Creating a Successful Purpose-Driven Life.</span>
               </h1>
 
               <p className="mt-5 text-xl md:text-2xl text-white/90 font-semibold">
@@ -148,9 +148,9 @@ export default function MasterclassPage() {
       <section className="section-padding bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center">
-            <p className="text-brandOrange font-semibold tracking-widest">TESTIMONIALS</p>
+            <p className="text-brandOrange-dark font-semibold tracking-widest">TESTIMONIALS</p>
             <h2 className="mt-3 text-3xl md:text-4xl font-bold">
-              What previous <span className="text-brandOrange">attendees</span> are saying
+              What previous <span className="text-brandOrange-dark">attendees</span> are saying
             </h2>
             <p className="mt-4 text-lg text-navy/70 max-w-3xl mx-auto">
               Real stories. Real breakthroughs. You don&apos;t have to do your healing alone.
@@ -184,7 +184,7 @@ export default function MasterclassPage() {
               <div className="lg:col-span-7">
                 <h2 className="text-3xl md:text-4xl font-bold">
                   Register for the free masterclass starting{' '}
-                  <span className="text-brandOrange">{EVENT_DATE_DISPLAY} at {EVENT_TIME_DISPLAY}</span>
+                  <span className="text-brandOrange-dark">{EVENT_DATE_DISPLAY} at {EVENT_TIME_DISPLAY}</span>
                 </h2>
                 <p className="mt-4 text-lg text-navy/80 max-w-2xl">
                   Reserve your seat now. You&apos;ll receive the details you need to attend live.
@@ -228,9 +228,9 @@ export default function MasterclassPage() {
       <section className="section-padding bg-navy text-white">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-7">
-            <p className="text-brandOrange font-semibold tracking-widest">ABOUT</p>
+            <p className="text-brandOrange-light font-semibold tracking-widest">ABOUT</p>
             <h2 className="mt-3 text-3xl md:text-4xl font-bold">
-              Bridget <span className="text-brandOrange">“Bree”</span> Charles
+              Bridget <span className="text-brandOrange-light">“Bree”</span> Charles
             </h2>
             <p className="mt-3 text-white/85 text-lg font-semibold">Combat Veteran · Coach · Speaker · Author</p>
 
@@ -268,7 +268,7 @@ export default function MasterclassPage() {
               <div className="mt-8">
                 <a
                   href="mailto:breecharles@b3ucs.com"
-                  className="inline-flex items-center font-semibold underline text-brandOrange hover:text-brandOrange-light"
+                  className="inline-flex items-center font-semibold underline text-brandOrange-light hover:text-white"
                 >
                   Email Bree
                 </a>

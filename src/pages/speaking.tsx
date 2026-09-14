@@ -59,7 +59,7 @@ export default function SpeakingPage() {
     >
       <section className="section-padding bg-gradient-to-br from-navy via-[#0f3150] to-[#194d75] text-white">
         <div className="mx-auto max-w-5xl text-center pt-12">
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-brandOrange">
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-brandOrange-light">
             Speaking
           </p>
           <h1 className="mt-4 text-4xl md:text-6xl font-bold">Dr. Bree Charles</h1>
@@ -78,7 +78,7 @@ export default function SpeakingPage() {
 
       <section className="section-padding bg-white">
         <div className="mx-auto max-w-5xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">
+          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange-dark">
             Signature Keynote
           </p>
           <h2 className="mt-4 text-3xl md:text-4xl font-bold text-navy">

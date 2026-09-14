@@ -77,7 +77,7 @@ export default function Footer() {
             </div>
           </div>
           <div className="mb-4">
-            <p className="text-lg font-script text-brandOrange mb-2">Dr. Bree Charles</p>
+            <p className="text-lg font-script text-brandOrange-light mb-2">Dr. Bree Charles</p>
             <p className="text-sm text-white/70 italic">Breaking Cycles. Building Legacies.</p>
           </div>
           <p className="text-sm text-white/70 max-w-xs">Equipping leaders to reclaim identity, voice, and purpose and move from defeated to determined.</p>
@@ -85,24 +85,24 @@ export default function Footer() {
         </div>
 
         <div>
-          <h4 className="font-semibold mb-3 text-brandOrange">Explore</h4>
+          <h4 className="font-semibold mb-3 text-brandOrange-light">Explore</h4>
           <ul className="space-y-2 text-sm">
             {footerLinks.map(([label, href]) => (
-              <li key={href}><Link className="text-white/80 hover:text-brandOrange" href={href}>{label}</Link></li>
+              <li key={href}><Link className="text-white/80 hover:text-brandOrange-light" href={href}>{label}</Link></li>
             ))}
           </ul>
         </div>
 
         <div>
-          <h4 className="font-semibold mb-3 text-brandOrange">Contact</h4>
+          <h4 className="font-semibold mb-3 text-brandOrange-light">Contact</h4>
           <ul className="space-y-2 text-sm">
             <li>
               <span className="mr-2 text-white/60 font-semibold">Phone:</span>
-              <a className="text-white/80 hover:text-brandOrange" href="tel:+15408721873">(540) 872-1873</a>
+              <a className="text-white/80 hover:text-brandOrange-light" href="tel:+15408721873">(540) 872-1873</a>
             </li>
             <li>
               <span className="mr-2 text-white/60 font-semibold">Virtual Address:</span>
-              <a className="text-white/80 hover:text-brandOrange" href="https://www.google.com/maps?q=9221+Forest+Hill+Ave+Suite+1+PMB+1021,+Richmond,+VA+23235" target="_blank" rel="noopener noreferrer">
+              <a className="text-white/80 hover:text-brandOrange-light" href="https://www.google.com/maps?q=9221+Forest+Hill+Ave+Suite+1+PMB+1021,+Richmond,+VA+23235" target="_blank" rel="noopener noreferrer">
                 9221 Forest Hill Ave Suite 1 PMB 1021, Richmond, VA 23235
               </a>
             </li>
@@ -110,18 +110,18 @@ export default function Footer() {
         </div>
 
         <div>
-          <h4 className="font-semibold mb-3 text-brandOrange">Connect</h4>
+          <h4 className="font-semibold mb-3 text-brandOrange-light">Connect</h4>
           <ul className="space-y-2 text-sm">
-            <li><a className="text-white/80 hover:text-brandOrange" href="https://www.youtube.com/channel/UCSrtA1gGlgo4cQUzoSlzZ5w" target="_blank" rel="noopener">YouTube</a></li>
-            <li><a className="text-white/80 hover:text-brandOrange" href="https://www.instagram.com/burnbreakbecomeunstoppable/" target="_blank" rel="noopener noreferrer">Instagram</a></li>
-            <li><a className="text-white/80 hover:text-brandOrange" href="https://www.facebook.com/bree.b3u" target="_blank" rel="noopener noreferrer">Facebook</a></li>
-            <li><a className="text-white/80 hover:text-brandOrange" href="https://www.tiktok.com/@bree_charles" target="_blank" rel="noopener noreferrer">TikTok</a></li>
-            <li><a className="text-white/80 hover:text-brandOrange" href="https://www.linkedin.com/in/bridget-charles-375534169?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+            <li><a className="text-white/80 hover:text-brandOrange-light" href="https://www.youtube.com/channel/UCSrtA1gGlgo4cQUzoSlzZ5w" target="_blank" rel="noopener">YouTube</a></li>
+            <li><a className="text-white/80 hover:text-brandOrange-light" href="https://www.instagram.com/burnbreakbecomeunstoppable/" target="_blank" rel="noopener noreferrer">Instagram</a></li>
+            <li><a className="text-white/80 hover:text-brandOrange-light" href="https://www.facebook.com/bree.b3u" target="_blank" rel="noopener noreferrer">Facebook</a></li>
+            <li><a className="text-white/80 hover:text-brandOrange-light" href="https://www.tiktok.com/@bree_charles" target="_blank" rel="noopener noreferrer">TikTok</a></li>
+            <li><a className="text-white/80 hover:text-brandOrange-light" href="https://www.linkedin.com/in/bridget-charles-375534169?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
           </ul>
         </div>
 
         <div>
-          <h4 className="font-semibold mb-3 text-brandOrange">The Take Back Weekly</h4>
+          <h4 className="font-semibold mb-3 text-brandOrange-light">The Take Back Weekly</h4>
           <p className="text-sm text-white/70 mb-3">Get speaking updates, new episodes, events, and B3U news delivered to your inbox.</p>
           <form className="space-y-3" onSubmit={onFootSubmit} ref={footFormRef}>
             <input type="text" name="hp" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" />

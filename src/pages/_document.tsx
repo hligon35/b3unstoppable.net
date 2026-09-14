@@ -1,4 +1,5 @@
 import { Head, Html, Main, NextScript } from 'next/document';
+import { dancingScript, inter, oswald } from '@/lib/fonts';
 
 export default function Document() {
   return (
@@ -8,7 +9,10 @@ export default function Document() {
         <link rel="manifest" href="/manifest.webmanifest" />
         <meta name="theme-color" content="#0A1A2A" />
       </Head>
-      <body className="notranslate" suppressHydrationWarning>
+      <body
+        className={`notranslate ${oswald.variable} ${inter.variable} ${dancingScript.variable}`}
+        suppressHydrationWarning
+      >
         <Main />
         <NextScript />
       </body>

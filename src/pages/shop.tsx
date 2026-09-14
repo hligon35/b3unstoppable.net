@@ -75,7 +75,7 @@ export default function ShopPage({ initialSiteDraft, initialSiteUpdatedAt }: Sho
       <section className="section-padding bg-gradient-to-br from-brandOrange/10 via-white to-brandBlue-light/40">
         <div className="mx-auto max-w-6xl">
           <div className="mb-12 text-center">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">{draft.shopEyebrow}</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange-dark">{draft.shopEyebrow}</p>
             <h1 className="mt-4 text-4xl font-bold text-navy md:text-5xl">{draft.shopTitle}</h1>
             <p className="mx-auto mt-5 max-w-3xl text-lg text-navy/80">
               {draft.shopIntroOne}

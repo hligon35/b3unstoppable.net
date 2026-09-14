@@ -323,7 +323,7 @@ export default function AdminBlogIndex({ adminRole }: AdminBlogIndexProps) {
                             <Link href={`/admin/blog/${post.id}/edit`} className="min-h-11 rounded-full border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-brandBlue hover:text-brandBlue">Edit</Link>
                             <Link href={`/admin/blog/${post.id}/preview`} className="min-h-11 rounded-full border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-brandBlue hover:text-brandBlue">Preview</Link>
                             <button type="button" onClick={() => void handleDuplicate(post)} className="min-h-11 rounded-full border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 transition hover:border-brandBlue hover:text-brandBlue">Duplicate</button>
-                            <button type="button" onClick={() => void handleDelete(post)} className="min-h-11 rounded-full border border-brandOrange/30 px-3 py-2 text-xs font-semibold text-brandOrange transition hover:bg-brandOrange hover:text-white">Delete</button>
+                            <button type="button" onClick={() => void handleDelete(post)} className="min-h-11 rounded-full border border-brandOrange/30 px-3 py-2 text-xs font-semibold text-brandOrange-dark transition hover:bg-brandOrange-dark hover:text-white">Delete</button>
                           </div>
                         </td>
                       </tr>
@@ -355,7 +355,7 @@ export default function AdminBlogIndex({ adminRole }: AdminBlogIndexProps) {
                       <Link href={`/admin/blog/${post.id}/edit`} className="min-h-11 rounded-full border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700">Edit</Link>
                       <Link href={`/admin/blog/${post.id}/preview`} className="min-h-11 rounded-full border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700">Preview</Link>
                       <button type="button" onClick={() => void handleDuplicate(post)} className="min-h-11 rounded-full border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700">Duplicate</button>
-                      <button type="button" onClick={() => void handleDelete(post)} className="min-h-11 rounded-full border border-brandOrange/30 px-3 py-2 text-xs font-semibold text-brandOrange">Delete</button>
+                      <button type="button" onClick={() => void handleDelete(post)} className="min-h-11 rounded-full border border-brandOrange/30 px-3 py-2 text-xs font-semibold text-brandOrange-dark">Delete</button>
                     </div>
                   </article>
                 ))}

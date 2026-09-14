@@ -139,14 +139,14 @@ export default function ResetPasswordPage({ csrfToken, token }: ResetPasswordPag
         ) : (
           <div>
             <p className="mb-4 rounded-xl border border-brandOrange/25 bg-brandOrange/10 px-3 py-2 text-sm text-navy">This reset link is invalid or missing its token.</p>
-            <Link href="/forgot-password" className="font-medium text-brandOrange hover:underline">
+            <Link href="/forgot-password" className="font-medium text-brandOrange-dark hover:underline">
               Request a fresh reset link
             </Link>
           </div>
         )}
 
         <p className="mt-4 text-center text-sm text-navy/70">
-          <Link href="/login" className="font-medium text-brandOrange hover:underline">
+          <Link href="/login" className="font-medium text-brandOrange-dark hover:underline">
             Back to login
           </Link>
         </p>

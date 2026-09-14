@@ -56,7 +56,7 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
       <section className="section-padding bg-white">
         <div className="mx-auto max-w-6xl grid gap-12 md:grid-cols-2 md:items-center">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange-dark">
               Transformational Speaking
             </p>
             <h2 className="mt-4 text-3xl md:text-4xl font-bold text-navy">
@@ -111,7 +111,7 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
       <section className="section-padding bg-brandBlue-light/15">
         <div className="mx-auto max-w-6xl">
           <div className="mx-auto max-w-3xl text-center">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange-dark">
               Signature Keynote
             </p>
             <h2 className="mt-4 text-3xl md:text-4xl font-bold text-navy">
@@ -144,13 +144,13 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
           </p>
           {/* <div className="mt-8 grid gap-6 md:grid-cols-2">
             <div className="card bg-brandBlue-light/10">
-              <p className="font-semibold text-brandOrange">Event Organizer Feedback</p>
+              <p className="font-semibold text-brandOrange-dark">Event Organizer Feedback</p>
               <p className="mt-3 text-sm text-navy/65">
                 Speaking testimonials coming soon.
               </p>
             </div>
             <div className="card bg-brandBlue-light/10">
-              <p className="font-semibold text-brandOrange">Audience Impact</p>
+              <p className="font-semibold text-brandOrange-dark">Audience Impact</p>
               <p className="mt-3 text-sm text-navy/65">
                 Participant testimonials coming soon.
               </p>
@@ -162,7 +162,7 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
         <div className="mx-auto max-w-6xl">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">
+              <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange-light">
                 Upcoming Appearance
               </p>
               <h2 className="mt-3 text-3xl md:text-4xl font-bold">See Dr. Bree Live</h2>
@@ -180,7 +180,7 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
       <section className="section-padding bg-white">
         <div className="mx-auto max-w-6xl grid gap-8 md:grid-cols-3">
           <div className="card bg-white border border-navy/10">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brandOrange">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brandOrange-dark">
               Podcast
             </p>
             <h2 className="mt-3 text-2xl font-bold text-navy">
@@ -195,7 +195,7 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
             </Link>
           </div>
           <div className="card bg-white border border-navy/10">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brandOrange">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brandOrange-dark">
               Journal
             </p>
             <h2 className="mt-3 text-2xl font-bold text-navy">
@@ -210,7 +210,7 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
             </Link>
           </div>
           <div className="card bg-white border border-navy/10">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brandOrange">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brandOrange-dark">
               Community
             </p>
             <h2 className="mt-3 text-2xl font-bold text-navy">
@@ -229,7 +229,7 @@ export default function HomePage({ initialSiteDraft, initialSiteUpdatedAt }: Hom
       <section className="section-padding bg-brandOrange/10">
         <div className="mx-auto max-w-6xl grid gap-10 md:grid-cols-2 md:items-center">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange-dark">
               The Big Take Back
             </p>
             <h2 className="mt-4 text-3xl md:text-4xl font-bold text-navy">What I Left Behind</h2>

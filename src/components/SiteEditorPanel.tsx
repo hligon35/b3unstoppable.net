@@ -1166,7 +1166,7 @@ export default function SiteEditorPanel() {
                       <span
                         key={`${selectedEventCard.id}-viewer-badge-${badgeIndex}`}
                         className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                          badgeIndex === 0 ? 'bg-brandOrange/10 text-brandOrange' : 'bg-navy/5 text-navy/70'
+                          badgeIndex === 0 ? 'bg-brandOrange/10 text-brandOrange-dark' : 'bg-navy/5 text-navy/70'
                         }`}
                       >
                         {badge}
@@ -1464,7 +1464,7 @@ export default function SiteEditorPanel() {
                         <Image src={shopBookImage.image} alt={shopBookImage.alt} fill className="object-cover" sizes="160px" />
                       </div>
                       <div>
-                        {draft.shopEyebrow ? <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">{draft.shopEyebrow}</p> : null}
+                        {draft.shopEyebrow ? <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange-dark">{draft.shopEyebrow}</p> : null}
                         {draft.shopTitle ? <h3 className="mt-3 text-3xl font-bold text-navy">{draft.shopTitle}</h3> : null}
                         {draft.shopIntroOne ? <p className="mt-4 text-sm leading-relaxed text-navy/80">{draft.shopIntroOne}</p> : null}
                         {draft.shopIntroTwo ? <p className="mt-3 text-sm leading-relaxed text-navy/70">{draft.shopIntroTwo}</p> : null}
@@ -2090,7 +2090,7 @@ export default function SiteEditorPanel() {
                       <Image src={shopBookImage.image} alt={shopBookImage.alt} fill className="object-cover" sizes="160px" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">Shop Hero Asset</p>
+                      <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange-dark">Shop Hero Asset</p>
                       <h3 className="mt-3 text-3xl font-bold text-navy">Book cover placement</h3>
                       <p className="mt-4 text-sm leading-relaxed text-navy/70">This cover is used in the featured book area and supporting product callout on the Shop page.</p>
                     </div>

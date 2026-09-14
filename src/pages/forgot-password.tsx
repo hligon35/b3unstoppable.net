@@ -86,7 +86,7 @@ export default function ForgotPasswordPage({ csrfToken }: ForgotPasswordPageProp
         </form>
 
         <p className="mt-4 text-center text-sm text-navy/70">
-          <Link href="/login" className="font-medium text-brandOrange hover:underline">
+          <Link href="/login" className="font-medium text-brandOrange-dark hover:underline">
             Back to login
           </Link>
         </p>

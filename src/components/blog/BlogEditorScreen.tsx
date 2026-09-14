@@ -617,7 +617,7 @@ export default function BlogEditorScreen({ backHref, mode, initialPost, existing
                     <img src={draft.featuredImageUrl} alt="Featured preview" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                   </div>
                   <div className="flex items-center justify-end border-t border-gray-200 bg-white px-3 py-2">
-                    <button type="button" onClick={() => updateDraft('featuredImageUrl', null)} className="min-h-11 rounded-full border border-brandOrange/30 px-4 py-2 text-sm font-semibold text-brandOrange transition hover:bg-brandOrange hover:text-white">Remove image</button>
+                    <button type="button" onClick={() => updateDraft('featuredImageUrl', null)} className="min-h-11 rounded-full border border-brandOrange/30 px-4 py-2 text-sm font-semibold text-brandOrange-dark transition hover:bg-brandOrange-dark hover:text-white">Remove image</button>
                   </div>
                 </div>
               ) : null}
