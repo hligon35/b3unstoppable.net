@@ -88,6 +88,57 @@ Key variables (see `env.cloudflare.example` for the full list):
   `processDueNewsletters()` (`src/lib/newsletters.ts`), which claims each row before sending so a
   newsletter is never delivered twice even if the cron fires again mid-send.
 
+## Monthly Maintenance System
+`.github/workflows/monthly-maintenance.yml` runs on the 1st of every month (06:00 UTC) and can
+also be triggered manually via `workflow_dispatch`. It never touches `main` and never deploys.
+
+What it checks (via `scripts/monthly-maintenance.mjs`):
+- Outdated/deprecated npm dependencies and `npm audit` security findings.
+- TypeScript (`npm run typecheck`), ESLint, unit tests, `next build`, and the OpenNext Cloudflare
+  build.
+- `wrangler.jsonc` sanity (account id, compatibility date, D1 binding, assets directory).
+- D1 schema drift between `schema.sql` and `src/lib/db.ts`.
+- GitHub Actions workflow hygiene (duplicate names/schedules, missing `permissions:` blocks,
+  inconsistent Node.js versions).
+- Environment variables referenced in code but undocumented in `env.cloudflare.example` /
+  `.env.local.example`.
+- Tracked sensitive/generated files (CSVs, SQLite/db files, `.env*`, keys/certs) and possible
+  secret-like strings in tracked text files (file + detector name only — values are never logged).
+- Large tracked files, best-effort broken internal links, README doc-reference checks, and a few
+  static accessibility/SEO presence checks (full Lighthouse/axe auditing is not wired up).
+
+What it changes:
+- Runs `npm update` to apply only non-breaking updates already allowed by the existing `^` ranges
+  in `package.json`/`package-lock.json`. Major version bumps (Next.js, React, TypeScript,
+  OpenNext, Wrangler, etc.) are never applied automatically — they're listed for manual review.
+- If the update causes any check above to fail, it is reverted automatically and the regression is
+  noted in the report.
+- Regenerates `monthlyReport.md` at the repo root every run (maintenance date, branch, commit SHA,
+  dependency/security/build findings, recommended manual actions, items requiring approval, items
+  intentionally left unchanged, and whether the run is safe to review).
+
+Safety model:
+- All work happens on a bot-owned `monthlyUpdate` branch, which is reset from `main` at the start
+  of every run (`git checkout -B monthlyUpdate origin/main`) — never store manual commits on this
+  branch, they will be overwritten on the next run.
+- Changes are pushed **only** when the repo remains buildable (typecheck/lint/test/build/OpenNext
+  build all pass) and no secret-like value was introduced by the maintenance commit itself; the
+  commit only ever touches `package.json`, `package-lock.json`, and `monthlyReport.md`.
+- If a serious issue is found (e.g. the repo isn't buildable), nothing is pushed — the report is
+  still generated and published as a `monthly-maintenance-report` workflow artifact and in the run's
+  job summary so it can be reviewed.
+- The workflow never merges `monthlyUpdate` into `main` and never deploys. A human must review and
+  merge the branch manually.
+- Requires no GitHub Actions secrets beyond the default `GITHUB_TOKEN` (already scoped to
+  `contents: write` for this workflow only). It does not call any Cloudflare or Resend API and
+  needs no user-managed credentials.
+
+To trigger it manually: GitHub → **Actions** → **Monthly maintenance** → **Run workflow**. To
+review results: open the `monthlyUpdate` branch (or the run's `monthly-maintenance-report`
+artifact / job summary if nothing was pushed) and read `monthlyReport.md`, then open a normal pull
+request from `monthlyUpdate` into `main` if you're satisfied with the changes — this workflow never
+opens or merges that PR for you.
+
 ## Monitoring & Newsletter Cron
 - The Cloudflare Worker's `scheduled()` handler (`worker/index.ts`) runs every minute
   (`triggers.crons` in `wrangler.jsonc`) and calls `POST /api/newsletters/process` internally via
@@ -104,6 +155,9 @@ Set these in the repository's Actions secrets (not in `.env` files):
   `MONITORING_BASE_URL`, `MONITORING_CRON_TOKEN`, `RESEND_API_KEY`, `MONITORING_FROM_EMAIL`,
   `MONITORING_TO_EMAIL`.
 - `update-content.yml` (scheduled podcast/YouTube refresh) needs no secrets.
+- `monthly-maintenance.yml` needs no secrets; it uses the default `GITHUB_TOKEN` only and performs
+  no Cloudflare or Resend API calls (Cloudflare/Wrangler checks are static config/file checks, not
+  live API calls, so no user-managed Cloudflare credentials are required for it to run).
 
 `deploy-cloudflare.yml` is the single authoritative deployment workflow (build + deploy via
 `@opennextjs/cloudflare`); a previously duplicated `deploy.yml` workflow has been removed.

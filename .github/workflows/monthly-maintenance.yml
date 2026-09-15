@@ -1,0 +1,81 @@
+name: Monthly maintenance
+
+on:
+  schedule:
+    # 1st of every month, 06:00 UTC.
+    - cron: '0 6 1 * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: monthly-maintenance
+  cancel-in-progress: false
+
+jobs:
+  maintenance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Configure bot git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create or update monthlyUpdate branch from main
+        run: |
+          git fetch origin main
+          git checkout -B monthlyUpdate origin/main
+
+      - name: Run maintenance checks and generate report
+        id: maintenance
+        run: node scripts/monthly-maintenance.mjs
+
+      - name: Upload monthlyReport.md as an artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: monthly-maintenance-report
+          path: monthlyReport.md
+          retention-days: 90
+
+      - name: Commit and push monthlyUpdate (only if safe)
+        if: steps.maintenance.outputs.safeToPush == 'true'
+        run: |
+          git add package.json package-lock.json monthlyReport.md
+          if git diff --cached --quiet; then
+            echo "No maintenance changes to commit."
+          else
+            git commit -m "chore(maintenance): monthly dependency and security review"
+            git push --force-with-lease origin monthlyUpdate
+          fi
+
+      - name: Explain why the branch was not pushed
+        if: steps.maintenance.outputs.safeToPush != 'true'
+        run: |
+          {
+            echo "### Monthly maintenance branch was NOT pushed";
+            echo "";
+            echo "The repository did not pass its buildability/safety gate this run (see the";
+            echo "job summary above and the \`monthly-maintenance-report\` artifact for details).";
+            echo "No changes were pushed to \`monthlyUpdate\`, \`main\` was not touched, and";
+            echo "nothing was deployed. Review \`monthlyReport.md\` and address the flagged";
+            echo "issue(s) manually.";
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Flag manual review requirement
+        if: steps.maintenance.outputs.requiresManualReview == 'true'
+        run: |
+          echo "::warning::This monthly maintenance run flagged one or more items requiring manual review. See monthlyReport.md."
