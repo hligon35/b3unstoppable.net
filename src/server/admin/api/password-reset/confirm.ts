@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 
 import { createAdminSessionCookie } from '@/lib/adminAuth';
 import { consumePasswordReset } from '@/lib/adminPassword';
+import { verifyTurnstileToken } from '../../../../../utils/security/formsProtection';
 import { withApiMonitoring } from '../../../../../utils/debug/server';
 
 const MIN_PASSWORD_LENGTH = 12;
@@ -37,6 +38,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   if (password !== confirmPassword) {
     return res.status(400).json({ message: 'Passwords do not match' });
+  }
+
+  const turnstileResult = await verifyTurnstileToken(String(req.body?.turnstileToken || ''), req);
+  if (!turnstileResult.ok) {
+    return res.status(403).json({ message: 'Security check failed. Please try again.' });
   }
 
   const result = await consumePasswordReset(token, password);

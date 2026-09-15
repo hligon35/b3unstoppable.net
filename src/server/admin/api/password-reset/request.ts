@@ -8,6 +8,7 @@ import {
   getSiteUrl,
   issueAdminPasswordReset,
 } from '@/lib/adminPassword';
+import { verifyTurnstileToken } from '../../../../../utils/security/formsProtection';
 import { monitoredServerFetch, withApiMonitoring } from '../../../../../utils/debug/server';
 
 const GENERIC_SUCCESS_MESSAGE = 'If that account can be reset, a one-time link has been sent.';
@@ -32,6 +33,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   if (!username) {
     return res.status(400).json({ message: 'Username is required' });
+  }
+
+  const turnstileResult = await verifyTurnstileToken(String(req.body?.turnstileToken || ''), req);
+  if (!turnstileResult.ok) {
+    return res.status(403).json({ message: 'Security check failed. Please try again.' });
   }
 
   const configuredUsername = getConfiguredAdminUsername();

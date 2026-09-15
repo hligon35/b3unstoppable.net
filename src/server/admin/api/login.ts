@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 
 import { clearAdminSessionCookie, createAdminSessionCookie } from '@/lib/adminAuth';
 import { getConfiguredAdminPassword, getConfiguredAdminUsername, verifyAdminCredentials } from '@/lib/adminPassword';
-import { applyFormsRateLimit } from '../../../../utils/security/formsProtection';
+import { applyFormsRateLimit, verifyTurnstileToken } from '../../../../utils/security/formsProtection';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const adminUsername = getConfiguredAdminUsername();
@@ -22,7 +22,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    const { username, password } = req.body ?? {};
+    const { username, password, turnstileToken } = req.body ?? {};
+
+    const turnstileResult = await verifyTurnstileToken(String(turnstileToken || ''), req);
+    if (!turnstileResult.ok) {
+      return res.status(403).json({ message: 'Security check failed. Please try again.' });
+    }
 
     if (!adminUsername || !adminPassword) {
       const missing = [
