@@ -30,7 +30,7 @@ export function verifyNewsletterUnsubscribeToken(token: unknown) {
     return null;
   }
 
-  const match = token.match(/^(\\d+)\\.([A-Za-z0-9_-]{43})$/);
+  const match = token.match(/^(\d+)\.([A-Za-z0-9_-]{43})$/);
   if (!match) {
     return null;
   }
@@ -58,6 +58,6 @@ export function verifyNewsletterUnsubscribeToken(token: unknown) {
 
 export function getNewsletterUnsubscribeUrl(token: string) {
   const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://b3unstoppable.net';
-  const siteUrl = configuredSiteUrl.trim().replace(/\\/+$/, '');
+  const siteUrl = configuredSiteUrl.trim().replace(/\/+$/, '');
   return `${siteUrl}/unsubscribe?token=${encodeURIComponent(token)}`;
 }
