@@ -340,8 +340,8 @@ async function sendNewsletterEmail(params: {
 
 function appendNewsletterUnsubscribeFooter(html: string, unsubscribeUrl: string) {
   const footer = `<div style="background:#17182b;padding:16px 24px;text-align:center;color:#ffffff;font:12px/1.6 Arial,Helvetica,sans-serif;">You’re receiving The Take Back Weekly from B3U. <a href="${unsubscribeUrl}" style="color:#e1bd5a;text-decoration:underline;">Unsubscribe</a></div>`;
-  return /<\\/body\\s*>/i.test(html)
-    ? html.replace(/<\\/body\\s*>/i, `${footer}</body>`)
+  return /<\/body\s*>/i.test(html)
+    ? html.replace(/<\/body\s*>/i, `${footer}</body>`)
     : `${html}${footer}`;
 }
 
