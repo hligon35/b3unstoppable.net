@@ -443,6 +443,10 @@ export async function getSubscribers() {
   return queryAll<SubscriberRow>('SELECT id, email, created_at FROM subscribers ORDER BY created_at DESC');
 }
 
+export async function getSubscriberById(id: number) {
+  return queryFirst<SubscriberRow>('SELECT id, email, created_at FROM subscribers WHERE id = ?', [id]);
+}
+
 export async function insertPageView(data: {
   path: string;
   referrer?: string;
