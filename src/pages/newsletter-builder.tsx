@@ -1016,12 +1016,25 @@ export default function NewsletterBuilder() {
           throw new Error(processBody?.details || processBody?.error || `Newsletter processor returned ${processResponse.status}`);
         }
 
-        setNotice(`Newsletter sent now. ${processBody?.sent ?? 0} sent, ${processBody?.failed ?? 0} failed.`);
+        const failures = Array.isArray(processBody?.failures)
+          ? (processBody.failures as Array<{ subject?: string; error?: string }>)
+          : [];
+        const failedCount = Number(processBody?.failed ?? 0);
+
+        if (failedCount > 0) {
+          const failureDetails = failures
+            .map((failure) => `${failure.subject ? `"${failure.subject}": ` : ''}${failure.error || 'Unknown delivery error'}`)
+            .join(' | ');
+          setNotice(`Newsletter send failed (${failedCount}). ${failureDetails || 'Open the failed queue item for details.'}`);
+          setNoticeTone('error');
+        } else {
+          setNotice(`Newsletter sent now. ${processBody?.sent ?? 0} sent.`);
+          setNoticeTone('success');
+        }
       } else {
         setNotice(editingNewsletterId ? 'Queued newsletter updated successfully.' : 'Newsletter scheduled successfully.');
+        setNoticeTone('success');
       }
-
-      setNoticeTone('success');
       if (editingNewsletterId && !sendImmediately) {
         setEditingNewsletterId(null);
       }
@@ -1529,6 +1542,11 @@ export default function NewsletterBuilder() {
                                 <p className="text-base font-semibold text-gray-900">{item.subject}</p>
                                 <p className="mt-1 text-sm text-gray-600">{formatDateTimeDisplay(item.scheduledFor)}</p>
                                 <p className="mt-1 text-xs text-gray-500">{item.recipientCount} recipient{item.recipientCount === 1 ? '' : 's'} · {item.status}</p>
+                                {item.lastError ? (
+                                  <p className="mt-2 max-w-2xl rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs leading-relaxed text-rose-800">
+                                    <span className="font-semibold">Last send error:</span> {item.lastError}
+                                  </p>
+                                ) : null}
                               </div>
                               <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                                 <button
