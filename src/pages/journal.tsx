@@ -149,7 +149,7 @@ export default function JournalPage({ publishedPosts = [] }: JournalPageProps) {
               />
             </div>
             <div className="max-w-xl lg:pl-4">
-              <p className="mb-5 inline-flex items-center border-b border-brandOrange/40 pb-3 text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">
+              <p className="mb-5 inline-flex items-center border-b border-brandOrange/40 pb-3 text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange-dark">
                 Latest Story
               </p>
               <h2 className="text-4xl font-bold leading-tight text-navy md:text-5xl">{featuredPost.title}</h2>
@@ -169,7 +169,7 @@ export default function JournalPage({ publishedPosts = [] }: JournalPageProps) {
           </div>
         ) : (
           <div className="mx-auto max-w-5xl rounded-[2rem] border border-brandBlue/15 bg-[linear-gradient(135deg,rgb(var(--color-brand-blue-light)_/_0.22)_0%,rgb(var(--color-brand-blue)_/_0.08)_100%)] px-8 py-12 text-center shadow-[0_24px_60px_rgba(10,26,42,0.12)] md:px-12 md:py-16">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">Journal Launching Soon</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange-dark">Journal Launching Soon</p>
             <h2 className="mx-auto mt-4 max-w-3xl text-4xl font-bold leading-tight text-navy md:text-5xl">
               The first stories are being assembled now.
             </h2>
@@ -191,7 +191,7 @@ export default function JournalPage({ publishedPosts = [] }: JournalPageProps) {
           <div className="mx-auto max-w-6xl">
             <div className="mb-6 flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">Journal Entries</p>
+                <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange-dark">Journal Entries</p>
                 <h2 className="mt-2 text-3xl font-bold text-navy md:text-4xl">Stories that are live now</h2>
               </div>
               <p className="hidden max-w-md text-right text-sm leading-6 text-navy/65 md:block">
@@ -220,13 +220,13 @@ export default function JournalPage({ publishedPosts = [] }: JournalPageProps) {
                         />
                       </div>
                       <div className="flex flex-1 flex-col p-7">
-                        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brandOrange">{post.category || 'Journal'}</p>
+                        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brandOrange-dark">{post.category || 'Journal'}</p>
                         <h3 className="mt-3 text-3xl font-bold leading-tight text-navy">{post.title}</h3>
                         <p className="mt-4 text-base leading-7 text-navy/75">{post.deck || post.openingStory || 'A new B3U reflection is ready to read.'}</p>
                         <p className="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-navy/45">{formatJournalDate(post.publishAt || post.createdAt)}</p>
                         <Link
                           href={`/journal/${post.slug}/`}
-                          className="mt-auto pt-6 inline-flex items-center text-sm font-semibold uppercase tracking-[0.14em] text-brandOrange transition hover:text-brandOrange-dark"
+                          className="mt-auto pt-6 inline-flex items-center text-sm font-semibold uppercase tracking-[0.14em] text-brandOrange-dark transition hover:text-navy"
                         >
                           Read story
                         </Link>
@@ -246,7 +246,7 @@ export default function JournalPage({ publishedPosts = [] }: JournalPageProps) {
             <p className="text-3xl font-bold leading-tight md:text-5xl">
               Every time I tell the truth about what I survived, I leave a door open for someone else to walk through.
             </p>
-            <footer className="mt-6 text-xl font-semibold text-brandOrange">Dr. Bree Charles</footer>
+            <footer className="mt-6 text-xl font-semibold text-brandOrange-light">Dr. Bree Charles</footer>
           </blockquote>
         </div>
       </section>
@@ -254,7 +254,7 @@ export default function JournalPage({ publishedPosts = [] }: JournalPageProps) {
       <section className="bg-[linear-gradient(135deg,rgb(var(--color-brand-blue-light)_/_0.34)_0%,rgb(var(--color-brand-blue)_/_0.18)_100%)] px-6 py-24 md:px-12">
         <div className="mx-auto grid max-w-5xl gap-10 rounded-[2rem] border border-black/5 bg-white/80 p-8 shadow-[0_24px_60px_rgba(10,26,42,0.12)] backdrop-blur md:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] md:p-12">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">Join the Take Back Weekly</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange-dark">Join the Take Back Weekly</p>
             <h2 className="mt-4 text-4xl font-bold leading-tight text-navy md:text-5xl">
               Stay close to the stories, the tools, and the next reminder you need.
             </h2>

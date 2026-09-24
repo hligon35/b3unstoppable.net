@@ -1,27 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.b3unstoppable.net/</loc>
+    <loc>https://b3unstoppable.net/</loc>
   </url>
   <url>
-    <loc>https://www.b3unstoppable.net/about/</loc>
+    <loc>https://b3unstoppable.net/about/</loc>
   </url>
   <url>
-    <loc>https://www.b3unstoppable.net/podcast/</loc>
+    <loc>https://b3unstoppable.net/podcast/</loc>
   </url>
   <url>
-    <loc>https://www.b3unstoppable.net/community/</loc>
+    <loc>https://b3unstoppable.net/community/</loc>
   </url>
   <url>
-    <loc>https://www.b3unstoppable.net/event-gallery/</loc>
+    <loc>https://b3unstoppable.net/event-gallery/</loc>
   </url>
   <url>
-    <loc>https://www.b3unstoppable.net/masterclass/</loc>
+    <loc>https://b3unstoppable.net/masterclass/</loc>
   </url>
   <url>
-    <loc>https://www.b3unstoppable.net/shop/</loc>
+    <loc>https://b3unstoppable.net/shop/</loc>
   </url>
   <url>
-    <loc>https://www.b3unstoppable.net/contact/</loc>
+    <loc>https://b3unstoppable.net/contact/</loc>
+  </url>
+  <url>
+    <loc>https://b3unstoppable.net/booking/</loc>
+  </url>
+  <url>
+    <loc>https://b3unstoppable.net/speaking/</loc>
+  </url>
+  <url>
+    <loc>https://b3unstoppable.net/journal/</loc>
   </url>
 </urlset>

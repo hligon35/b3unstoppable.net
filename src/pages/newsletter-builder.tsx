@@ -84,7 +84,7 @@ const defaultTemplate: NewsletterTemplateDraft = {
   byline: 'By Dr. Bree Charles',
   issueDate: 'Week of July 6, 2026',
   tagline: 'Breaking Cycles. Building Legacies.',
-  footerTagline: 'www.b3unstoppable.net | B3U — Burn. Break. Become Unstoppable.',
+  footerTagline: 'b3unstoppable.net | B3U — Burn. Break. Become Unstoppable.',
 };
 
 const defaultWeekly: WeeklyNewsletterDraft = {

@@ -24,7 +24,7 @@ export default function EventGalleryPage(_: EventGalleryPageProps) {
       <section className="section-padding bg-white">
         <div className="mx-auto max-w-6xl pt-10">
           <div className="mx-auto mb-12 max-w-3xl text-center">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">Events & Appearances</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange-dark">Events & Appearances</p>
             <h1 className="mt-4 text-4xl md:text-5xl font-bold text-navy">Speaking Appearances, Leadership Programs & Book Events</h1>
             <p className="mt-5 text-lg text-navy/75">Follow Dr. Bree Charles&apos; upcoming appearances and explore recent event highlights from her speaking, leadership, and author work.</p>
           </div>
@@ -32,14 +32,14 @@ export default function EventGalleryPage(_: EventGalleryPageProps) {
           <section className="mb-16">
             <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brandOrange">Upcoming Events</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brandOrange-dark">Upcoming Events</p>
                 <h2 className="mt-2 text-3xl font-bold text-navy">Upcoming Appearances</h2>
               </div>
               <Link href="/booking" className="btn-primary">Book Dr. Bree</Link>
             </div>
 
             <article className="card flex min-h-[340px] flex-col items-center justify-center text-center bg-brandBlue-light/10">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brandOrange">Speaking Calendar</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brandOrange-dark">Speaking Calendar</p>
               <h3 className="mt-4 text-2xl font-bold text-navy">Additional Dates Coming Soon</h3>
               <p className="mt-4 max-w-md text-navy/70">Upcoming keynote appearances, leadership programs, military and veteran programs, association events, and virtual presentations will be added as they are confirmed.</p>
               <Link href="/booking" className="btn-outline mt-6">Request Dr. Bree for Your Event</Link>
@@ -48,7 +48,7 @@ export default function EventGalleryPage(_: EventGalleryPageProps) {
 
           <section className="mb-16 bg-brandBlue-light/10 rounded-3xl p-7 md:p-10">
             <div className="mx-auto max-w-3xl text-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brandOrange">Recent Work</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brandOrange-dark">Recent Work</p>
               <h2 className="mt-3 text-3xl font-bold text-navy">Past Appearances and Event Highlights</h2>
               <p className="mt-4 text-navy/70">Past speaking engagements, leadership programs, book events, professional stage photographs, and event highlights.</p>
             </div>
@@ -62,8 +62,8 @@ export default function EventGalleryPage(_: EventGalleryPageProps) {
           <section className="mb-16">
             <h2 className="text-center text-3xl md:text-4xl font-bold text-navy">What Event Organizers and Audiences Are Saying</h2>
             <div className="mt-8 grid gap-6 md:grid-cols-2">
-              <div className="card bg-white"><p className="text-sm font-semibold uppercase tracking-[0.18em] text-brandOrange">Organizer Testimonial</p><p className="mt-4 text-navy/65">Event-organizer feedback coming soon.</p></div>
-              <div className="card bg-white"><p className="text-sm font-semibold uppercase tracking-[0.18em] text-brandOrange">Audience Testimonial</p><p className="mt-4 text-navy/65">Audience feedback from speaking engagements and leadership programs coming soon.</p></div>
+              <div className="card bg-white"><p className="text-sm font-semibold uppercase tracking-[0.18em] text-brandOrange-dark">Organizer Testimonial</p><p className="mt-4 text-navy/65">Event-organizer feedback coming soon.</p></div>
+              <div className="card bg-white"><p className="text-sm font-semibold uppercase tracking-[0.18em] text-brandOrange-dark">Audience Testimonial</p><p className="mt-4 text-navy/65">Audience feedback from speaking engagements and leadership programs coming soon.</p></div>
             </div>
           </section>
         </div>

@@ -1,4 +1,4 @@
-export const siteUrl = 'https://www.b3unstoppable.net';
+export const siteUrl = 'https://b3unstoppable.net';
 export const siteName = 'B3U — Burn, Break, Become Unstoppable';
 
 const bookDescription =

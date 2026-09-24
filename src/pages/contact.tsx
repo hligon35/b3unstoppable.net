@@ -78,7 +78,7 @@ export default function ContactPage() {
       <section className="section-padding bg-gradient-to-br from-brandBlue-light to-white">
         <div className="max-w-5xl mx-auto pt-10">
           <div className="text-center mb-12">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">Contact B3U</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange-dark">Contact B3U</p>
             <h1 className="mt-4 text-4xl md:text-5xl font-bold text-navy">Get in Touch</h1>
             <p className="mt-5 text-xl text-navy/80 max-w-2xl mx-auto">For media, podcast, collaboration, community, or general inquiries, send the B3U team a message below.</p>
             <div className="mt-7"><Link href="/booking" className="btn-primary">Book Dr. Bree for an Event</Link></div>
@@ -132,7 +132,7 @@ export default function ContactPage() {
               <div className="card bg-white border-2 border-navy/10">
                 <h3 className="text-xl font-bold mb-4 text-navy">B3U</h3>
                 <p className="text-navy/80">Host of B3U: Burn, Break, Become Unstoppable. Helping leaders move beyond survival mode, reclaim identity, voice, and purpose, and move from defeated to determined.</p>
-                <p className="mt-4 text-brandOrange font-semibold">Breaking Cycles. Building Legacies.</p>
+                <p className="mt-4 text-brandOrange-dark font-semibold">Breaking Cycles. Building Legacies.</p>
               </div>
             </div>
           </div>

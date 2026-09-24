@@ -1,6 +1,0 @@
-name = "b3uv3"
-compatibility_date = "2026-01-30"
-
-# For Cloudflare Pages, you typically do not need wrangler.toml unless you are deploying to Workers directly.
-# If you want to use D1 or KV, you can add bindings here.
-# For most Next.js + Pages projects, this file can be minimal or omitted.

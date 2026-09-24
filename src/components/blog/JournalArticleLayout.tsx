@@ -268,7 +268,7 @@ export default function JournalArticleLayout({
         {article.featuredImageUrl ? (
           <figure className="border-b border-[#d9e9f2] bg-[#EAF6FB]">
             <div className="relative aspect-[16/9] w-full overflow-hidden">
-              <img src={article.featuredImageUrl} alt={article.featuredImageAlt || ''} className="h-full w-full object-cover" />
+              <img src={article.featuredImageUrl} alt={article.featuredImageAlt || ''} loading="lazy" decoding="async" className="h-full w-full object-cover" />
             </div>
             {article.featuredImageCaption ? <figcaption className="px-6 py-4 text-sm text-[#3a4a5a] sm:px-10">{article.featuredImageCaption}</figcaption> : null}
           </figure>
@@ -312,7 +312,7 @@ export default function JournalArticleLayout({
               if (block.type === 'image') {
                 return (
                   <figure key={key} className="overflow-hidden rounded-2xl border border-[#d9e9f2]">
-                    <img src={block.src} alt={block.alt || ''} className="w-full object-cover" />
+                    <img src={block.src} alt={block.alt || ''} loading="lazy" decoding="async" className="w-full object-cover" />
                     {block.alt ? <figcaption className="px-4 py-3 text-sm text-[#4a5866]">{block.alt}</figcaption> : null}
                   </figure>
                 );

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 
 import { hasAdminSession } from '../lib/adminAuth';
+import TurnstileField, { useTurnstileConfig } from '@/components/TurnstileField';
 
 type ForgotPasswordPageProps = {
   csrfToken: string | null;
@@ -14,12 +15,26 @@ export default function ForgotPasswordPage({ csrfToken }: ForgotPasswordPageProp
   const [info, setInfo] = useState('');
   const [previewUrl, setPreviewUrl] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
+  const { isEnabled: turnstileRequired, isLoading: turnstileLoading } = useTurnstileConfig();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError('');
     setInfo('');
     setPreviewUrl('');
+
+    if (turnstileLoading) {
+      setError('Security check is still loading. Please try again in a moment.');
+      return;
+    }
+
+    if (turnstileRequired && !turnstileToken) {
+      setError('Please complete the security check before continuing.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     const headers: HeadersInit = {
@@ -33,10 +48,13 @@ export default function ForgotPasswordPage({ csrfToken }: ForgotPasswordPageProp
     const response = await fetch('/api/password-reset/request', {
       method: 'POST',
       headers,
-      body: JSON.stringify({ username }),
+      body: JSON.stringify({ username, turnstileToken }),
     });
 
     const data = await response.json().catch(() => ({ message: 'Unable to start password reset.' }));
+
+    setTurnstileToken('');
+    setTurnstileResetKey((value) => value + 1);
 
     if (!response.ok) {
       setError(data.message ?? 'Unable to start password reset.');
@@ -76,6 +94,13 @@ export default function ForgotPasswordPage({ csrfToken }: ForgotPasswordPageProp
             </p>
           ) : null}
 
+          <TurnstileField
+            token={turnstileToken}
+            onTokenChange={setTurnstileToken}
+            resetKey={turnstileResetKey}
+            className="mb-4"
+          />
+
           <button
             type="submit"
             className="w-full rounded-xl bg-brandBlue px-4 py-2.5 font-medium text-white transition hover:bg-brandBlue-dark disabled:cursor-not-allowed disabled:opacity-70"
@@ -86,7 +111,7 @@ export default function ForgotPasswordPage({ csrfToken }: ForgotPasswordPageProp
         </form>
 
         <p className="mt-4 text-center text-sm text-navy/70">
-          <Link href="/login" className="font-medium text-brandOrange hover:underline">
+          <Link href="/login" className="font-medium text-brandOrange-dark hover:underline">
             Back to login
           </Link>
         </p>

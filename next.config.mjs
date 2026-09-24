@@ -14,7 +14,10 @@ export default function nextConfig(phase) {
     // Preserve trailing slashes for existing public URLs.
     trailingSlash: true,
     images: {
-      domains: ["placehold.co", "picsum.photos"],
+      remotePatterns: [
+        { protocol: 'https', hostname: 'placehold.co' },
+        { protocol: 'https', hostname: 'picsum.photos' },
+      ],
     },
   };
 }

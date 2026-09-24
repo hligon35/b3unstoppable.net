@@ -18,7 +18,7 @@ export default function PodcastPage() {
           <div className="flex flex-col gap-10 mb-10 md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold mb-4">The B3U Podcast</h1>
-              <h2 className="text-xl text-brandOrange font-semibold mb-4">Burn, Break, Become Unstoppable</h2>
+              <h2 className="text-xl text-brandOrange-dark font-semibold mb-4">Burn, Break, Become Unstoppable</h2>
               <p className="text-navy/70 max-w-xl">Conversations featuring stories of resilience, transformation, and the courage to rebuild. Every episode is a reminder that your pain can become your purpose.</p>
             </div>
             <div className="w-full md:w-[420px]">

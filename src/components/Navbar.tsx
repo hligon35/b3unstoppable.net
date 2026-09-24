@@ -34,10 +34,13 @@ export default function Navbar() {
 
   const bgClass = scrolled || !isHomePage ? 'bg-white/95 shadow-lg' : 'bg-transparent';
   const textClass = scrolled || !isHomePage ? 'text-navy' : 'text-white';
+  // Orange needs to be darker over the light navbar and lighter over the dark hero to keep AA contrast.
+  const accentClass = scrolled || !isHomePage ? 'text-brandOrange-dark' : 'text-brandOrange-light';
+  const accentHoverClass = scrolled || !isHomePage ? 'hover:text-brandOrange-dark' : 'hover:text-brandOrange-light';
 
   return (
     <header className={`fixed top-0 left-0 w-full isolate z-[200] transition backdrop-blur ${bgClass}`}>
-      <div className="block border-b border-white/10 bg-brandOrange px-4 py-2 text-center text-xs font-semibold uppercase tracking-[0.18em] text-white">
+      <div className="block border-b border-white/10 bg-brandOrange-dark px-4 py-2 text-center text-xs font-semibold uppercase tracking-[0.18em] text-white">
         <span>Transformational Speaker • U.S. Army Veteran • Author • Founder of B3U</span>
       </div>
       <nav className={`max-w-7xl mx-auto px-4 py-2 md:px-6 md:py-3 ${textClass}`}>
@@ -59,9 +62,9 @@ export default function Navbar() {
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`relative py-2 transition-colors duration-200 hover:text-brandOrange after:absolute after:left-0 after:bottom-0 after:h-0.5 after:bg-brandOrange after:transition-all after:duration-300 ${
+                  className={`relative py-2 transition-colors duration-200 ${accentHoverClass} after:absolute after:left-0 after:bottom-0 after:h-0.5 after:bg-brandOrange after:transition-all after:duration-300 ${
                     pathname === item.href
-                      ? 'text-brandOrange after:w-full'
+                      ? `${accentClass} after:w-full`
                       : `${textClass} after:w-0 hover:after:w-full`
                   }`}
                 >
@@ -93,6 +96,8 @@ export default function Navbar() {
               }`}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle mobile menu"
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-nav-menu"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 {mobileMenuOpen ? (
@@ -107,7 +112,7 @@ export default function Navbar() {
       </nav>
 
       {mobileMenuOpen && (
-        <div className="bg-white shadow-lg border-t md:hidden">
+        <div id="mobile-nav-menu" className="bg-white shadow-lg border-t md:hidden">
           <nav className="container mx-auto px-4 py-4">
             <Link
               href="/booking"

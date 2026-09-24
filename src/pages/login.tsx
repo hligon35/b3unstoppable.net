@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
 import { hasAdminSession } from '../lib/adminAuth';
+import TurnstileField, { useTurnstileConfig } from '@/components/TurnstileField';
 
 type LoginPageProps = {
   csrfToken: string | null;
@@ -16,6 +17,9 @@ export default function Login({ csrfToken }: LoginPageProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
+  const { isEnabled: turnstileRequired, isLoading: turnstileLoading } = useTurnstileConfig();
 
   const redirectTarget = typeof router.query.redirect === 'string' ? router.query.redirect : '/admin';
 
@@ -28,6 +32,17 @@ export default function Login({ csrfToken }: LoginPageProps) {
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError('');
+
+    if (turnstileLoading) {
+      setError('Security check is still loading. Please try again in a moment.');
+      return;
+    }
+
+    if (turnstileRequired && !turnstileToken) {
+      setError('Please complete the security check before signing in.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     const headers: HeadersInit = {
@@ -41,7 +56,7 @@ export default function Login({ csrfToken }: LoginPageProps) {
     const response = await fetch('/api/login', {
       method: 'POST',
       headers,
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username, password, turnstileToken }),
     });
 
     if (response.ok) {
@@ -65,6 +80,8 @@ export default function Login({ csrfToken }: LoginPageProps) {
     }
 
     setError(message);
+    setTurnstileToken('');
+    setTurnstileResetKey((value) => value + 1);
     setIsSubmitting(false);
   }
 
@@ -143,12 +160,19 @@ export default function Login({ csrfToken }: LoginPageProps) {
         </label>
 
         <div className="mb-4 text-right">
-          <Link href="/forgot-password" className="text-sm font-medium text-brandOrange transition hover:text-brandOrange-dark hover:underline">
+          <Link href="/forgot-password" className="text-sm font-medium text-brandOrange-dark transition hover:text-brandOrange-dark hover:underline">
             Forgot password?
           </Link>
         </div>
 
         {error ? <p className="mb-4 rounded-xl border border-brandOrange/25 bg-brandOrange/10 px-3 py-2 text-sm text-navy">{error}</p> : null}
+
+        <TurnstileField
+          token={turnstileToken}
+          onTokenChange={setTurnstileToken}
+          resetKey={turnstileResetKey}
+          className="mb-4"
+        />
 
         <button
           type="submit"

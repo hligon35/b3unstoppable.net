@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 
 import { hasAdminSession } from '../lib/adminAuth';
+import TurnstileField, { useTurnstileConfig } from '@/components/TurnstileField';
 
 type ResetPasswordPageProps = {
   csrfToken: string | null;
@@ -19,6 +20,9 @@ export default function ResetPasswordPage({ csrfToken, token }: ResetPasswordPag
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState('');
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
+  const { isEnabled: turnstileRequired, isLoading: turnstileLoading } = useTurnstileConfig();
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -38,6 +42,16 @@ export default function ResetPasswordPage({ csrfToken, token }: ResetPasswordPag
       return;
     }
 
+    if (turnstileLoading) {
+      setError('Security check is still loading. Please try again in a moment.');
+      return;
+    }
+
+    if (turnstileRequired && !turnstileToken) {
+      setError('Please complete the security check before continuing.');
+      return;
+    }
+
     setError('');
     setIsSubmitting(true);
 
@@ -52,13 +66,15 @@ export default function ResetPasswordPage({ csrfToken, token }: ResetPasswordPag
     const response = await fetch('/api/password-reset/confirm', {
       method: 'POST',
       headers,
-      body: JSON.stringify({ token, password, confirmPassword }),
+      body: JSON.stringify({ token, password, confirmPassword, turnstileToken }),
     });
 
     const data = await response.json().catch(() => ({ message: 'Unable to reset password.' }));
 
     if (!response.ok) {
       setError(data.message ?? 'Unable to reset password.');
+      setTurnstileToken('');
+      setTurnstileResetKey((value) => value + 1);
       setIsSubmitting(false);
       return;
     }
@@ -128,6 +144,13 @@ export default function ResetPasswordPage({ csrfToken, token }: ResetPasswordPag
 
             {error ? <p className="mb-4 rounded-xl border border-brandOrange/25 bg-brandOrange/10 px-3 py-2 text-sm text-navy">{error}</p> : null}
 
+            <TurnstileField
+              token={turnstileToken}
+              onTokenChange={setTurnstileToken}
+              resetKey={turnstileResetKey}
+              className="mb-4"
+            />
+
             <button
               type="submit"
               className="w-full rounded-xl bg-brandBlue px-4 py-2.5 font-medium text-white transition hover:bg-brandBlue-dark disabled:cursor-not-allowed disabled:opacity-70"
@@ -139,14 +162,14 @@ export default function ResetPasswordPage({ csrfToken, token }: ResetPasswordPag
         ) : (
           <div>
             <p className="mb-4 rounded-xl border border-brandOrange/25 bg-brandOrange/10 px-3 py-2 text-sm text-navy">This reset link is invalid or missing its token.</p>
-            <Link href="/forgot-password" className="font-medium text-brandOrange hover:underline">
+            <Link href="/forgot-password" className="font-medium text-brandOrange-dark hover:underline">
               Request a fresh reset link
             </Link>
           </div>
         )}
 
         <p className="mt-4 text-center text-sm text-navy/70">
-          <Link href="/login" className="font-medium text-brandOrange hover:underline">
+          <Link href="/login" className="font-medium text-brandOrange-dark hover:underline">
             Back to login
           </Link>
         </p>

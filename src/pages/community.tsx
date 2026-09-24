@@ -270,12 +270,12 @@ export default function CommunityPage() {
 
             <div className="mt-6">
               <h2 className="text-2xl font-semibold">Share Your Story</h2>
-              <p className="text-sm text-navy/70 mt-1">Your words may encourage someone who needs it today. Fields marked with <span className="text-brandOrange">*</span> are required.</p>
+              <p className="text-sm text-navy/70 mt-1">Your words may encourage someone who needs it today. Fields marked with <span className="text-brandOrange-dark">*</span> are required.</p>
             </div>
 
             <div className="grid gap-5 md:grid-cols-2">
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-navy mb-1">Name <span className="text-brandOrange">*</span></label>
+                <label htmlFor="name" className="block text-sm font-medium text-navy mb-1">Name <span className="text-brandOrange-dark">*</span></label>
                 <input
                   id="name"
                   name="name"
@@ -289,7 +289,7 @@ export default function CommunityPage() {
                 />
               </div>
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-navy mb-1">Email <span className="text-brandOrange">*</span></label>
+                <label htmlFor="email" className="block text-sm font-medium text-navy mb-1">Email <span className="text-brandOrange-dark">*</span></label>
                 <input
                   id="email"
                   name="email"
@@ -305,7 +305,7 @@ export default function CommunityPage() {
             </div>
 
             <div className="mt-5">
-              <label htmlFor="story" className="block text-sm font-medium text-navy mb-1">Your story <span className="text-brandOrange">*</span></label>
+              <label htmlFor="story" className="block text-sm font-medium text-navy mb-1">Your story <span className="text-brandOrange-dark">*</span></label>
               <div className="relative">
                 <textarea
                   id="story"

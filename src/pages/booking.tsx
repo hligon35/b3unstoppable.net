@@ -77,7 +77,7 @@ export default function BookingPage() {
       <section className="section-padding bg-gradient-to-br from-brandBlue-light to-white">
         <div className="mx-auto max-w-5xl pt-10">
           <div className="mx-auto mb-12 max-w-3xl text-center">
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-brandOrange">Speaking Inquiry</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-brandOrange-dark">Speaking Inquiry</p>
             <h1 className="mt-4 text-4xl md:text-5xl font-bold text-navy">Book Dr. Bree</h1>
             <p className="mt-5 text-lg text-navy/75">Tell us about your event, audience, and goals. The B3U team will review your inquiry and follow up with next steps.</p>
           </div>

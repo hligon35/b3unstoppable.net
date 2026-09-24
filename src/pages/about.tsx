@@ -52,7 +52,7 @@ export default function AboutPage({ initialSiteDraft, initialSiteUpdatedAt }: Ab
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold mb-5">
-              Meet <span className="text-brandOrange">Dr. Bree Charles</span>
+              Meet <span className="text-brandOrange-dark">Dr. Bree Charles</span>
             </h1>
             <p className="text-xl md:text-2xl text-navy/80 font-semibold">
               Helping Leaders Take Back the Person Behind the Role
@@ -188,7 +188,7 @@ export default function AboutPage({ initialSiteDraft, initialSiteUpdatedAt }: Ab
               <div className="h-20 w-20 mb-6 relative mx-auto">
                 <Image src={MelaLogo} alt="Mela Whole Foods Logo" fill className="object-contain" />
               </div>
-              <h3 className="text-xl font-bold mb-4 text-brandOrange">MELA Whole Foods</h3>
+              <h3 className="text-xl font-bold mb-4 text-brandOrange-dark">MELA Whole Foods</h3>
               <p className="text-navy/80">
                 A community initiative focused on expanding access to healthy, affordable food.
               </p>
@@ -208,7 +208,7 @@ export default function AboutPage({ initialSiteDraft, initialSiteUpdatedAt }: Ab
                   className="object-contain"
                 />
               </div>
-              <h3 className="text-xl font-bold mb-4 text-brandOrange">The House of Humanity</h3>
+              <h3 className="text-xl font-bold mb-4 text-brandOrange-dark">The House of Humanity</h3>
               <p className="text-navy/80">
                 A nonprofit initiative dedicated to housing and healing for individuals overcoming
                 hardship.

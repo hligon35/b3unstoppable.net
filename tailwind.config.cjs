@@ -21,9 +21,9 @@ module.exports = {
         navy: 'rgb(var(--color-navy) / <alpha-value>)',
       },
       fontFamily: {
-        display: ['Oswald', 'Impact', 'Arial Black', 'sans-serif'],
-        body: ['Inter', 'system-ui', 'sans-serif'],
-        script: ['Dancing Script', 'Brush Script MT', 'cursive']
+        display: ['var(--font-display)', 'Oswald', 'Impact', 'Arial Black', 'sans-serif'],
+        body: ['var(--font-body)', 'Inter', 'system-ui', 'sans-serif'],
+        script: ['var(--font-script)', 'Dancing Script', 'Brush Script MT', 'cursive']
       },
       spacing: {
         '15': '3.75rem', // 60px - 50% larger than h-10 w-10 (40px)

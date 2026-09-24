@@ -40,6 +40,13 @@ env.vercel
 .wrangler/
 .sanity
 
+# Local/dev data (never commit real subscriber or debug data)
+/data/app.db
+/data/debug/*.json
+/data/debug/*.jsonl
+/subscribers.csv
+/subscribers-live.csv
+
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts

@@ -19,6 +19,9 @@ type PayPalWindow = Window & {
 
 type ShopPageProps = PublishedSitePageProps;
 
+const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID
+  || 'BAAPBO-Uvexziam7VLQ2yKMSsR2wCpPVT3FB5A_JCB5ENRZakcAlTvZiI-TV2iZz-hLGg62MA9VxbS77jQ';
+
 export default function ShopPage({ initialSiteDraft, initialSiteUpdatedAt }: ShopPageProps) {
   const { draft } = usePublishedSiteDraft({
     initialDraft: initialSiteDraft,
@@ -72,7 +75,7 @@ export default function ShopPage({ initialSiteDraft, initialSiteUpdatedAt }: Sho
       <section className="section-padding bg-gradient-to-br from-brandOrange/10 via-white to-brandBlue-light/40">
         <div className="mx-auto max-w-6xl">
           <div className="mb-12 text-center">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange">{draft.shopEyebrow}</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-brandOrange-dark">{draft.shopEyebrow}</p>
             <h1 className="mt-4 text-4xl font-bold text-navy md:text-5xl">{draft.shopTitle}</h1>
             <p className="mx-auto mt-5 max-w-3xl text-lg text-navy/80">
               {draft.shopIntroOne}
@@ -160,7 +163,7 @@ export default function ShopPage({ initialSiteDraft, initialSiteUpdatedAt }: Sho
       </section>
 
       <Script
-        src="https://www.paypal.com/sdk/js?client-id=BAAPBO-Uvexziam7VLQ2yKMSsR2wCpPVT3FB5A_JCB5ENRZakcAlTvZiI-TV2iZz-hLGg62MA9VxbS77jQ&components=hosted-buttons&enable-funding=venmo&currency=USD"
+        src={`https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&components=hosted-buttons&enable-funding=venmo&currency=USD`}
         strategy="afterInteractive"
         onLoad={renderPayPalButton}
       />

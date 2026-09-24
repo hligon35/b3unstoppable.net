@@ -1073,7 +1073,7 @@ export default function Admin({ adminRole }: AdminPageProps) {
                             <button
                               type="button"
                               onClick={() => void handleDeleteSubscriber(subscriber)}
-                              className="shrink-0 rounded-full border border-brandOrange/30 px-3 py-1 text-xs font-semibold text-brandOrange transition hover:bg-brandOrange hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                              className="shrink-0 rounded-full border border-brandOrange/30 px-3 py-1 text-xs font-semibold text-brandOrange-dark transition hover:bg-brandOrange-dark hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                               disabled={subscriberDeletingId === subscriber.id}
                             >
                               {subscriberDeletingId === subscriber.id ? 'Deleting...' : 'Delete'}
@@ -1333,7 +1333,7 @@ export default function Admin({ adminRole }: AdminPageProps) {
                               <button
                                 type="button"
                                 onClick={() => void handleDeleteSubscriber(subscriber)}
-                                className="shrink-0 rounded-full border border-brandOrange/30 px-3 py-1 text-xs font-semibold text-brandOrange transition hover:bg-brandOrange hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                                className="shrink-0 rounded-full border border-brandOrange/30 px-3 py-1 text-xs font-semibold text-brandOrange-dark transition hover:bg-brandOrange-dark hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                                 disabled={subscriberDeletingId === subscriber.id}
                               >
                                 {subscriberDeletingId === subscriber.id ? 'Deleting...' : 'Delete'}

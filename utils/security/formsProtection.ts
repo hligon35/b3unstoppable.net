@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-type ProtectedRoute = 'contact' | 'newsletter' | 'submit';
+type ProtectedRoute = 'contact' | 'newsletter' | 'submit' | 'login';
 
 type RateLimitBucket = {
   count: number;
@@ -21,6 +21,7 @@ const DEFAULT_LIMITS: Record<ProtectedRoute, number> = {
   contact: 5,
   newsletter: 8,
   submit: 4,
+  login: 8,
 };
 
 export function applyFormsRateLimit(req: NextApiRequest, res: NextApiResponse, route: ProtectedRoute): boolean {
