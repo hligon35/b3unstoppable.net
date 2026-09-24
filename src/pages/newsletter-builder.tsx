@@ -1065,7 +1065,7 @@ export default function NewsletterBuilder() {
 
   const comingWeekItems = getComingWeekItems(weeklyDraft);
   const allSubscribersSelected = subscribers.length > 0 && selectedSubscriberEmails.length === subscribers.length;
-  const sortedNewsletterQueue = [...newsletterQueue].sort((first, second) => new Date(first.scheduledFor).getTime() - new Date(second.scheduledFor).getTime());
+  const sortedNewsletterQueue = [...newsletterQueue].sort((first, second) => new Date(second.scheduledFor).getTime() - new Date(first.scheduledFor).getTime());
   const groupedNewsletterQueue = sortedNewsletterQueue.reduce<Array<{ dayLabel: string; items: NewsletterQueueItem[] }>>((groups, item) => {
     const parsedDate = new Date(item.scheduledFor);
     const dayLabel = Number.isNaN(parsedDate.getTime())
