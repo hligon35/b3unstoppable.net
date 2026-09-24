@@ -140,6 +140,7 @@ export async function processDueNewsletters(limit = 8) {
   let processed = 0;
   let sent = 0;
   let failed = 0;
+  const failures: Array<{ id: number; subject: string; error: string }> = [];
 
   for (const newsletter of dueNewsletters) {
     const claimed = await claimScheduledNewsletterRecord(newsletter.id);
@@ -166,12 +167,19 @@ export async function processDueNewsletters(limit = 8) {
       sent += 1;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown newsletter delivery error';
-      await markScheduledNewsletterRecordFailed(newsletter.id, truncateError(message));
+      const errorDetail = truncateError(message);
+      console.error('[newsletter] delivery failed', {
+        newsletterId: newsletter.id,
+        subject: newsletter.subject,
+        error: errorDetail,
+      });
+      await markScheduledNewsletterRecordFailed(newsletter.id, errorDetail);
+      failures.push({ id: newsletter.id, subject: newsletter.subject, error: errorDetail });
       failed += 1;
     }
   }
 
-  return { processed, sent, failed };
+  return { processed, sent, failed, failures };
 }
 
 function mapNewsletterRow(row: ScheduledNewsletterRecord): NewsletterQueueItem {
