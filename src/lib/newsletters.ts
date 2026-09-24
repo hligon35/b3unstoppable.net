@@ -6,10 +6,12 @@ import {
   getDueScheduledNewsletterRecords,
   getScheduledNewsletterRecordById,
   getScheduledNewsletterRecords,
+  getSubscribers,
   markScheduledNewsletterRecordFailed,
   markScheduledNewsletterRecordSent,
   updateScheduledNewsletterRecord,
 } from './db';
+import { createNewsletterUnsubscribeToken, getNewsletterUnsubscribeUrl } from './newsletterUnsubscribe';
 
 const MAX_SUBJECT_LENGTH = 160;
 const MAX_BODY_LENGTH = 20000;
@@ -152,15 +154,20 @@ export async function processDueNewsletters(limit = 8) {
 
     try {
       const recipients = parseRecipientEmails(newsletter.recipient_emails_json);
+      const activeSubscribers = await getSubscribers();
+      const subscribersByEmail = new Map(activeSubscribers.map((subscriber) => [subscriber.email.toLowerCase(), subscriber]));
+      const eligibleRecipients = recipients
+        .map((email) => subscribersByEmail.get(email))
+        .filter((subscriber): subscriber is NonNullable<typeof subscriber> => Boolean(subscriber));
 
-      if (recipients.length === 0) {
-        throw new Error('No recipient emails were stored for this newsletter.');
+      if (eligibleRecipients.length === 0) {
+        throw new Error('All selected recipients have unsubscribed or are no longer active.');
       }
 
       await sendNewsletterEmail({
         subject: newsletter.subject,
         bodyText: newsletter.body_text,
-        recipientEmails: recipients,
+        recipients: eligibleRecipients,
       });
 
       await markScheduledNewsletterRecordSent(newsletter.id);
@@ -279,7 +286,7 @@ function hasNewsletterSendConfig() {
 async function sendNewsletterEmail(params: {
   subject: string;
   bodyText: string;
-  recipientEmails: string[];
+  recipients: Array<{ id: number; email: string }>;
 }) {
   if (!hasNewsletterSendConfig()) {
     throw new Error('Resend newsletter delivery is not configured on this environment.');
@@ -288,11 +295,11 @@ async function sendNewsletterEmail(params: {
   const fromEmail = process.env.RESEND_FROM_EMAIL as string;
   const fromName = process.env.RESEND_FROM_NAME || 'B3U';
   const replyTo = process.env.RESEND_REPLY_TO;
-  const html = buildNewsletterHtml(params.bodyText);
-  const recipientBatches: string[][] = [];
+  const baseHtml = buildNewsletterHtml(params.bodyText);
+  const recipientBatches: Array<Array<{ id: number; email: string }>> = [];
 
-  for (let index = 0; index < params.recipientEmails.length; index += RESEND_BATCH_SIZE) {
-    recipientBatches.push(params.recipientEmails.slice(index, index + RESEND_BATCH_SIZE));
+  for (let index = 0; index < params.recipients.length; index += RESEND_BATCH_SIZE) {
+    recipientBatches.push(params.recipients.slice(index, index + RESEND_BATCH_SIZE));
   }
 
   for (const batch of recipientBatches) {
@@ -303,13 +310,24 @@ async function sendNewsletterEmail(params: {
         'content-type': 'application/json',
       },
       body: JSON.stringify(
-        batch.map((email) => ({
-          from: `${fromName} <${fromEmail}>`,
-          to: [email],
-          ...(replyTo ? { reply_to: replyTo } : {}),
-          subject: params.subject,
-          html,
-        })),
+        batch.map((subscriber) => {
+          const token = createNewsletterUnsubscribeToken(subscriber.id);
+          const pageUrl = getNewsletterUnsubscribeUrl(token);
+          const oneClickUrl = new URL('/api/newsletters/unsubscribe', pageUrl);
+          oneClickUrl.searchParams.set('token', token);
+
+          return {
+            from: `${fromName} <${fromEmail}>`,
+            to: [subscriber.email],
+            ...(replyTo ? { reply_to: replyTo } : {}),
+            subject: params.subject,
+            html: appendNewsletterUnsubscribeFooter(baseHtml, pageUrl),
+            headers: {
+              'List-Unsubscribe': `<${oneClickUrl.toString()}>`,
+              'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+            },
+          };
+        }),
       ),
     }, { label: 'Scheduled newsletter send', route: 'newsletter-queue', source: 'newsletter-queue' });
 
@@ -318,6 +336,13 @@ async function sendNewsletterEmail(params: {
       throw new Error(`scheduled-newsletter-${response.status}:${detail}`);
     }
   }
+}
+
+function appendNewsletterUnsubscribeFooter(html: string, unsubscribeUrl: string) {
+  const footer = `<div style="background:#17182b;padding:16px 24px;text-align:center;color:#ffffff;font:12px/1.6 Arial,Helvetica,sans-serif;">You’re receiving The Take Back Weekly from B3U. <a href="${unsubscribeUrl}" style="color:#e1bd5a;text-decoration:underline;">Unsubscribe</a></div>`;
+  return /<\/body\s*>/i.test(html)
+    ? html.replace(/<\/body\s*>/i, `${footer}</body>`)
+    : `${html}${footer}`;
 }
 
 function buildNewsletterHtml(bodyText: string) {
